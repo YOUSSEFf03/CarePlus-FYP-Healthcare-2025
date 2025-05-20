@@ -1,7 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
-import { Patient } from './patient.entity'; // we'll create this next
+import { Patient } from './patient.entity';
+import { Doctor } from './doctor.entity';
+import { Pharmacy } from './pharmacy.entity';
 
-export type UserRole = 'patient' | 'doctor' | 'admin';
+export type UserRole =
+  | 'patient'
+  | 'doctor'
+  | 'admin'
+  | 'pharmacy'
+  | 'assistant';
 
 @Entity()
 export class User {
@@ -28,6 +35,12 @@ export class User {
 
   @OneToOne(() => Patient, (patient) => patient.user)
   patient?: Patient;
+
+  @OneToOne(() => Doctor, (doctor) => doctor.user)
+  doctor?: Doctor;
+
+  @OneToOne(() => Pharmacy, (pharmacy) => pharmacy.user)
+  pharmacy?: Pharmacy;
 
   @Column({ nullable: true })
   refresh_token?: string;

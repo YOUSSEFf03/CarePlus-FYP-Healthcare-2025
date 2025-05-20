@@ -2,10 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Patient } from './patient.entity';
-import { UsersService } from './Users.Service';
+import { UsersService } from './users.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailService } from './email.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { Doctor } from './doctor.entity';
+import { Pharmacy } from './pharmacy.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -17,7 +21,7 @@ import { EmailService } from './email.service';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, Patient],
+      entities: [User, Patient, Doctor, Pharmacy],
       synchronize: true,
     }),
 
@@ -30,8 +34,9 @@ import { EmailService } from './email.service';
       inject: [ConfigService],
     }),
 
-    TypeOrmModule.forFeature([User, Patient]),
+    TypeOrmModule.forFeature([User, Patient, Doctor, Pharmacy]),
   ],
-  providers: [UsersService, EmailService],
+  providers: [UsersService, EmailService, AppService],
+  controllers: [AppController],
 })
 export class AppModule {}

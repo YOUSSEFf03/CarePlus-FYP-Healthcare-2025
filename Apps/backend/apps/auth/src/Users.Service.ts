@@ -3,6 +3,8 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
+import { Doctor } from './doctor.entity';
+import { Pharmacy } from './pharmacy.entity';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
 import {
@@ -21,6 +23,12 @@ export class UsersService {
     @InjectRepository(Patient)
     private readonly patientRepo: Repository<Patient>,
 
+    @InjectRepository(Doctor)
+    private readonly doctorRepo: Repository<Doctor>,
+
+    @InjectRepository(Pharmacy)
+    private readonly pharmacyRepo: Repository<Pharmacy>,
+
     private readonly emailService: EmailService,
   ) {}
 
@@ -34,6 +42,16 @@ export class UsersService {
     date_of_birth?: string;
     gender?: string;
     medical_history?: string;
+    // Doctor fields
+    specialization?: string;
+    license_number?: string;
+    dr_idCard_url?: string;
+    biography?: string;
+    medical_license_url?: string;
+    verification_status?: string;
+    // Pharmacy fields
+    pharmacy_owner?: string;
+    pharmacy_name?: string;
   }): Promise<User> {
     const existing = await this.userRepo.findOne({
       where: { email: data.email },
@@ -61,22 +79,51 @@ export class UsersService {
 
     const savedUser = await this.userRepo.save(user);
 
-    await this.emailService.sendOTP(user.email, otp);
+    // await this.emailService.sendOTP(user.email, otp);
 
     if (data.role === 'patient') {
       if (!data.date_of_birth || !data.gender) {
         throw new BadRequestException('Missing patient details');
       }
-
       const patient = this.patientRepo.create({
         user: savedUser,
         date_of_birth: data.date_of_birth,
         gender: data.gender,
         medical_history: data.medical_history,
       });
-
       await this.patientRepo.save(patient);
+    } else if (data.role === 'doctor') {
+      if (
+        !data.specialization ||
+        !data.license_number ||
+        !data.dr_idCard_url ||
+        !data.biography ||
+        !data.medical_license_url
+      ) {
+        throw new BadRequestException('Missing doctor details');
+      }
+      const doctor = this.doctorRepo.create({
+        user: savedUser,
+        specialization: data.specialization,
+        license_number: data.license_number,
+        dr_idCard_url: data.dr_idCard_url,
+        biography: data.biography,
+        medical_license_url: data.medical_license_url,
+        verification_status: data.verification_status || 'pending',
+      });
+      await this.doctorRepo.save(doctor);
+    } else if (data.role === 'pharmacy') {
+      if (!data.pharmacy_owner || !data.pharmacy_name) {
+        throw new BadRequestException('Missing pharmacy details');
+      }
+      const pharmacy = this.pharmacyRepo.create({
+        user: savedUser,
+        pharmacy_owner: data.pharmacy_owner,
+        pharmacy_name: data.pharmacy_name,
+      });
+      await this.pharmacyRepo.save(pharmacy);
     }
+    // Assistants and admin do not require extra entities
 
     return savedUser;
   }
