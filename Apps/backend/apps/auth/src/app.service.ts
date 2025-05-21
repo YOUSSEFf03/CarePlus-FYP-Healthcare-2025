@@ -6,7 +6,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { RefreshTokenDto } from './dto/refresh_token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { BadRequestException } from '@nestjs/common';
+
 @Injectable()
 export class AppService {
   constructor(private readonly usersService: UsersService) {}
@@ -17,9 +17,8 @@ export class AppService {
   ): Promise<AuthResponseDto> {
     try {
       const user = await this.usersService.createUser(data);
-      if (!user) {
-        throw new Error('User registration failed');
-      }
+      if (!user) throw new Error('User registration failed');
+
       const tokens = await this.usersService.generateTokens(user);
       return {
         access_token: tokens.accessToken,
@@ -29,15 +28,13 @@ export class AppService {
       };
     } catch (err) {
       console.error('Error in registerUser:', err?.message);
-      throw new BadRequestException(err?.message || 'Registration failed');
+      throw err; // Rethrow original RpcException
     }
   }
 
   @MessagePattern({ cmd: 'login_user' })
   async loginUser(@Payload() data: LoginUserDto): Promise<AuthResponseDto> {
     try {
-      console.log('login_user handler called with:', data);
-
       const userWithTokens = await this.usersService.login(
         data.email,
         data.password,
@@ -51,7 +48,7 @@ export class AppService {
       };
     } catch (err) {
       console.error('Error in loginUser:', err?.message);
-      throw new BadRequestException(err?.message || 'Login failed');
+      throw err; // Rethrow original RpcException
     }
   }
 
@@ -72,7 +69,7 @@ export class AppService {
       };
     } catch (err) {
       console.error('Error in refreshToken:', err?.message);
-      throw new BadRequestException(err?.message || 'Token refresh failed');
+      throw err; // Rethrow original RpcException
     }
   }
 
@@ -83,7 +80,7 @@ export class AppService {
       return { message: 'Logged out successfully' };
     } catch (err) {
       console.error('Error in logoutUser:', err?.message);
-      throw new BadRequestException(err?.message || 'Logout failed');
+      throw err; // Rethrow original RpcException
     }
   }
 
@@ -94,7 +91,7 @@ export class AppService {
       return { message };
     } catch (err) {
       console.error('Error in verifyOtp:', err?.message);
-      throw new BadRequestException(err?.message || 'OTP verification failed');
+      throw err; // Rethrow original RpcException
     }
   }
 

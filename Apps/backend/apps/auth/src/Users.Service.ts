@@ -7,11 +7,8 @@ import { Doctor } from './doctor.entity';
 import { Pharmacy } from './pharmacy.entity';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
-import {
-  ConflictException,
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +29,10 @@ export class UsersService {
     private readonly emailService: EmailService,
   ) {}
 
+  private rpcError(message: string, status = 400) {
+    return new RpcException({ status, message });
+  }
+
   async createUser(data: {
     name: string;
     email: string;
@@ -42,14 +43,12 @@ export class UsersService {
     date_of_birth?: string;
     gender?: string;
     medical_history?: string;
-    // Doctor fields
     specialization?: string;
     license_number?: string;
     dr_idCard_url?: string;
     biography?: string;
     medical_license_url?: string;
     verification_status?: string;
-    // Pharmacy fields
     pharmacy_owner?: string;
     pharmacy_name?: string;
   }): Promise<User> {
@@ -57,7 +56,7 @@ export class UsersService {
       where: { email: data.email },
     });
     if (existing) {
-      throw new ConflictException('Email already registered');
+      throw this.rpcError('Email already registered', 409);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -83,7 +82,7 @@ export class UsersService {
 
     if (data.role === 'patient') {
       if (!data.date_of_birth || !data.gender) {
-        throw new BadRequestException('Missing patient details');
+        throw this.rpcError('Missing patient details');
       }
       const patient = this.patientRepo.create({
         user: savedUser,
@@ -100,7 +99,7 @@ export class UsersService {
         !data.biography ||
         !data.medical_license_url
       ) {
-        throw new BadRequestException('Missing doctor details');
+        throw this.rpcError('Missing doctor details');
       }
       const doctor = this.doctorRepo.create({
         user: savedUser,
@@ -114,7 +113,7 @@ export class UsersService {
       await this.doctorRepo.save(doctor);
     } else if (data.role === 'pharmacy') {
       if (!data.pharmacy_owner || !data.pharmacy_name) {
-        throw new BadRequestException('Missing pharmacy details');
+        throw this.rpcError('Missing pharmacy details');
       }
       const pharmacy = this.pharmacyRepo.create({
         user: savedUser,
@@ -123,8 +122,6 @@ export class UsersService {
       });
       await this.pharmacyRepo.save(pharmacy);
     }
-    // Assistants and admin do not require extra entities
-
     return savedUser;
   }
 
@@ -140,9 +137,7 @@ export class UsersService {
     if (!user) return null;
 
     if (!user.is_verified) {
-      throw new BadRequestException(
-        'Please verify your email before logging in',
-      );
+      throw this.rpcError('Please verify your email before logging in');
     }
 
     const match = await bcrypt.compare(plainPassword, user.password);
@@ -155,7 +150,7 @@ export class UsersService {
   ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.validateUser(email, plainPassword);
     if (!user) {
-      throw new BadRequestException('Invalid email or password');
+      throw this.rpcError('Invalid email or password');
     }
 
     const tokens = await this.generateTokens(user);
@@ -200,24 +195,24 @@ export class UsersService {
 
       const user = await this.userRepo.findOne({ where: { id: payload.sub } });
       if (!user || !user.refresh_token) {
-        throw new Error('User not found or not logged in');
+        throw this.rpcError('User not found or not logged in', 404);
       }
 
       const isValid = await bcrypt.compare(refreshToken, user.refresh_token);
       if (!isValid) {
-        throw new Error('Invalid refresh token');
+        throw this.rpcError('Invalid refresh token', 401);
       }
 
-      // All good, generate new tokens
       const tokens = await this.generateTokens(user);
       return {
         access_token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
       };
     } catch {
-      throw new Error('Invalid or expired refresh token');
+      throw this.rpcError('Invalid or expired refresh token', 401);
     }
   }
+
   async logout(userId: string) {
     await this.userRepo.update(userId, { refresh_token: null });
   }
@@ -225,11 +220,12 @@ export class UsersService {
   async findById(id: string): Promise<User | undefined> {
     return this.userRepo.findOne({ where: { id } });
   }
+
   async verifyOtp(email: string, otp: string): Promise<string> {
     const user = await this.userRepo.findOne({ where: { email } });
 
     if (!user) {
-      throw new Error('User not found');
+      throw this.rpcError('User not found', 404);
     }
 
     if (user.is_verified) {
@@ -237,11 +233,11 @@ export class UsersService {
     }
 
     if (user.otp_code !== otp) {
-      throw new Error('Invalid OTP');
+      throw this.rpcError('Invalid OTP');
     }
 
     if (user.otp_expiry < new Date()) {
-      throw new Error('OTP expired');
+      throw this.rpcError('OTP expired');
     }
 
     user.is_verified = true;

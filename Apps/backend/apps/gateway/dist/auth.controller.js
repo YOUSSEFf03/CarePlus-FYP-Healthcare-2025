@@ -14,64 +14,41 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const common_1 = require("@nestjs/common");
+const microservices_1 = require("@nestjs/microservices");
+const rxjs_1 = require("rxjs");
 let AuthController = class AuthController {
     constructor(authServiceClient) {
         this.authServiceClient = authServiceClient;
     }
-    async login(body) {
+    async handleRequest(pattern, body, fallbackMsg) {
         try {
-            return await this.authServiceClient
-                .send({ cmd: 'login_user' }, body)
-                .toPromise();
+            const result = await (0, rxjs_1.lastValueFrom)(this.authServiceClient.send(pattern, body));
+            return result;
         }
         catch (err) {
-            console.error('Microservice error (login):', err?.message);
-            throw new common_1.BadRequestException(err?.message || 'Login failed');
+            console.error('Microservice Error:', err);
+            let status = err?.status || common_1.HttpStatus.BAD_REQUEST;
+            if (typeof status !== 'number' || isNaN(status)) {
+                status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            const message = err?.response?.message || err?.message || fallbackMsg;
+            throw new common_1.HttpException(message, status);
         }
+    }
+    async login(body) {
+        return this.handleRequest({ cmd: 'login_user' }, body, 'Login failed');
     }
     async register(body) {
-        try {
-            return await this.authServiceClient
-                .send({ cmd: 'register_user' }, body)
-                .toPromise();
-        }
-        catch (err) {
-            console.error('Microservice error (register):', err?.message);
-            throw new common_1.BadRequestException(err?.message || 'Registration failed');
-        }
+        return this.handleRequest({ cmd: 'register_user' }, body, 'Registration failed');
     }
     async refreshToken(body) {
-        try {
-            return await this.authServiceClient
-                .send({ cmd: 'refresh_token' }, body)
-                .toPromise();
-        }
-        catch (err) {
-            console.error('Microservice error (refresh_token):', err?.message);
-            throw new common_1.BadRequestException(err?.message || 'Token refresh failed');
-        }
+        return this.handleRequest({ cmd: 'refresh_token' }, body, 'Token refresh failed');
     }
     async logout(body) {
-        try {
-            return await this.authServiceClient
-                .send({ cmd: 'logout_user' }, body)
-                .toPromise();
-        }
-        catch (err) {
-            console.error('Microservice error (logout):', err?.message);
-            throw new common_1.BadRequestException(err?.message || 'Logout failed');
-        }
+        return this.handleRequest({ cmd: 'logout_user' }, body, 'Logout failed');
     }
     async verifyOtp(body) {
-        try {
-            return await this.authServiceClient
-                .send({ cmd: 'verify_otp' }, body)
-                .toPromise();
-        }
-        catch (err) {
-            console.error('Microservice error (verify_otp):', err?.message);
-            throw new common_1.BadRequestException(err?.message || 'OTP verification failed');
-        }
+        return this.handleRequest({ cmd: 'verify_otp' }, body, 'OTP verification failed');
     }
 };
 exports.AuthController = AuthController;
@@ -113,6 +90,6 @@ __decorate([
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __param(0, (0, common_1.Inject)('AUTH_SERVICE_CLIENT')),
-    __metadata("design:paramtypes", [Object])
+    __metadata("design:paramtypes", [microservices_1.ClientProxy])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map
