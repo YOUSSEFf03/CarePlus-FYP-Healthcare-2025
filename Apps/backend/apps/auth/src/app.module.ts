@@ -10,10 +10,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Doctor } from './doctor.entity';
 import { Pharmacy } from './pharmacy.entity';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-
+    WhatsappModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,

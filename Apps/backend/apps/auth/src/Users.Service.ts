@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
-
+import { WhatsappService } from './whatsapp/whatsapp.service';
 @Injectable()
 export class UsersService {
   constructor(
@@ -25,7 +25,7 @@ export class UsersService {
 
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
-
+    private readonly whatsappService: WhatsappService,
     private readonly emailService: EmailService,
   ) {}
 
@@ -78,6 +78,7 @@ export class UsersService {
 
     const savedUser = await this.userRepo.save(user);
 
+    // await this.whatsappService.sendOtp(data.phone, otp);
     // await this.emailService.sendOTP(user.email, otp);
 
     if (data.role === 'patient') {
