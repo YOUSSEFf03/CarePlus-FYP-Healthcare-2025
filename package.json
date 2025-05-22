@@ -1,0 +1,26 @@
+{
+  "name": "fyp-healthcare-2025",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start:all": "turbo run start",
+    "build:all": "turbo run build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:web": "npm start --workspace=Apps/web",
+    "start:auth": "npm start --workspace=Apps/backend/apps/auth",
+    "start:gateway": "npm start --workspace=Apps/backend/apps/gateway"
+  },
+  "keywords": [],
+  "packageManager": "npm@10.8.2",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "workspaces": [
+    "Apps/web",
+    "Apps/backend/apps/*",
+    "Apps/mobile"
+  ],
+  "devDependencies": {
+    "turbo": "^2.5.3"
+  }
+}
