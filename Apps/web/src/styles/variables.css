@@ -1,0 +1,165 @@
+:root {
+    /* Colors */
+    /* Lavender */
+    --primary-color: #d8cefd;
+    --primary-100: #311164;
+    --primary-90: #501f93;
+    --primary-80: #6123b4;
+    --primary-70: #742bd6;
+    --primary-60: #843dea;
+    --primary-50: #925ef4;
+    --primary-40: #ac8df8;
+    --primary-30: #c8b6fc;
+    --primary-10: #eee9fe;
+    --primary-05: #f5f3ff;
+
+    /* Light Apricot */
+    --secondary-color: #fbd292;
+    --secondary-100: #421908;
+    --secondary-90: #793515;
+    --secondary-80: #974015;
+    --secondary-70: #be5010;
+    --secondary-60: #e56a11;
+    --secondary-50: #f3841c;
+    --secondary-40: #f69f41;
+    --secondary-30: #fac477;
+    --secondary-10: #fef0d6;
+    --secondary-05: #fff8ed;
+
+    /* Pastel Teal */
+    --tertiary-color: #cce3de;
+    --tertiary-100: #0f1f1f;
+    --tertiary-90: #1c3838;
+    --tertiary-80: #214443;
+    --tertiary-70: #285453;
+    --tertiary-60: #326965;
+    --tertiary-50: #44857f;
+    --tertiary-40: #65a29b;
+    --tertiary-30: #93c2ba;
+    --tertiary-10: #deede9;
+    --tertiary-05: #f1f8f7;
+
+    /* Mauve Pink */
+    --quaternary-color: #e6b7f4;
+    --quaternary-100: #3e0c46;
+    --quaternary-90: #61246b;
+    --quaternary-80: #732583;
+    --quaternary-70: #8b2ba0;
+    --quaternary-60: #a738c1;
+    --quaternary-50: #c158dd;
+    --quaternary-40: #d686ec;
+    --quaternary-20: #efd5f9;
+    --quaternary-10: #f7eafd;
+    --quaternary-05: #fbf5fe;
+
+    /* Neutral */
+    --black: #1A1A1C;
+    --neutral-1000: #434344;
+    --neutral-900: #585859;
+    --neutral-800: #6D6D6D;
+    --neutral-700: #828282;
+    --neutral-600: #969696;
+    --neutral-500: #AAAAAA;
+    --neutral-400: #BFBFBF;
+    --neutral-300: #D3D3D3;
+    --neutral-200: #E8E8E8;
+    --neutral-201: #F2F2F2;
+    --neutral-100: #FCFCFC;
+    --white: #FFFFFF;
+
+    /* Status Colors */
+    --success-color: #22c55e;
+    --success-bg: #dcfce7;
+    --success-border: #86efac;
+
+    --warning-color: #eab308;
+    --warning-bg: #fef9c3;
+    --warning-border: #fde047;
+
+    --error-color: #ef4444;
+    --error-bg: #fee2e2;
+    --error-border: #fca5a5;
+
+    --info-color: #3b82f6;
+    --info-bg: #dbeafe;
+    --info-border: #93c5fd;
+
+    /* Gradient */
+    --gradient-lavender-pink: linear-gradient(45deg, var(--primary-color) 0%, var(--quaternary-20) 100%);
+    --gradient-lavender-white: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-10) 100%);
+    --gradient-apricot-white: linear-gradient(180deg, var(--secondary-color) 0%, var(--secondary-10) 100%);
+    --gradient-teal-white: linear-gradient(180deg, var(--tertiary-color) 0%, var(--tertiary-10) 100%);
+    --gradient-pink-white: linear-gradient(180deg, var(--quaternary-color) 0%, var(--quaternary-10) 100%);
+
+    /* Font Family */
+    --ff-poppins: 'Poppins', sans-serif;
+
+    /* Font Weight */
+    --fw-900: 900;
+    --fw-800: 800;
+    --fw-700: 700;
+    --fw-600: 600;
+    --fw-500: 500;
+    --fw-400: 400;
+    --fw-300: 300;
+    --fw-200: 200;
+    --fw-100: 100;
+
+    /* Font Size */
+    --fs-48: 48px;
+    --fs-36: 36px;
+    --fs-24: 24px;
+    --fs-18: 18px;
+    --fs-16: 16px;
+    --fs-15: 15px;
+    --fs-14: 14px;
+    --fs-12: 12px;
+
+    /* Border Radius */
+    --radius-4: 4px;
+    --radius-8: 8px;
+    --radius-16: 16px;
+    --radius-50: 50px;
+    --radius-100: 100px;
+    --radius-full: 50% 50%;
+
+    /* Shadows */
+    --shadow-light: 0px 4px 16px 0px rgba(178, 178, 178, 0.15);
+    --shadow-1: 0px 8px 28px 0px rgba(178, 178, 178, 0.25);
+    --shadow-2: 0px 8px 30px 5px rgb(182, 182, 182, 0.25);
+
+    /* Transitions */
+    --transition-200: 0.2s ease;
+    --transition-300: 0.3s ease;
+    --transition-500: 0.5s ease;
+
+    /* Gaps */
+    --gap-4: 4px;
+    --gap-8: 8px;
+    --gap-12: 12px;
+    --gap-16: 16px;
+    --gap-20: 20px;
+    --gap-24: 24px;
+    --gap-36: 36px;
+    --gap-48: 48px;
+    --gap-56: 56px;
+    --gap-64: 64px;
+    --gap-72: 72px;
+    --gap-80: 80px;
+    --gap-100: 100px;
+    --gap-150: 150px;
+
+    /* Paddings */
+    --padding-8: 8px;
+    --padding-16: 16px;
+    --padding-4-16: 4px 16px;
+    --padding-8-16: 8px 16px;
+    --padding-10-16: 10px 16px;
+    --padding-8-24: 8px 24px;
+    --padding-8-32: 8px 32px;
+    --padding-10-24: 10px 24px;
+    --padding-10-32: 10px 32px;
+    --padding-12-32: 12px 32px;
+    --section-padding: 24px 64px;
+    --header-padding: 16px 64px;
+}
