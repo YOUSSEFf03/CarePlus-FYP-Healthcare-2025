@@ -1,56 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap');
+
 :root {
     /* Colors */
-    /* Lavender */
-    --primary-color: #d8cefd;
-    --primary-100: #311164;
-    --primary-90: #501f93;
-    --primary-80: #6123b4;
-    --primary-70: #742bd6;
-    --primary-60: #843dea;
-    --primary-50: #925ef4;
-    --primary-40: #ac8df8;
-    --primary-30: #c8b6fc;
-    --primary-10: #eee9fe;
-    --primary-05: #f5f3ff;
+    /* Deep Navy */
+    --primary-color: #050f2a;
+    --primary-90: #020612;
+    --primary-80: #030817;
+    --primary-70: #040b1e;
+    --primary-60: #050e26;
+    --primary-40: #373f55;
+    --primary-30: #585e70;
+    --primary-20: #8c919d;
+    --primary-10: #b2b5bd;
+    --primary-05: #e6e7ea;
 
-    /* Light Apricot */
-    --secondary-color: #fbd292;
-    --secondary-100: #421908;
-    --secondary-90: #793515;
-    --secondary-80: #974015;
-    --secondary-70: #be5010;
-    --secondary-60: #e56a11;
-    --secondary-50: #f3841c;
-    --secondary-40: #f69f41;
-    --secondary-30: #fac477;
-    --secondary-10: #fef0d6;
-    --secondary-05: #fff8ed;
+    /* Sky Blue */
+    --secondary-color: #7bbbff;
+    --secondary-90: #344f6b;
+    --secondary-80: #44678c;
+    --secondary-70: #5785b5;
+    --secondary-60: #70aae8;
+    --secondary-40: #95c9ff;
+    --secondary-30: #a7d1ff;
+    --secondary-20: #c2e0ff;
+    --secondary-10: #d6eaff;
+    --secondary-05: #f2f8ff;
 
-    /* Pastel Teal */
-    --tertiary-color: #cce3de;
-    --tertiary-100: #0f1f1f;
-    --tertiary-90: #1c3838;
-    --tertiary-80: #214443;
-    --tertiary-70: #285453;
-    --tertiary-60: #326965;
-    --tertiary-50: #44857f;
-    --tertiary-40: #65a29b;
-    --tertiary-30: #93c2ba;
-    --tertiary-10: #deede9;
-    --tertiary-05: #f1f8f7;
-
-    /* Mauve Pink */
-    --quaternary-color: #e6b7f4;
-    --quaternary-100: #3e0c46;
-    --quaternary-90: #61246b;
-    --quaternary-80: #732583;
-    --quaternary-70: #8b2ba0;
-    --quaternary-60: #a738c1;
-    --quaternary-50: #c158dd;
-    --quaternary-40: #d686ec;
-    --quaternary-20: #efd5f9;
-    --quaternary-10: #f7eafd;
-    --quaternary-05: #fbf5fe;
+    /* Lavender Purple */
+    --tertiary-color: #b8a9ff;
+    --tertiary-90: #4d476b;
+    --tertiary-80: #655d8c;
+    --tertiary-70: #8378b5;
+    --tertiary-60: #a79ae8;
+    --tertiary-40: #c6baff;
+    --tertiary-30: #cfc5ff;
+    --tertiary-20: #ded7ff;
+    --tertiary-10: #e9e4ff;
+    --tertiary-05: #f8f6ff;
 
     /* Neutral */
     --black: #1A1A1C;
@@ -68,21 +54,49 @@
     --white: #FFFFFF;
 
     /* Status Colors */
-    --success-color: #22c55e;
-    --success-bg: #dcfce7;
-    --success-border: #86efac;
+    --success-color: #139E4B;
+    --success-90: #002B16;
+    --success-80: #025227;
+    --success-70: #087839;
+    --success-50: #22C55E;
+    --success-40: #45D174;
+    --success-30: #6DDE8F;
+    --success-20: #98EBAE;
+    --success-10: #C8F7D3;
+    --success-05: #F0FFF3;
 
-    --warning-color: #eab308;
-    --warning-bg: #fef9c3;
-    --warning-border: #fde047;
+    --warning-color: #D45608;
+    --warning-90: #611B00;
+    --warning-80: #872B00;
+    --warning-70: #AD3D00;
+    --warning-50: #F97316;
+    --warning-40: #FF9640;
+    --warning-30: #FFB169;
+    --warning-20: #FFCA91;
+    --warning-10: #FFE0BA;
+    --warning-05: #FFF4E6;
 
-    --error-color: #ef4444;
-    --error-bg: #fee2e2;
-    --error-border: #fca5a5;
+    --error-color: #DC2626;
+    --error-90: #420109;
+    --error-80: #69020C;
+    --error-70: #8F0A13;
+    --error-60: #B5161B;
+    --error-40: #E8524D;
+    --error-30: #F58078;
+    --error-20: #FFAFA6;
+    --error-10: #FFD5CF;
+    --error-05: #FFF2F0;
 
-    --info-color: #3b82f6;
-    --info-bg: #dbeafe;
-    --info-border: #93c5fd;
+    --info-color: #027FC2;
+    --info-90: #002B4F;
+    --info-80: #004475;
+    --info-70: #00609C;
+    --info-50: #0EA5E9;
+    --info-40: #36BFF5;
+    --info-30: #61D7FF;
+    --info-20: #8AE6FF;
+    --info-10: #B3F1FF;
+    --info-05: #E6FBFF;
 
     /* Gradient */
     --gradient-lavender-pink: linear-gradient(45deg, var(--primary-color) 0%, var(--quaternary-20) 100%);
@@ -93,6 +107,9 @@
 
     /* Font Family */
     --ff-poppins: 'Poppins', sans-serif;
+    --ff-red-hat-display: 'Red Hat Display', sans-serif;
+    --ff-open-sans: 'Open Sans', sans-serif;
+    --ff-merriweather: 'Merriweather', sans-serif;
 
     /* Font Weight */
     --fw-900: 900;
@@ -158,6 +175,7 @@
     --padding-8-24: 8px 24px;
     --padding-8-32: 8px 32px;
     --padding-10-24: 10px 24px;
+    --padding-12-24: 12px 24px;
     --padding-10-32: 10px 32px;
     --padding-12-32: 12px 32px;
     --section-padding: 24px 64px;
