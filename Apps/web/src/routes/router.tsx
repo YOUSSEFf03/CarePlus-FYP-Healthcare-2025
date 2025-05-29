@@ -1,29 +1,30 @@
 import { Routes, Route } from 'react-router-dom';
 import Landing from '../pages/Landing';
-// import Login from '@/pages/Login';
-// import Dashboard from '@/pages/Dashboard';
+import NotFound from '../pages/NotFound';
+import DoctorLayout from '../layouts/DoctorLayout';
+import DoctorDashboard from '../pages/doctor/DoctorDashboard';
+import DoctorPatients from '../pages/doctor/DoctorPatients';
 import ProtectedRoute from './ProtectedRoute';
+import Login from '../pages/Login';
 
 export default function AppRoutes() {
     return (
         <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />
-            {/* <Route path="/login" element={<Login />} />
-            <Route path="/unauthorized" element={<Unauthorized />} /> */}
+            <Route path="/login" element={<Login />} />
+            {/* <Route path="/unauthorized" element={<Unauthorized />} /> */}
 
             {/* Doctor Dashboard */}
-            {/* <Route
+            <Route
                 path="/doctor"
-                element={
-                    <ProtectedRoute allowedRoles={['doctor']}>
-                        <DoctorLayout />
-                    </ProtectedRoute>
-                }
+                element={<ProtectedRoute allowedRoles={['doctor']} />}
             >
-                <Route index element={<DoctorDashboard />} />
-                <Route path="patients" element={<DoctorPatients />} />
-            </Route> */}
+                <Route element={<DoctorLayout />}>
+                    <Route index element={<DoctorDashboard />} />
+                    <Route path="patients" element={<DoctorPatients />} />
+                </Route>
+            </Route>
 
             {/* Assistant Dashboard */}
             {/* <Route
@@ -52,7 +53,7 @@ export default function AppRoutes() {
             </Route> */}
 
             {/* 404 */}
-            {/* <Route path="*" element={<NotFound />} /> */}
+            <Route path="*" element={<NotFound />} />
         </Routes>
     );
 }

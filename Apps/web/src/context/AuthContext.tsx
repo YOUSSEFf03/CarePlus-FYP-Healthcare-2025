@@ -19,10 +19,19 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<{ role: Role } | null>(null);
+    // const [user, setUser] = useState<{ role: Role } | null>(null);
+    const [user, setUser] = useState<{ role: Role } | null>(() => {
+        const stored = localStorage.getItem('user');
+        return stored ? JSON.parse(stored) : null;
+    });
 
+    // const login = (role: Role) => {
+    //     setUser({ role });
+    // };
     const login = (role: Role) => {
-        setUser({ role });
+        const user = { role };
+        setUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
     };
 
     const logout = () => {
