@@ -1,36 +1,40 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from './user.entity';
+// This file is deprecated and should be deleted.
+// The Doctor entity now lives in the doctor microservice.
+// Remove all code below or delete this file.
 
-@Entity()
-export class Doctor {
-  @PrimaryGeneratedColumn('uuid')
-  doctor_id: string;
+// import {
+//   Entity,
+//   PrimaryGeneratedColumn,
+//   Column,
+//   OneToOne,
+//   JoinColumn,
+// } from 'typeorm';
+// import { User } from './user.entity';
 
-  @OneToOne(() => User, { cascade: true })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+// @Entity()
+// export class Doctor {
+//   @PrimaryGeneratedColumn('uuid')
+//   doctor_id: string;
 
-  @Column()
-  specialization: string;
+//   @OneToOne(() => User, { cascade: true })
+//   @JoinColumn({ name: 'user_id' })
+//   user: User;
 
-  @Column()
-  license_number: string;
+//   @Column()
+//   specialization: string;
 
-  @Column()
-  dr_idCard_url: string;
+//   @Column()
+//   license_number: string;
 
-  @Column()
-  biography: string;
+//   @Column()
+//   dr_idCard_url: string;
 
-  @Column()
-  medical_license_url: string;
+//   @Column()
+//   biography: string;
 
-  @Column({ default: 'pending' })
-  verification_status: string;
-}
+//   @Column()
+//   medical_license_url: string;
+
+//   @Column({ default: 'pending' })
+//   verification_status: string;
+// }

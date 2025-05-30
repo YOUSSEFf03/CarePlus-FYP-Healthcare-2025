@@ -17,12 +17,13 @@ const common_1 = require("@nestjs/common");
 const microservices_1 = require("@nestjs/microservices");
 const rxjs_1 = require("rxjs");
 let AuthController = class AuthController {
-    constructor(authServiceClient) {
+    constructor(authServiceClient, doctorServiceClient) {
         this.authServiceClient = authServiceClient;
+        this.doctorServiceClient = doctorServiceClient;
     }
-    async handleRequest(pattern, body, fallbackMsg) {
+    async handleRequest(client, pattern, body, fallbackMsg) {
         try {
-            const result = await (0, rxjs_1.lastValueFrom)(this.authServiceClient.send(pattern, body));
+            const result = await (0, rxjs_1.lastValueFrom)(client.send(pattern, body));
             return result;
         }
         catch (err) {
@@ -36,19 +37,40 @@ let AuthController = class AuthController {
         }
     }
     async login(body) {
-        return this.handleRequest({ cmd: 'login_user' }, body, 'Login failed');
+        return this.handleRequest(this.authServiceClient, { cmd: 'login_user' }, body, 'Login failed');
     }
     async register(body) {
-        return this.handleRequest({ cmd: 'register_user' }, body, 'Registration failed');
+        try {
+            const userResult = await this.handleRequest(this.authServiceClient, { cmd: 'register_user' }, body, 'Registration failed');
+            return userResult;
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async refreshToken(body) {
-        return this.handleRequest({ cmd: 'refresh_token' }, body, 'Token refresh failed');
+        return this.handleRequest(this.authServiceClient, { cmd: 'refresh_token' }, body, 'Token refresh failed');
     }
     async logout(body) {
-        return this.handleRequest({ cmd: 'logout_user' }, body, 'Logout failed');
+        return this.handleRequest(this.authServiceClient, { cmd: 'logout_user' }, body, 'Logout failed');
     }
     async verifyOtp(body) {
-        return this.handleRequest({ cmd: 'verify_otp' }, body, 'OTP verification failed');
+        return this.handleRequest(this.authServiceClient, { cmd: 'verify_otp' }, body, 'OTP verification failed');
+    }
+    async completeDoctorProfile(body) {
+        return this.handleRequest(this.doctorServiceClient, { cmd: 'update_doctor_profile' }, { userId: body.userId, updates: body }, 'Failed to complete doctor profile');
+    }
+    async checkDoctorProfile(body) {
+        try {
+            const doctor = await this.handleRequest(this.doctorServiceClient, { cmd: 'get_doctor_by_user_id' }, body, 'Doctor profile not found');
+            return { exists: true, doctor };
+        }
+        catch (error) {
+            if (error.status === 404) {
+                return { exists: false };
+            }
+            throw error;
+        }
     }
 };
 exports.AuthController = AuthController;
@@ -87,9 +109,25 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "verifyOtp", null);
+__decorate([
+    (0, common_1.Post)('doctor/complete-profile'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "completeDoctorProfile", null);
+__decorate([
+    (0, common_1.Post)('doctor/check-profile'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "checkDoctorProfile", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __param(0, (0, common_1.Inject)('AUTH_SERVICE_CLIENT')),
-    __metadata("design:paramtypes", [microservices_1.ClientProxy])
+    __param(1, (0, common_1.Inject)('DOCTOR_SERVICE_CLIENT')),
+    __metadata("design:paramtypes", [microservices_1.ClientProxy,
+        microservices_1.ClientProxy])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

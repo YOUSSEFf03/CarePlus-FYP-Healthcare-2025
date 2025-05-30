@@ -9,7 +9,8 @@
     "start:web": "npm start --workspace=Apps/web",
     "start:auth": "npm start --workspace=Apps/backend/apps/auth",
     "start:gateway": "npm start --workspace=Apps/backend/apps/gateway",
-    "start:backend": "npm-run-all --parallel start:auth start:gateway"
+    "start:doctor": "npm start --workspace=Apps/backend/apps/doctor",
+    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor"
   },
   "keywords": [],
   "packageManager": "npm@10.8.2",

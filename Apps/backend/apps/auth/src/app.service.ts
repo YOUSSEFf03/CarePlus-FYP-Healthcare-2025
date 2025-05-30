@@ -6,6 +6,12 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { RefreshTokenDto } from './dto/refresh_token.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResendOtpDto } from './dto/resend-otp.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AppService {
@@ -17,7 +23,9 @@ export class AppService {
   ): Promise<AuthResponseDto> {
     try {
       const user = await this.usersService.createUser(data);
-      if (!user) throw new Error('User registration failed');
+      if (!user) {
+        throw new Error('User registration failed');
+      }
 
       const tokens = await this.usersService.generateTokens(user);
       return {
@@ -95,8 +103,105 @@ export class AppService {
     }
   }
 
+  @MessagePattern({ cmd: 'resend_otp' })
+  async resendOtp(@Payload() data: ResendOtpDto): Promise<{ message: string }> {
+    try {
+      const message = await this.usersService.resendOtp(data.email);
+      return { message };
+    } catch (err) {
+      console.error('Error in resendOtp:', err?.message);
+      throw err; // Rethrow original RpcException
+    }
+  }
+
+  @MessagePattern({ cmd: 'get_user_profile' })
+  async getUserProfile(@Payload() data: { userId: string }) {
+    try {
+      const user = await this.usersService.findById(data.userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Return user without sensitive data
+      const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
+        user;
+      return safeUser;
+    } catch (err) {
+      console.error('Error in getUserProfile:', err?.message);
+      throw err;
+    }
+  }
+
+  @MessagePattern({ cmd: 'update_user_profile' })
+  async updateUserProfile(@Payload() data: UpdateProfileDto) {
+    try {
+      const user = await this.usersService.findById(data.userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Update user fields
+      if (data.name) user.name = data.name;
+      if (data.phone) user.phone = data.phone;
+      if (data.profile_picture_url)
+        user.profile_picture_url = data.profile_picture_url;
+
+      const updatedUser = await this.usersService.updateUser(user);
+
+      // Return updated user without sensitive data
+      const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
+        updatedUser;
+      return safeUser;
+    } catch (err) {
+      console.error('Error in updateUserProfile:', err?.message);
+      throw err;
+    }
+  }
+
+  @MessagePattern({ cmd: 'change_password' })
+  async changePassword(@Payload() data: ChangePasswordDto) {
+    try {
+      const result = await this.usersService.changePassword(
+        data.userId,
+        data.currentPassword,
+        data.newPassword,
+      );
+      return { message: result };
+    } catch (err) {
+      console.error('Error in changePassword:', err?.message);
+      throw err;
+    }
+  }
+
+  @MessagePattern({ cmd: 'forgot_password' })
+  async forgotPassword(@Payload() data: ForgotPasswordDto) {
+    try {
+      const result = await this.usersService.forgotPassword(data.email);
+      return { message: result };
+    } catch (err) {
+      console.error('Error in forgotPassword:', err?.message);
+      throw err;
+    }
+  }
+
+  @MessagePattern({ cmd: 'reset_password' })
+  async resetPassword(@Payload() data: ResetPasswordDto) {
+    try {
+      const result = await this.usersService.resetPassword(
+        data.email,
+        data.otp,
+        data.newPassword,
+      );
+      return { message: result };
+    } catch (err) {
+      console.error('Error in resetPassword:', err?.message);
+      throw err;
+    }
+  }
+
   @MessagePattern()
   handleUnknown(@Payload() data: any) {
     console.warn('Received unknown message pattern:', data);
+    return { error: 'Unknown command', data };
   }
 }

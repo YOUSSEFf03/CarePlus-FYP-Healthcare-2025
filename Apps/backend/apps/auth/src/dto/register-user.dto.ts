@@ -4,7 +4,9 @@ import {
   IsOptional,
   IsString,
   Matches,
+  IsEnum,
 } from 'class-validator';
+import { UserRole } from '../user.entity';
 
 export class RegisterUserDto {
   @IsNotEmpty()
@@ -22,8 +24,10 @@ export class RegisterUserDto {
   password: string;
 
   @IsNotEmpty()
-  @IsString()
-  role: 'patient' | 'doctor' | 'admin';
+  @IsEnum(UserRole, {
+    message: 'Role must be one of: patient, doctor, pharmacy, admin',
+  })
+  role: UserRole;
 
   @IsNotEmpty()
   @IsString()
@@ -33,7 +37,7 @@ export class RegisterUserDto {
   @IsString()
   profile_picture_url?: string;
 
-  // patient-specific:
+  // ==================== PATIENT-SPECIFIC FIELDS ====================
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, {
     message: 'date_of_birth must be YYYY-MM-DD',
@@ -47,4 +51,38 @@ export class RegisterUserDto {
   @IsOptional()
   @IsString()
   medical_history?: string;
+
+  // ==================== DOCTOR-SPECIFIC FIELDS ====================
+  @IsOptional()
+  @IsString()
+  specialization?: string;
+
+  @IsOptional()
+  @IsString()
+  license_number?: string;
+
+  @IsOptional()
+  @IsString()
+  dr_idCard_url?: string;
+
+  @IsOptional()
+  @IsString()
+  biography?: string;
+
+  @IsOptional()
+  @IsString()
+  medical_license_url?: string;
+
+  @IsOptional()
+  @IsString()
+  verification_status?: string;
+
+  // ==================== PHARMACY-SPECIFIC FIELDS ====================
+  @IsOptional()
+  @IsString()
+  pharmacy_owner?: string;
+
+  @IsOptional()
+  @IsString()
+  pharmacy_name?: string;
 }

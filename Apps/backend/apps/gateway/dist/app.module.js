@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const auth_controller_1 = require("./auth.controller");
 const auth_client_1 = require("./auth.client");
+const doctor_client_1 = require("./doctor.client");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -21,6 +22,10 @@ exports.AppModule = AppModule = __decorate([
             {
                 provide: 'AUTH_SERVICE_CLIENT',
                 useValue: auth_client_1.AuthServiceClient,
+            },
+            {
+                provide: 'DOCTOR_SERVICE_CLIENT',
+                useValue: doctor_client_1.DoctorServiceClient,
             },
         ],
     })

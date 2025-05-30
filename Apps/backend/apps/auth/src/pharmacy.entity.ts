@@ -4,16 +4,18 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity()
+@Entity('pharmacies')
 export class Pharmacy {
   @PrimaryGeneratedColumn('uuid')
-  pharmacy_id: string;
+  id: string;
 
-  @OneToOne(() => User, { cascade: true })
-  @JoinColumn({ name: 'user_id' })
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn()
   user: User;
 
   @Column()
@@ -21,4 +23,10 @@ export class Pharmacy {
 
   @Column()
   pharmacy_name: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

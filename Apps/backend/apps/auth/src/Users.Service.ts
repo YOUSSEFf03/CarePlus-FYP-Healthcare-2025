@@ -1,32 +1,34 @@
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
-import { Doctor } from './doctor.entity';
 import { Pharmacy } from './pharmacy.entity';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
-import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { WhatsappService } from './whatsapp/whatsapp.service';
+import { ClientProxy } from '@nestjs/microservices';
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
-    private readonly jwtService: JwtService,
 
     @InjectRepository(Patient)
     private readonly patientRepo: Repository<Patient>,
 
-    @InjectRepository(Doctor)
-    private readonly doctorRepo: Repository<Doctor>,
-
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
+
+    private readonly jwtService: JwtService,
     private readonly whatsappService: WhatsappService,
     private readonly emailService: EmailService,
+
+    @Inject('DOCTOR_SERVICE')
+    private readonly doctorClient: ClientProxy,
   ) {}
 
   private rpcError(message: string, status = 400) {
@@ -52,156 +54,192 @@ export class UsersService {
     pharmacy_owner?: string;
     pharmacy_name?: string;
   }): Promise<User> {
-    const existing = await this.userRepo.findOne({
-      where: { email: data.email },
-    });
-    if (existing) {
-      throw this.rpcError('Email already registered', 409);
+    try {
+      // Check if user already exists
+      const existing = await this.userRepo.findOne({
+        where: { email: data.email },
+      });
+      if (existing) {
+        throw this.rpcError('Email already registered', 409);
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      // Create user
+      const user = this.userRepo.create({
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: data.role,
+        phone: data.phone,
+        profile_picture_url: data.profile_picture_url,
+      });
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp_code = otp;
+      user.otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      user.is_verified = false;
+
+      // Save user
+      const savedUser = await this.userRepo.save(user);
+
+      // Send OTP (uncomment when ready)
+      try {
+        // await this.whatsappService.sendOtp(data.phone, otp);
+        // await this.emailService.sendOTP(user.email, otp);
+        console.log(`OTP for ${user.email}: ${otp}`); // For development
+      } catch (otpError) {
+        console.error('Failed to send OTP:', otpError);
+        // Don't throw error, continue with user creation
+      }
+
+      // Handle role-specific data
+      if (data.role === UserRole.PATIENT) {
+        await this.createPatientProfile(savedUser, data);
+      } else if (data.role === UserRole.DOCTOR) {
+        await this.createDoctorProfile(savedUser, data);
+      } else if (data.role === UserRole.PHARMACY) {
+        await this.createPharmacyProfile(savedUser, data);
+      }
+
+      return savedUser;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  private async createPatientProfile(user: User, data: any): Promise<void> {
+    if (!data.date_of_birth || !data.gender) {
+      throw this.rpcError(
+        'Missing required patient details: date_of_birth and gender are required',
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    const user = this.userRepo.create({
-      name: data.name,
-      email: data.email,
-      password: hashedPassword,
-      role: data.role,
-      phone: data.phone,
-      profile_picture_url: data.profile_picture_url,
-    });
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    user.otp_code = otp;
-    user.otp_expiry = new Date(Date.now() + 10 * 60 * 1000);
-    user.is_verified = false;
-
-    const savedUser = await this.userRepo.save(user);
-
-    // await this.whatsappService.sendOtp(data.phone, otp);
-    // await this.emailService.sendOTP(user.email, otp);
-
-    if (data.role === 'patient') {
-      if (!data.date_of_birth || !data.gender) {
-        throw this.rpcError('Missing patient details');
-      }
+    try {
       const patient = this.patientRepo.create({
-        user: savedUser,
+        user: user,
         date_of_birth: data.date_of_birth,
         gender: data.gender,
-        medical_history: data.medical_history,
+        medical_history: data.medical_history || '',
       });
       await this.patientRepo.save(patient);
-    } else if (data.role === 'doctor') {
-      if (
-        !data.specialization ||
-        !data.license_number ||
-        !data.dr_idCard_url ||
-        !data.biography ||
-        !data.medical_license_url
-      ) {
-        throw this.rpcError('Missing doctor details');
-      }
-      const doctor = this.doctorRepo.create({
-        user: savedUser,
+    } catch (error) {
+      console.error('Error creating patient profile:', error);
+      throw this.rpcError('Failed to create patient profile');
+    }
+  }
+
+  private async createDoctorProfile(user: User, data: any): Promise<void> {
+    if (
+      !data.specialization ||
+      !data.license_number ||
+      !data.dr_idCard_url ||
+      !data.biography ||
+      !data.medical_license_url
+    ) {
+      throw this.rpcError(
+        'Missing required doctor details: specialization, license_number, dr_idCard_url, biography, and medical_license_url are required',
+      );
+    }
+
+    try {
+      // Send to doctor microservice
+      const doctorData = {
+        userId: user.id,
         specialization: data.specialization,
         license_number: data.license_number,
         dr_idCard_url: data.dr_idCard_url,
         biography: data.biography,
         medical_license_url: data.medical_license_url,
         verification_status: data.verification_status || 'pending',
-      });
-      await this.doctorRepo.save(doctor);
-    } else if (data.role === 'pharmacy') {
-      if (!data.pharmacy_owner || !data.pharmacy_name) {
-        throw this.rpcError('Missing pharmacy details');
-      }
+      };
+
+      // Use emit instead of send for fire-and-forget
+      this.doctorClient.emit('create_doctor', doctorData);
+      console.log('Doctor profile creation sent to doctor service');
+    } catch (error) {
+      console.error('Error sending doctor data to microservice:', error);
+      throw this.rpcError('Failed to create doctor profile');
+    }
+  }
+
+  private async createPharmacyProfile(user: User, data: any): Promise<void> {
+    if (!data.pharmacy_owner || !data.pharmacy_name) {
+      throw this.rpcError(
+        'Missing required pharmacy details: pharmacy_owner and pharmacy_name are required',
+      );
+    }
+
+    try {
       const pharmacy = this.pharmacyRepo.create({
-        user: savedUser,
+        user: user,
         pharmacy_owner: data.pharmacy_owner,
         pharmacy_name: data.pharmacy_name,
       });
       await this.pharmacyRepo.save(pharmacy);
+    } catch (error) {
+      console.error('Error creating pharmacy profile:', error);
+      throw this.rpcError('Failed to create pharmacy profile');
     }
-    return savedUser;
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.userRepo.findOne({ where: { email } });
+  async findByEmail(email: string): Promise<User | null> {
+    try {
+      return await this.userRepo.findOne({ where: { email } });
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return null;
+    }
+  }
+
+  async findById(id: string): Promise<User | null> {
+    try {
+      return await this.userRepo.findOne({ where: { id } });
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
+      return null;
+    }
   }
 
   async validateUser(
     email: string,
     plainPassword: string,
   ): Promise<User | null> {
-    const user = await this.findByEmail(email);
-    if (!user) return null;
+    try {
+      const user = await this.findByEmail(email);
+      if (!user) {
+        return null;
+      }
 
-    if (!user.is_verified) {
-      throw this.rpcError('Please verify your email before logging in');
+      if (!user.is_verified) {
+        throw this.rpcError('Please verify your email before logging in', 401);
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        plainPassword,
+        user.password,
+      );
+      return isPasswordValid ? user : null;
+    } catch (error) {
+      console.error('Error validating user:', error);
+      throw error;
     }
-
-    const match = await bcrypt.compare(plainPassword, user.password);
-    return match ? user : null;
   }
 
   async login(
     email: string,
     plainPassword: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
-    const user = await this.validateUser(email, plainPassword);
-    if (!user) {
-      throw this.rpcError('Invalid email or password');
-    }
-
-    const tokens = await this.generateTokens(user);
-    return {
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-    };
-  }
-
-  async generateTokens(
-    user: User,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessToken = this.jwtService.sign(
-      {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      {
-        expiresIn: '15m',
-      },
-    );
-
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id },
-      {
-        expiresIn: '7d',
-      },
-    );
-
-    const hashedRT = await bcrypt.hash(refreshToken, 10);
-    await this.userRepo.update(user.id, { refresh_token: hashedRT });
-
-    return { accessToken, refreshToken };
-  }
-
-  async refreshUserToken(
-    refreshToken: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): Promise<{
+    access_token: string;
+    refresh_token: string;
+  }> {
     try {
-      const payload = this.jwtService.verify(refreshToken);
-
-      const user = await this.userRepo.findOne({ where: { id: payload.sub } });
-      if (!user || !user.refresh_token) {
-        throw this.rpcError('User not found or not logged in', 404);
-      }
-
-      const isValid = await bcrypt.compare(refreshToken, user.refresh_token);
-      if (!isValid) {
-        throw this.rpcError('Invalid refresh token', 401);
+      const user = await this.validateUser(email, plainPassword);
+      if (!user) {
+        throw this.rpcError('Invalid email or password', 401);
       }
 
       const tokens = await this.generateTokens(user);
@@ -209,44 +247,267 @@ export class UsersService {
         access_token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
       };
-    } catch {
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw error;
+    }
+  }
+
+  async generateTokens(user: User): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    try {
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: '15m',
+      });
+
+      const refreshToken = this.jwtService.sign(
+        { sub: user.id },
+        { expiresIn: '7d' },
+      );
+
+      // Hash and store refresh token
+      const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+      await this.userRepo.update(user.id, {
+        refresh_token: hashedRefreshToken,
+      });
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      console.error('Error generating tokens:', error);
+      throw this.rpcError('Failed to generate tokens');
+    }
+  }
+
+  async refreshUserToken(refreshToken: string): Promise<{
+    access_token: string;
+    refresh_token: string;
+  }> {
+    try {
+      // Verify the refresh token
+      const payload = this.jwtService.verify(refreshToken);
+      const user = await this.findById(payload.sub);
+
+      if (!user || !user.refresh_token) {
+        throw this.rpcError('Invalid refresh token', 401);
+      }
+
+      // Verify the refresh token matches the stored one
+      const isTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refresh_token,
+      );
+      if (!isTokenValid) {
+        throw this.rpcError('Invalid refresh token', 401);
+      }
+
+      // Generate new tokens
+      const tokens = await this.generateTokens(user);
+      return {
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+      };
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
       throw this.rpcError('Invalid or expired refresh token', 401);
     }
   }
 
-  async logout(userId: string) {
-    await this.userRepo.update(userId, { refresh_token: null });
-  }
-
-  async findById(id: string): Promise<User | undefined> {
-    return this.userRepo.findOne({ where: { id } });
+  async logout(userId: string): Promise<void> {
+    try {
+      await this.userRepo.update(userId, { refresh_token: null });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      throw this.rpcError('Failed to logout');
+    }
   }
 
   async verifyOtp(email: string, otp: string): Promise<string> {
-    const user = await this.userRepo.findOne({ where: { email } });
+    try {
+      const user = await this.userRepo.findOne({ where: { email } });
 
-    if (!user) {
-      throw this.rpcError('User not found', 404);
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      if (user.is_verified) {
+        return 'User already verified';
+      }
+
+      if (user.otp_code !== otp) {
+        throw this.rpcError('Invalid OTP', 400);
+      }
+
+      if (!user.otp_expiry || user.otp_expiry < new Date()) {
+        throw this.rpcError('OTP has expired', 400);
+      }
+
+      // Update user as verified
+      user.is_verified = true;
+      user.otp_code = null;
+      user.otp_expiry = null;
+
+      await this.userRepo.save(user);
+
+      return 'Email verified successfully';
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      throw error;
     }
+  }
 
-    if (user.is_verified) {
-      return 'User already verified';
+  async resendOtp(email: string): Promise<string> {
+    try {
+      const user = await this.userRepo.findOne({ where: { email } });
+
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      if (user.is_verified) {
+        throw this.rpcError('User is already verified', 400);
+      }
+
+      // Generate new OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp_code = otp;
+      user.otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await this.userRepo.save(user);
+
+      // Send OTP
+      try {
+        // await this.whatsappService.sendOtp(user.phone, otp);
+        // await this.emailService.sendOTP(user.email, otp);
+        console.log(`New OTP for ${user.email}: ${otp}`); // For development
+      } catch (otpError) {
+        console.error('Failed to send OTP:', otpError);
+        throw this.rpcError('Failed to send OTP');
+      }
+
+      return 'OTP sent successfully';
+    } catch (error) {
+      console.error('Error resending OTP:', error);
+      throw error;
     }
+  }
 
-    if (user.otp_code !== otp) {
-      throw this.rpcError('Invalid OTP');
+  async updateUser(user: User): Promise<User> {
+    try {
+      return await this.userRepo.save(user);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw this.rpcError('Failed to update user');
     }
+  }
 
-    if (user.otp_expiry < new Date()) {
-      throw this.rpcError('OTP expired');
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<string> {
+    try {
+      const user = await this.findById(userId);
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isCurrentPasswordValid) {
+        throw this.rpcError('Current password is incorrect', 400);
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await this.userRepo.update(userId, { password: hashedNewPassword });
+
+      return 'Password changed successfully';
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
     }
+  }
 
-    user.is_verified = true;
-    user.otp_code = null;
-    user.otp_expiry = null;
+  async forgotPassword(email: string): Promise<string> {
+    try {
+      const user = await this.findByEmail(email);
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
 
-    await this.userRepo.save(user);
+      // Generate OTP for password reset
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp_code = otp;
+      user.otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    return 'Email verified successfully';
+      await this.userRepo.save(user);
+
+      // Send OTP
+      try {
+        // await this.emailService.sendPasswordResetOTP(user.email, otp);
+        console.log(`Password reset OTP for ${user.email}: ${otp}`); // For development
+      } catch (otpError) {
+        console.error('Failed to send password reset OTP:', otpError);
+        throw this.rpcError('Failed to send password reset OTP');
+      }
+
+      return 'Password reset OTP sent successfully';
+    } catch (error) {
+      console.error('Error in forgot password:', error);
+      throw error;
+    }
+  }
+
+  async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<string> {
+    try {
+      const user = await this.findByEmail(email);
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      if (user.otp_code !== otp) {
+        throw this.rpcError('Invalid OTP', 400);
+      }
+
+      if (!user.otp_expiry || user.otp_expiry < new Date()) {
+        throw this.rpcError('OTP has expired', 400);
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password and clear OTP
+      user.password = hashedPassword;
+      user.otp_code = null;
+      user.otp_expiry = null;
+      user.refresh_token = null; // Invalidate all sessions
+
+      await this.userRepo.save(user);
+
+      return 'Password reset successfully';
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
   }
 }

@@ -1,16 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
-import { Patient } from './patient.entity';
-import { Doctor } from './doctor.entity';
-import { Pharmacy } from './pharmacy.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-export type UserRole =
-  | 'patient'
-  | 'doctor'
-  | 'admin'
-  | 'pharmacy'
-  | 'assistant';
+export enum UserRole {
+  PATIENT = 'patient',
+  DOCTOR = 'doctor',
+  PHARMACY = 'pharmacy',
+  ADMIN = 'admin',
+}
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -24,7 +27,11 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.PATIENT,
+  })
   role: UserRole;
 
   @Column()
@@ -33,24 +40,21 @@ export class User {
   @Column({ nullable: true })
   profile_picture_url: string;
 
-  @OneToOne(() => Patient, (patient) => patient.user)
-  patient?: Patient;
-
-  @OneToOne(() => Doctor, (doctor) => doctor.user)
-  doctor?: Doctor;
-
-  @OneToOne(() => Pharmacy, (pharmacy) => pharmacy.user)
-  pharmacy?: Pharmacy;
-
-  @Column({ nullable: true })
-  refresh_token?: string;
-
   @Column({ default: false })
   is_verified: boolean;
 
   @Column({ nullable: true })
   otp_code: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   otp_expiry: Date;
+
+  @Column({ nullable: true })
+  refresh_token: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }
