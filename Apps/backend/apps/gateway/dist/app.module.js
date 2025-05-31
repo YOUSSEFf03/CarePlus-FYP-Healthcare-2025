@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const auth_controller_1 = require("./auth.controller");
+const doctor_controller_1 = require("./doctor.controller");
 const auth_client_1 = require("./auth.client");
 const doctor_client_1 = require("./doctor.client");
 let AppModule = class AppModule {
@@ -17,7 +18,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [],
-        controllers: [auth_controller_1.AuthController],
+        controllers: [auth_controller_1.AuthController, doctor_controller_1.DoctorController],
         providers: [
             {
                 provide: 'AUTH_SERVICE_CLIENT',

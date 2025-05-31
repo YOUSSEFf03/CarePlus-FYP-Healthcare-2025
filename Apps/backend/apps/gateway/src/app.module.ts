@@ -5,7 +5,7 @@ import { AuthServiceClient } from './auth.client';
 import { DoctorServiceClient } from './doctor.client';
 @Module({
   imports: [],
-  controllers: [AuthController],
+  controllers: [AuthController, DoctorController],
   providers: [
     {
       provide: 'AUTH_SERVICE_CLIENT',
