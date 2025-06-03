@@ -125,12 +125,15 @@
     /* Font Size */
     --fs-48: 48px;
     --fs-36: 36px;
+    --fs-32: 32px;
     --fs-24: 24px;
+    --fs-20: 20px;
     --fs-18: 18px;
     --fs-16: 16px;
     --fs-15: 15px;
     --fs-14: 14px;
     --fs-12: 12px;
+    --fs-10: 10px;
 
     /* Border Radius */
     --radius-4: 4px;

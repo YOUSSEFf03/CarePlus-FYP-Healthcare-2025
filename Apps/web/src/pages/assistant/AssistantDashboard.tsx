@@ -1,19 +1,16 @@
 import React from "react";
 import { Link } from 'react-router-dom';
-import CustomText from "../../components/Text/CustomText";
 
-export default function DoctorDashboard() {
+export default function AssistantDashboard() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <CustomText variant="text-heading-H1" as="h1">
-                Hello World
-            </CustomText>
-            <p className="text-lg mb-8">Manage your patients and appointments.</p>
+            <h1 className="text-4xl font-bold mb-4">Assistant Dashboard</h1>
+            <p className="text-lg mb-8">Manage your doctors and appointments.</p>
             <Link
                 to="/doctor/patients"
                 className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
-                View Patients
+                View Doctors
             </Link>
         </div>
     );

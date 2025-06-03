@@ -6,6 +6,11 @@ import DoctorDashboard from '../pages/doctor/DoctorDashboard';
 import DoctorPatients from '../pages/doctor/DoctorPatients';
 import ProtectedRoute from './ProtectedRoute';
 import Login from '../pages/Login';
+import Unauthorized from '../pages/Unauthorized';
+import AssistantLayout from '../layouts/AssistantLayout';
+import AssistantDashboard from '../pages/assistant/AssistantDashboard';
+import DoctorAddPatient from '../pages/doctor/DoctorAddPatient';
+import DoctorAppointments from '../pages/doctor/DoctorAppointments';
 
 export default function AppRoutes() {
     return (
@@ -13,7 +18,7 @@ export default function AppRoutes() {
             {/* Public */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
-            {/* <Route path="/unauthorized" element={<Unauthorized />} /> */}
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Doctor Dashboard */}
             <Route
@@ -23,21 +28,21 @@ export default function AppRoutes() {
                 <Route element={<DoctorLayout />}>
                     <Route index element={<DoctorDashboard />} />
                     <Route path="patients" element={<DoctorPatients />} />
+                    <Route path="patients/add" element={<DoctorAddPatient />} />
+                    <Route path="appointments" element={<DoctorAppointments />} />
                 </Route>
             </Route>
 
             {/* Assistant Dashboard */}
-            {/* <Route
+            <Route
                 path="/assistant"
-                element={
-                    <ProtectedRoute allowedRoles={['assistant']}>
-                        <AssistantLayout />
-                    </ProtectedRoute>
-                }
+                element={<ProtectedRoute allowedRoles={['assistant']} />}
             >
-                <Route index element={<AssistantDashboard />} />
-                <Route path="appointments" element={<AssistantAppointments />} />
-            </Route> */}
+                <Route element={<AssistantLayout />}>
+                    <Route index element={<AssistantDashboard />} />
+                    {/* <Route path="patients" element={<DoctorPatients />} /> */}
+                </Route>
+            </Route>
 
             {/* Pharmacy Dashboard */}
             {/* <Route
