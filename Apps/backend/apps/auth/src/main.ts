@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -8,7 +10,7 @@ async function bootstrap() {
     {
       transport: Transport.RMQ,
       options: {
-        urls: ['amqp://guest:guest@localhost:5672'],
+        urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
         queue: 'auth_queue',
         queueOptions: {
           durable: false,
@@ -17,7 +19,20 @@ async function bootstrap() {
     },
   );
 
+  // Add global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
   await app.listen();
-  console.log('Auth microservice is running...');
+  console.log('Auth microservice is listening on auth_queue...');
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  console.error('Failed to start auth microservice:', error);
+  process.exit(1);
+});

@@ -2,27 +2,29 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
-@Entity('pharmacies')
-export class Pharmacy {
+@Entity('doctor_reviews')
+export class DoctorReview {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  user: User;
+  @Column()
+  doctorId: string;
 
   @Column()
-  pharmacy_owner: string;
+  patientId: string;
 
   @Column()
-  pharmacy_name: string;
+  appointmentId: string;
+
+  @Column({ type: 'int', width: 1 })
+  rating: number; // 1-5
+
+  @Column({ type: 'text', nullable: true })
+  comment?: string;
 
   @CreateDateColumn()
   created_at: Date;

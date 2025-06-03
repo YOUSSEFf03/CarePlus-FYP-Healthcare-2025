@@ -4,24 +4,32 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity()
+@Entity('patients')
 export class Patient {
   @PrimaryGeneratedColumn('uuid')
-  patient_id: string;
+  id: string;
 
-  @OneToOne(() => User, { cascade: true })
-  @JoinColumn({ name: 'user_id' })
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn()
   user: User;
 
-  @Column()
+  @Column({ type: 'date' })
   date_of_birth: string;
 
   @Column()
   gender: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   medical_history: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }
