@@ -16,6 +16,11 @@ import { EmailService } from './email.service';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
 
+// Import guards and middleware
+import { MicroserviceAuthGuard } from './guards/microservice-auth.guard';
+import { RoleGuard } from './guards/role.guard';
+import { AuthMiddleware } from './middleware/auth.middleware';
+
 @Module({
   imports: [
     // Global configuration
@@ -73,6 +78,13 @@ import { AppController } from './app.controller';
     ]),
   ],
   controllers: [AppController],
-  providers: [AppService, UsersService, EmailService],
+  providers: [
+    AppService,
+    UsersService,
+    EmailService,
+    MicroserviceAuthGuard,
+    RoleGuard,
+    AuthMiddleware,
+  ],
 })
 export class AppModule {}

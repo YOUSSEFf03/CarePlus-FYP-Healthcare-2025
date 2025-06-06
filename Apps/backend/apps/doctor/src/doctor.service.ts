@@ -55,7 +55,7 @@ export class DoctorService {
   async getDoctorByUserId(userId: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findOne({ where: { userId } });
     if (!doctor) {
-      throw this.rpcError('Doctor not found', 404);
+      throw this.rpcError(`Doctor not found ${userId}`, 404);
     }
     return doctor;
   }
@@ -63,7 +63,7 @@ export class DoctorService {
   async getDoctorById(id: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findOne({ where: { id } });
     if (!doctor) {
-      throw this.rpcError('Doctor not found', 404);
+      throw this.rpcError(`Doctor not found with the ID ${id}`, 404);
     }
     return doctor;
   }

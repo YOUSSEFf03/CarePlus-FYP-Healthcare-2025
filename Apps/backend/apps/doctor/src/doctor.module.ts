@@ -1,15 +1,24 @@
+// doctor.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { DoctorController } from './doctor.controller';
 import { DoctorService } from './doctor.service';
 import { Doctor } from './doctor.entity';
 import { Appointment } from './appointment.entity';
 import { DoctorReview } from './doctor-review.entity';
 
+// Import auth guards
+import { MicroserviceAuthGuard } from './guards/microservice-auth.guard';
+import { RoleGuard } from './guards/role.guard';
+import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // Database configuration
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
@@ -21,9 +30,30 @@ import { DoctorReview } from './doctor-review.entity';
       synchronize: true, // Set to false in production
       logging: process.env.NODE_ENV === 'development',
     }),
+
     TypeOrmModule.forFeature([Doctor, Appointment, DoctorReview]),
+
+    // RabbitMQ client for auth service communication
+    ClientsModule.register([
+      {
+        name: 'AUTH_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+          queue: 'auth_queue',
+          queueOptions: {
+            durable: false,
+          },
+        },
+      },
+    ]),
   ],
   controllers: [DoctorController],
-  providers: [DoctorService],
+  providers: [
+    DoctorService,
+    MicroserviceAuthGuard,
+    RoleGuard,
+    DoctorOwnershipGuard,
+  ],
 })
 export class DoctorModule {}
