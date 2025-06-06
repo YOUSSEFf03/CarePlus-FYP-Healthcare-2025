@@ -2,16 +2,19 @@
   "name": "fyp-healthcare-2025",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "start:all": "turbo run start",
-    "build:all": "turbo run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:web": "npm start --workspace=Apps/web",
-    "start:auth": "npm start --workspace=Apps/backend/apps/auth",
-    "start:gateway": "npm start --workspace=Apps/backend/apps/gateway",
-    "start:doctor": "npm start --workspace=Apps/backend/apps/doctor",
-    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor"
-  },
+ "scripts": {
+  "start:all": "turbo run start",
+  "build:all": "turbo run build",
+  "test": "echo \"Error: no test specified\" && exit 1",
+
+  "start:web": "npm start --workspace=Apps/web",
+
+  "start:auth": "npm run start:dev --workspace=Apps/backend/apps/auth",
+  "start:gateway": "npm run start:dev --workspace=Apps/backend/apps/gateway",
+  "start:doctor": "npm run start:dev --workspace=Apps/backend/apps/doctor",
+
+  "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor"
+},
   "keywords": [],
   "packageManager": "npm@10.8.2",
   "author": "",
