@@ -1,0 +1,107 @@
+@import '../../styles/variables.css';
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-8);
+    padding: var(--padding-8-16);
+    font-size: var(--fs-16);
+    border-radius: var(--radius-8);
+    font-weight: var(--fw-400);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-300);
+    font-family: var(--ff-poppins);
+}
+
+.btn__icon {
+    display: inline-flex;
+}
+
+.btn--primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn--primary:hover {
+    background-color: var(--primary-60);
+}
+
+.btn--secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn--secondary:hover {
+    background-color: var(--primary-05);
+}
+
+.btn--tertiary {
+    background-color: transparent;
+    color: var(--primary-color);
+    /* text-decoration: underline; */
+}
+
+.btn--tertiary:hover {
+    color: var(--primary-60);
+    text-decoration: underline;
+}
+
+.btn--danger {
+    background-color: var(--error-color);
+    color: var(--white);
+}
+
+.btn--danger:hover {
+    background-color: var(--error-60);
+}
+
+.btn--ghost {
+    padding: var(--padding-8);
+    border-radius: var(--radius-100);
+    background-color: transparent;
+    color: #1e293b;
+    border: 1px solid var(--neutral-300);
+}
+
+.btn--ghost:hover {
+    background-color: var(--neutral-200);
+}
+
+.btn--primary.btn--disabled {
+    background-color: var(--neutral-200);
+    color: var(--neutral-600);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn--secondary.btn--disabled {
+    background-color: transparent;
+    color: var(--neutral-600);
+    border-color: var(--neutral-200);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn--tertiary.btn--disabled {
+    color: var(--neutral-600);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn--danger.btn--disabled {
+    background-color: var(--neutral-200);
+    color: var(--neutral-600);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn--ghost.btn--disabled {
+    background-color: transparent;
+    color: var(--neutral-600);
+    border-color: var(--neutral-200);
+    cursor: not-allowed;
+    pointer-events: none;
+}

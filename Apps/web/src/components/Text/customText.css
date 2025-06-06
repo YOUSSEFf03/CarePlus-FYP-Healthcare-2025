@@ -1,0 +1,135 @@
+.text-heading-H1 {
+    font-size: 32px;
+    margin: 0;
+    line-height: normal;
+    font-weight: bold;
+    font-family: var(--ff-poppins);
+}
+
+.text-heading-H2 {
+    margin: 0;
+    font-size: 24px;
+    line-height: normal;
+    font-weight: bold;
+    font-family: var(--ff-poppins);
+}
+
+.text-heading-H3 {
+    margin: 0;
+    font-size: 20px;
+    line-height: normal;
+    font-weight: bold;
+    font-family: var(--ff-poppins);
+}
+
+.text-heading-H4 {
+    margin: 0;
+    font-size: 16px;
+    line-height: normal;
+    font-weight: bold;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-lg-r {
+    margin: 0;
+    font-size: 16px;
+    line-height: normal;
+    font-weight: 400;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-lg-m {
+    margin: 0;
+    font-size: 16px;
+    line-height: normal;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-lg-sb {
+    margin: 0;
+    font-size: 16px;
+    line-height: normal;
+    font-weight: 600;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-md-r {
+    margin: 0;
+    font-size: 14px;
+    line-height: normal;
+    font-weight: 400;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-md-m {
+    margin: 0;
+    font-size: 14px;
+    line-height: normal;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-md-sb {
+    margin: 0;
+    font-size: 14px;
+    line-height: normal;
+    font-weight: 600;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-sm-r {
+    margin: 0;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 400;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-sm-m {
+    margin: 0;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-sm-sb {
+    margin: 0;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 600;
+    font-family: var(--ff-poppins);
+}
+
+.text-body-xs-r {
+    margin: 0;
+    font-size: 10px;
+    line-height: normal;
+    font-weight: 400;
+    font-family: var(--ff-poppins);
+}
+
+.text-link-lg {
+    margin: 0;
+    font-size: 16px;
+    text-decoration: underline;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
+
+.text-link-md {
+    margin: 0;
+    font-size: 14px;
+    text-decoration: underline;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
+
+.text-link-sm {
+    margin: 0;
+    font-size: 12px;
+    text-decoration: underline;
+    font-weight: 500;
+    font-family: var(--ff-poppins);
+}
