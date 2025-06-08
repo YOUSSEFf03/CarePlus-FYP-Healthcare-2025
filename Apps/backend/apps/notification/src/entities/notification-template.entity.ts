@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { NotificationType } from './notification-log.entity';
+export { NotificationType };
 
 @Entity('notification_templates')
 export class NotificationTemplate {

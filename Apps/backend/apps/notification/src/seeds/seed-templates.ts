@@ -4,6 +4,7 @@ import {
   NotificationTemplate,
   NotificationType,
 } from '../entities/notification-template.entity';
+import { NotificationType } from '../entities/notification-log.entity';
 
 export async function seedNotificationTemplates(dataSource: DataSource) {
   const templateRepo = dataSource.getRepository(NotificationTemplate);

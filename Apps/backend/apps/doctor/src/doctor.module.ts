@@ -1,4 +1,4 @@
-// doctor.module.ts
+// doctor.module.ts - FIXED VERSION
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
@@ -33,14 +33,25 @@ import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
 
     TypeOrmModule.forFeature([Doctor, Appointment, DoctorReview]),
 
-    // RabbitMQ client for auth service communication
+    // RabbitMQ clients
     ClientsModule.register([
       {
-        name: 'AUTH_SERVICE',
+        name: 'AUTH_SERVICE', // ← FIXED: Add auth service client
         transport: Transport.RMQ,
         options: {
           urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
           queue: 'auth_queue',
+          queueOptions: {
+            durable: false,
+          },
+        },
+      },
+      {
+        name: 'NOTIFICATION_SERVICE', // ← FIXED: Add notification service client
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+          queue: 'notification_queue',
           queueOptions: {
             durable: false,
           },

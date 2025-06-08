@@ -13,6 +13,8 @@ const microservices_1 = require("@nestjs/microservices");
 const auth_controller_1 = require("./auth.controller");
 const doctor_controller_1 = require("./doctor.controller");
 const auth_middleware_1 = require("./middleware/auth.middleware");
+const notification_controller_1 = require("./notification.controller");
+const common_2 = require("@nestjs/common");
 const AuthServiceClient = microservices_1.ClientsModule.register([
     {
         name: 'AUTH_SERVICE_CLIENT',
@@ -39,12 +41,25 @@ const DoctorServiceClient = microservices_1.ClientsModule.register([
         },
     },
 ]);
+const NotificationServiceClient = microservices_1.ClientsModule.register([
+    {
+        name: 'NOTIFICATION_SERVICE_CLIENT',
+        transport: microservices_1.Transport.RMQ,
+        options: {
+            urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+            queue: 'notification_queue',
+            queueOptions: {
+                durable: false,
+            },
+        },
+    },
+]);
 let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(auth_middleware_1.AuthMiddleware)
             .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'doctors', 'doctors/(.*)/reviews', 'doctors/(.*)/available-slots', 'doctors/(.*)/stats', { path: 'doctors/:id', method: common_2.RequestMethod.GET })
-            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController);
+            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController);
     }
 };
 exports.AppModule = AppModule;
@@ -57,10 +72,10 @@ exports.AppModule = AppModule = __decorate([
             }),
             AuthServiceClient,
             DoctorServiceClient,
+            NotificationServiceClient,
         ],
-        controllers: [auth_controller_1.AuthController, doctor_controller_1.DoctorController],
+        controllers: [auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController],
         providers: [auth_middleware_1.AuthMiddleware],
     })
 ], AppModule);
-const common_2 = require("@nestjs/common");
 //# sourceMappingURL=app.module.js.map

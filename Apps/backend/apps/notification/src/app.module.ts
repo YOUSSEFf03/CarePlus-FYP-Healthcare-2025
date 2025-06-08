@@ -32,7 +32,7 @@ import { UserPreference } from './entities/user-preference.entity';
       port: parseInt(process.env.DB_PORT) || 5432,
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD,
-      database: process.env.NOTIFICATION_DB_NAME || 'notification_service',
+      database: process.env.NOTIFICATION_DB_NAME,
       entities: [NotificationLog, NotificationTemplate, UserPreference],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',

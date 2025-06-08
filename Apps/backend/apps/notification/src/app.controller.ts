@@ -3,6 +3,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
 import { TemplateService } from './services/template.service';
+import { NotificationType } from './entities/notification-log.entity';
 
 // Import DTOs
 import { SendNotificationDto } from './dto/send-notification.dto';
@@ -49,7 +50,7 @@ export class AppController {
   ) {
     return this.appService.sendOtp({
       userId: data.userId,
-      type: 'email',
+      type: NotificationType.EMAIL,
       recipient: data.email,
       otp: data.otp,
       userName: data.userName,
@@ -68,7 +69,7 @@ export class AppController {
   ) {
     return this.appService.sendOtp({
       userId: data.userId,
-      type: 'whatsapp',
+      type: NotificationType.WHATSAPP,
       recipient: data.phone,
       otp: data.otp,
       userName: data.userName,
@@ -88,7 +89,7 @@ export class AppController {
     return this.appService.sendTemplateNotification({
       userId: data.userId,
       templateName: 'password_reset',
-      type: 'email',
+      type: NotificationType.EMAIL,
       recipient: data.email,
       templateData: {
         otp: data.otp,
@@ -113,7 +114,7 @@ export class AppController {
     return this.appService.sendTemplateNotification({
       userId: data.userId,
       templateName: 'appointment_reminder',
-      type: data.type,
+      type: data.type as NotificationType,
       recipient: data.recipient,
       templateData: {
         appointmentDate: data.appointmentDate,
@@ -138,7 +139,7 @@ export class AppController {
     return this.appService.sendTemplateNotification({
       userId: data.userId,
       templateName: `doctor_verification_${data.status}`,
-      type: 'email',
+      type: NotificationType.EMAIL,
       recipient: data.email,
       templateData: {
         doctorName: data.doctorName,

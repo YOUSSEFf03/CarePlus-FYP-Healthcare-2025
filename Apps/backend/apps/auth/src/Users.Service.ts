@@ -6,10 +6,9 @@ import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
 import { Pharmacy } from './pharmacy.entity';
 import { JwtService } from '@nestjs/jwt';
-import { EmailService } from './email.service';
 import { RpcException } from '@nestjs/microservices';
-import { WhatsappService } from './whatsapp/whatsapp.service';
 import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -24,11 +23,12 @@ export class UsersService {
     private readonly pharmacyRepo: Repository<Pharmacy>,
 
     private readonly jwtService: JwtService,
-    private readonly whatsappService: WhatsappService,
-    private readonly emailService: EmailService,
 
     @Inject('DOCTOR_SERVICE')
     private readonly doctorClient: ClientProxy,
+
+    @Inject('NOTIFICATION_SERVICE') // ← NEW: Inject notification service
+    private readonly notificationClient: ClientProxy,
   ) {}
 
   private rpcError(message: string, status = 400) {
@@ -85,13 +85,11 @@ export class UsersService {
       // Save user
       const savedUser = await this.userRepo.save(user);
 
-      // Send OTP (uncomment when ready)
+      // Send OTP via Notification Service
       try {
-        // await this.whatsappService.sendOtp(data.phone, otp);
-        // await this.emailService.sendOTP(user.email, otp);
-        console.log(`OTP for ${user.email}: ${otp}`); // For development
+        await this.sendOtpNotification(savedUser, otp);
       } catch (otpError) {
-        console.error('Failed to send OTP:', otpError);
+        console.error('Failed to send OTP via notification service:', otpError);
         // Don't throw error, continue with user creation
       }
 
@@ -110,6 +108,79 @@ export class UsersService {
       throw error;
     }
   }
+
+  // ==================== NOTIFICATION METHODS ====================
+
+  private async sendOtpNotification(user: User, otp: string): Promise<void> {
+    try {
+      // Send email OTP
+      const emailResult = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_email_otp' },
+          {
+            userId: user.id,
+            email: user.email,
+            otp: otp,
+            userName: user.name,
+          },
+        ),
+      );
+
+      console.log('✅ Email OTP sent via notification service:', emailResult);
+
+      // Send WhatsApp OTP (if phone provided)
+      if (user.phone) {
+        const whatsappResult = await firstValueFrom(
+          this.notificationClient.send(
+            { cmd: 'send_whatsapp_otp' },
+            {
+              userId: user.id,
+              phone: user.phone,
+              otp: otp,
+              userName: user.name,
+            },
+          ),
+        );
+
+        console.log(
+          '✅ WhatsApp OTP sent via notification service:',
+          whatsappResult,
+        );
+      }
+    } catch (error) {
+      console.error('❌ Failed to send OTP via notification service:', error);
+      throw error;
+    }
+  }
+
+  private async sendPasswordResetNotification(
+    user: User,
+    otp: string,
+  ): Promise<void> {
+    try {
+      const result = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_password_reset_email' },
+          {
+            userId: user.id,
+            email: user.email,
+            otp: otp,
+            userName: user.name,
+          },
+        ),
+      );
+
+      console.log(
+        '✅ Password reset email sent via notification service:',
+        result,
+      );
+    } catch (error) {
+      console.error('❌ Failed to send password reset email:', error);
+      throw error;
+    }
+  }
+
+  // ==================== EXISTING METHODS (Updated) ====================
 
   private async createPatientProfile(user: User, data: any): Promise<void> {
     if (!data.date_of_birth || !data.gender) {
@@ -385,11 +456,9 @@ export class UsersService {
 
       await this.userRepo.save(user);
 
-      // Send OTP
+      // Send OTP via notification service
       try {
-        // await this.whatsappService.sendOtp(user.phone, otp);
-        // await this.emailService.sendOTP(user.email, otp);
-        console.log(`New OTP for ${user.email}: ${otp}`); // For development
+        await this.sendOtpNotification(user, otp);
       } catch (otpError) {
         console.error('Failed to send OTP:', otpError);
         throw this.rpcError('Failed to send OTP');
@@ -458,10 +527,9 @@ export class UsersService {
 
       await this.userRepo.save(user);
 
-      // Send OTP
+      // Send password reset email via notification service
       try {
-        // await this.emailService.sendPasswordResetOTP(user.email, otp);
-        console.log(`Password reset OTP for ${user.email}: ${otp}`); // For development
+        await this.sendPasswordResetNotification(user, otp);
       } catch (otpError) {
         console.error('Failed to send password reset OTP:', otpError);
         throw this.rpcError('Failed to send password reset OTP');

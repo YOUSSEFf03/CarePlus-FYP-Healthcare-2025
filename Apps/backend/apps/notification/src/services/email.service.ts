@@ -1,9 +1,11 @@
+// src/services/email.service.ts - FIXED VERSION
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private transporter = nodemailer.createTransporter({
+  private transporter = nodemailer.createTransport({
+    // ← FIXED: createTransport (not createTransporter)
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,

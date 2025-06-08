@@ -1,8 +1,10 @@
-// ==================== doctor.service.ts ====================
-import { Injectable } from '@nestjs/common';
+// src/doctor.service.ts - FIXED VERSION
+import { Injectable, Inject } from '@nestjs/common'; // ← FIXED: Single import
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { Doctor, VerificationStatus } from './doctor.entity';
 import { Appointment, AppointmentStatus } from './appointment.entity';
 import { DoctorReview } from './doctor-review.entity';
@@ -14,6 +16,15 @@ import { CreateReviewDto } from './DTOs/create-review.Dto';
 import { GetAppointmentsDto } from './DTOs/get-appointments.dto';
 import { GetDoctorsDto } from './DTOs/get-doctors.dto';
 
+// Define interfaces for type safety
+interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+}
+
 @Injectable()
 export class DoctorService {
   constructor(
@@ -23,6 +34,12 @@ export class DoctorService {
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(DoctorReview)
     private readonly reviewRepo: Repository<DoctorReview>,
+
+    @Inject('NOTIFICATION_SERVICE') // ← FIXED: Add notification service
+    private readonly notificationClient: ClientProxy,
+
+    @Inject('AUTH_SERVICE') // ← FIXED: Add auth service client
+    private readonly authClient: ClientProxy,
   ) {}
 
   private rpcError(message: string, status = 400) {
@@ -55,7 +72,7 @@ export class DoctorService {
   async getDoctorByUserId(userId: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findOne({ where: { userId } });
     if (!doctor) {
-      throw this.rpcError(`Doctor not found ${userId}`, 404);
+      throw this.rpcError('Doctor not found', 404);
     }
     return doctor;
   }
@@ -63,7 +80,7 @@ export class DoctorService {
   async getDoctorById(id: string): Promise<Doctor> {
     const doctor = await this.doctorRepo.findOne({ where: { id } });
     if (!doctor) {
-      throw this.rpcError(`Doctor not found with the ID ${id}`, 404);
+      throw this.rpcError('Doctor not found', 404);
     }
     return doctor;
   }
@@ -129,7 +146,67 @@ export class DoctorService {
       doctor.rejection_reason = rejection_reason;
     }
 
-    return await this.doctorRepo.save(doctor);
+    const updatedDoctor = await this.doctorRepo.save(doctor);
+
+    // Send notification about verification status change
+    await this.sendDoctorVerificationNotification(
+      doctor,
+      status,
+      rejection_reason,
+    );
+
+    return updatedDoctor;
+  }
+
+  async getDoctorAvailableSlots(
+    doctorId: string,
+    date: string,
+  ): Promise<string[]> {
+    const doctor = await this.getDoctorById(doctorId);
+
+    if (!doctor.available_days || !doctor.start_time || !doctor.end_time) {
+      return [];
+    }
+
+    const dayOfWeek = new Date(date)
+      .toLocaleDateString('en', { weekday: 'long' })
+      .toLowerCase();
+
+    if (!doctor.available_days.includes(dayOfWeek)) {
+      return [];
+    }
+
+    // Get booked slots for the date
+    const bookedAppointments = await this.appointmentRepo.find({
+      where: {
+        doctorId,
+        appointment_date: date,
+        status: Not(AppointmentStatus.CANCELLED),
+      },
+      select: ['appointment_time'],
+    });
+
+    const bookedTimes = bookedAppointments.map((apt) => apt.appointment_time);
+
+    // Generate available slots (assuming 30-minute intervals)
+    const availableSlots: string[] = [];
+    const startHour = parseInt(doctor.start_time.split(':')[0]);
+    const endHour = parseInt(doctor.end_time.split(':')[0]);
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      const slots = [
+        `${hour.toString().padStart(2, '0')}:00`,
+        `${hour.toString().padStart(2, '0')}:30`,
+      ];
+
+      slots.forEach((slot) => {
+        if (!bookedTimes.includes(slot)) {
+          availableSlots.push(slot);
+        }
+      });
+    }
+
+    return availableSlots;
   }
 
   // ==================== APPOINTMENT MANAGEMENT ====================
@@ -159,7 +236,19 @@ export class DoctorService {
       consultation_fee: doctor.consultation_fee,
     });
 
-    return await this.appointmentRepo.save(appointment);
+    const savedAppointment = await this.appointmentRepo.save(appointment);
+
+    // Send appointment confirmation notification (optional)
+    try {
+      console.log(
+        'Appointment created successfully, confirmation could be sent',
+      );
+      // You can add appointment confirmation logic here if needed
+    } catch (error) {
+      console.error('Failed to send appointment confirmation:', error);
+    }
+
+    return savedAppointment;
   }
 
   async getAppointmentsByDoctor(
@@ -230,57 +319,6 @@ export class DoctorService {
     }
 
     return await this.appointmentRepo.save(appointment);
-  }
-
-  async getDoctorAvailableSlots(
-    doctorId: string,
-    date: string,
-  ): Promise<string[]> {
-    const doctor = await this.getDoctorById(doctorId);
-
-    if (!doctor.available_days || !doctor.start_time || !doctor.end_time) {
-      return [];
-    }
-
-    const dayOfWeek = new Date(date)
-      .toLocaleDateString('en', { weekday: 'long' })
-      .toLowerCase();
-
-    if (!doctor.available_days.includes(dayOfWeek)) {
-      return [];
-    }
-
-    // Get booked slots for the date
-    const bookedAppointments = await this.appointmentRepo.find({
-      where: {
-        doctorId,
-        appointment_date: date,
-        status: Not(AppointmentStatus.CANCELLED),
-      },
-      select: ['appointment_time'],
-    });
-
-    const bookedTimes = bookedAppointments.map((apt) => apt.appointment_time);
-
-    // Generate available slots (assuming 30-minute intervals)
-    const availableSlots: string[] = [];
-    const startHour = parseInt(doctor.start_time.split(':')[0]);
-    const endHour = parseInt(doctor.end_time.split(':')[0]);
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      const slots = [
-        `${hour.toString().padStart(2, '0')}:00`,
-        `${hour.toString().padStart(2, '0')}:30`,
-      ];
-
-      slots.forEach((slot) => {
-        if (!bookedTimes.includes(slot)) {
-          availableSlots.push(slot);
-        }
-      });
-    }
-
-    return availableSlots;
   }
 
   // ==================== REVIEW MANAGEMENT ====================
@@ -371,5 +409,149 @@ export class DoctorService {
     };
 
     return stats;
+  }
+
+  // ==================== NOTIFICATION METHODS ====================
+
+  private async sendDoctorVerificationNotification(
+    doctor: Doctor,
+    status: VerificationStatus,
+    rejectionReason?: string,
+  ): Promise<void> {
+    try {
+      // Get user info from auth service first
+      const userInfo = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_id' },
+          { userId: doctor.userId },
+        ),
+      )) as UserInfo; // ← FIXED: Type assertion
+
+      if (!userInfo) {
+        console.error('User not found for doctor verification notification');
+        return;
+      }
+
+      // Send verification notification
+      const result = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_doctor_verification_email' },
+          {
+            userId: doctor.userId,
+            email: userInfo.email, // ← FIXED: Now properly typed
+            doctorName: userInfo.name, // ← FIXED: Now properly typed
+            status: status.toLowerCase(), // 'approved' or 'rejected'
+            rejectionReason: rejectionReason,
+          },
+        ),
+      );
+
+      console.log('✅ Doctor verification notification sent:', result);
+    } catch (error) {
+      console.error(
+        '❌ Failed to send doctor verification notification:',
+        error,
+      );
+      // Don't throw error - verification should still complete
+    }
+  }
+
+  private async sendAppointmentReminderNotification(
+    appointment: Appointment,
+  ): Promise<void> {
+    try {
+      // Get doctor and patient info
+      const doctor = await this.getDoctorById(appointment.doctorId);
+
+      // Get patient info from auth service
+      const patientInfo = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_id' },
+          { userId: appointment.patientId },
+        ),
+      )) as UserInfo; // ← FIXED: Type assertion
+
+      const doctorInfo = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_id' },
+          { userId: doctor.userId },
+        ),
+      )) as UserInfo; // ← FIXED: Type assertion
+
+      if (!patientInfo || !doctorInfo) {
+        console.error('User info not found for appointment reminder');
+        return;
+      }
+
+      // Send email reminder
+      const emailResult = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_appointment_reminder' },
+          {
+            userId: appointment.patientId,
+            type: 'email',
+            recipient: patientInfo.email, // ← FIXED: Now properly typed
+            appointmentDate: appointment.appointment_date,
+            appointmentTime: appointment.appointment_time,
+            doctorName: doctorInfo.name, // ← FIXED: Now properly typed
+            patientName: patientInfo.name, // ← FIXED: Now properly typed
+          },
+        ),
+      );
+
+      // Send WhatsApp reminder if patient has phone
+      if (patientInfo.phone) {
+        // ← FIXED: Now properly typed
+        const whatsappResult = await firstValueFrom(
+          this.notificationClient.send(
+            { cmd: 'send_appointment_reminder' },
+            {
+              userId: appointment.patientId,
+              type: 'whatsapp',
+              recipient: patientInfo.phone, // ← FIXED: Now properly typed
+              appointmentDate: appointment.appointment_date,
+              appointmentTime: appointment.appointment_time,
+              doctorName: doctorInfo.name, // ← FIXED: Now properly typed
+              patientName: patientInfo.name, // ← FIXED: Now properly typed
+            },
+          ),
+        );
+      }
+
+      console.log('✅ Appointment reminder sent');
+    } catch (error) {
+      console.error('❌ Failed to send appointment reminder:', error);
+    }
+  }
+
+  // ==================== NEW METHOD FOR REMINDER SCHEDULING ====================
+
+  async scheduleAppointmentReminders(): Promise<void> {
+    try {
+      // Get appointments for tomorrow (24-hour reminder)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowString = tomorrow.toISOString().split('T')[0];
+
+      const appointmentsTomorrow = await this.appointmentRepo.find({
+        where: {
+          appointment_date: tomorrowString,
+          status: AppointmentStatus.PENDING,
+        },
+      });
+
+      console.log(
+        `📅 Found ${appointmentsTomorrow.length} appointments for tomorrow`,
+      );
+
+      // Send reminders for each appointment
+      for (const appointment of appointmentsTomorrow) {
+        await this.sendAppointmentReminderNotification(appointment);
+      }
+
+      console.log('✅ All appointment reminders processed');
+    } catch (error) {
+      console.error('❌ Error scheduling appointment reminders:', error);
+    }
   }
 }

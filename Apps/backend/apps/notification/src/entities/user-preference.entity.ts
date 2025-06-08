@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { NotificationType } from './notification-log.entity';
 
 @Entity('user_preferences')
 export class UserPreference {
@@ -27,7 +28,7 @@ export class UserPreference {
   pushEnabled: boolean;
 
   @Column('json', { nullable: true })
-  notificationTypes: any; // Which notifications user wants to receive
+  notificationTypes: NotificationType[]; // Which notifications user wants to receive
 
   @Column({ nullable: true })
   preferredLanguage: string;

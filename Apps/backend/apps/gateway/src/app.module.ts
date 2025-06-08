@@ -4,8 +4,9 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AuthController } from './auth.controller';
 import { DoctorController } from './doctor.controller';
 import { AuthMiddleware } from './middleware/auth.middleware';
+import { NotificationController } from './notification.controller';
+import { RequestMethod } from '@nestjs/common';
 
-// Create proper client configurations
 const AuthServiceClient = ClientsModule.register([
   {
     name: 'AUTH_SERVICE_CLIENT',
@@ -34,6 +35,20 @@ const DoctorServiceClient = ClientsModule.register([
   },
 ]);
 
+const NotificationServiceClient = ClientsModule.register([
+  {
+    name: 'NOTIFICATION_SERVICE_CLIENT', // ← ADD THIS
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+      queue: 'notification_queue',
+      queueOptions: {
+        durable: false,
+      },
+    },
+  },
+]);
+
 @Module({
   imports: [
     // Global configuration
@@ -45,8 +60,9 @@ const DoctorServiceClient = ClientsModule.register([
     // Import the client modules
     AuthServiceClient,
     DoctorServiceClient,
+    NotificationServiceClient,
   ],
-  controllers: [AuthController, DoctorController],
+  controllers: [AuthController, DoctorController, NotificationController],
   providers: [AuthMiddleware],
 })
 export class AppModule implements NestModule {
@@ -72,9 +88,7 @@ export class AppModule implements NestModule {
         // Apply auth middleware to these controllers
         AuthController,
         DoctorController,
+        NotificationController, // ← ADD THIS
       );
   }
 }
-
-// You'll need to add this import at the top
-import { RequestMethod } from '@nestjs/common';
