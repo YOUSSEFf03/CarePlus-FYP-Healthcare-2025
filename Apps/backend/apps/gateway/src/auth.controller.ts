@@ -22,6 +22,37 @@ export class AuthController {
     private readonly doctorServiceClient: ClientProxy,
   ) {}
 
+  // ==================== ADD ASSISTANT REGISTRATION TO GATEWAY ====================
+
+  @Post('register/assistant')
+  async registerAssistant(
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      password: string;
+      phone: string;
+    },
+  ) {
+    try {
+      const assistantData = {
+        ...body,
+        role: 'assistant', // Add assistant role
+      };
+
+      const result = await lastValueFrom(
+        this.authServiceClient.send({ cmd: 'register_user' }, assistantData),
+      );
+
+      return {
+        success: true,
+        data: result,
+        message: 'Assistant registered successfully',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
   async handleRequest(
     client: ClientProxy,
     pattern: any,

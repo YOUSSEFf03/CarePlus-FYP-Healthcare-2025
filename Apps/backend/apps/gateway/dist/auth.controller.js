@@ -21,6 +21,23 @@ let AuthController = class AuthController {
         this.authServiceClient = authServiceClient;
         this.doctorServiceClient = doctorServiceClient;
     }
+    async registerAssistant(body) {
+        try {
+            const assistantData = {
+                ...body,
+                role: 'assistant',
+            };
+            const result = await (0, rxjs_1.lastValueFrom)(this.authServiceClient.send({ cmd: 'register_user' }, assistantData));
+            return {
+                success: true,
+                data: result,
+                message: 'Assistant registered successfully',
+            };
+        }
+        catch (error) {
+            throw error;
+        }
+    }
     async handleRequest(client, pattern, body, fallbackMsg) {
         try {
             const result = await (0, rxjs_1.lastValueFrom)(client.send(pattern, body));
@@ -117,6 +134,13 @@ let AuthController = class AuthController {
     }
 };
 exports.AuthController = AuthController;
+__decorate([
+    (0, common_1.Post)('register/assistant'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "registerAssistant", null);
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),

@@ -21,6 +21,7 @@ enum UserRole {
   DOCTOR = 'doctor',
   PHARMACY = 'pharmacy',
   ADMIN = 'admin',
+  ASSISTANT = 'assistant',
 }
 
 @Controller('api/notifications')

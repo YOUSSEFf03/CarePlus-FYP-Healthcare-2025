@@ -189,6 +189,69 @@ export class DoctorController {
     );
   }
 
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'invite_assistant' })
+  async inviteAssistant(
+    @Payload()
+    data: {
+      token: string;
+      assistantEmail: string;
+      workplaceId: string;
+      message?: string;
+    },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.inviteAssistant(
+      user.id,
+      data.assistantEmail,
+      data.workplaceId,
+      data.message,
+    );
+  }
+
+  // 7. Assistant Responds to Invite
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.ASSISTANT)
+  @MessagePattern({ cmd: 'respond_to_invite' })
+  async respondToInvite(
+    @Payload()
+    data: {
+      token: string;
+      inviteId: string;
+      response: 'accept' | 'reject';
+    },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.respondToAssistantInvite(
+      user.id,
+      data.inviteId,
+      data.response,
+    );
+  }
+
+  // 8. Get My Invites (Assistant)
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.ASSISTANT)
+  @MessagePattern({ cmd: 'get_my_invites' })
+  async getMyInvites(
+    @Payload() data: { token: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.getAssistantInvites(user.id);
+  }
+
+  // 9. Get My Assistants (Doctor)
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_my_assistants' })
+  async getMyAssistants(
+    @Payload() data: { token: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.getDoctorAssistants(user.id);
+  }
+
   // ==================== ERROR HANDLER ====================
 
   @MessagePattern()

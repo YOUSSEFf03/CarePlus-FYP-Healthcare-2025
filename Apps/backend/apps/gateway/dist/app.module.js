@@ -15,6 +15,7 @@ const doctor_controller_1 = require("./doctor.controller");
 const auth_middleware_1 = require("./middleware/auth.middleware");
 const notification_controller_1 = require("./notification.controller");
 const common_2 = require("@nestjs/common");
+const assistant_controller_1 = require("./assistant.controller");
 const AuthServiceClient = microservices_1.ClientsModule.register([
     {
         name: 'AUTH_SERVICE_CLIENT',
@@ -58,8 +59,8 @@ let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(auth_middleware_1.AuthMiddleware)
-            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'doctors', 'doctors/(.*)/reviews', 'doctors/(.*)/available-slots', 'doctors/(.*)/stats', { path: 'doctors/:id', method: common_2.RequestMethod.GET })
-            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController);
+            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', 'doctors', 'doctors/(.*)/reviews', 'doctors/(.*)/available-slots', 'doctors/(.*)/stats', { path: 'doctors/:id', method: common_2.RequestMethod.GET })
+            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController, assistant_controller_1.AssistantController);
     }
 };
 exports.AppModule = AppModule;
@@ -74,7 +75,12 @@ exports.AppModule = AppModule = __decorate([
             DoctorServiceClient,
             NotificationServiceClient,
         ],
-        controllers: [auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController],
+        controllers: [
+            auth_controller_1.AuthController,
+            doctor_controller_1.DoctorController,
+            notification_controller_1.NotificationController,
+            assistant_controller_1.AssistantController,
+        ],
         providers: [auth_middleware_1.AuthMiddleware],
     })
 ], AppModule);

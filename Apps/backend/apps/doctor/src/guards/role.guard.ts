@@ -8,6 +8,7 @@ export enum UserRole {
   DOCTOR = 'doctor',
   PHARMACY = 'pharmacy',
   ADMIN = 'admin',
+  ASSISTANT = 'assistant',
 }
 
 @Injectable()

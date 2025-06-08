@@ -4,6 +4,16 @@ export declare class AuthController {
     private readonly authServiceClient;
     private readonly doctorServiceClient;
     constructor(authServiceClient: ClientProxy, doctorServiceClient: ClientProxy);
+    registerAssistant(body: {
+        name: string;
+        email: string;
+        password: string;
+        phone: string;
+    }): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
     handleRequest(client: ClientProxy, pattern: any, body: any, fallbackMsg: string): Promise<{
         success: boolean;
         data: any;

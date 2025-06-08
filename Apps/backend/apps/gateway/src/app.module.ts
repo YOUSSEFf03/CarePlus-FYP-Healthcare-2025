@@ -6,6 +6,7 @@ import { DoctorController } from './doctor.controller';
 import { AuthMiddleware } from './middleware/auth.middleware';
 import { NotificationController } from './notification.controller';
 import { RequestMethod } from '@nestjs/common';
+import { AssistantController } from './assistant.controller';
 
 const AuthServiceClient = ClientsModule.register([
   {
@@ -62,7 +63,12 @@ const NotificationServiceClient = ClientsModule.register([
     DoctorServiceClient,
     NotificationServiceClient,
   ],
-  controllers: [AuthController, DoctorController, NotificationController],
+  controllers: [
+    AuthController,
+    DoctorController,
+    NotificationController,
+    AssistantController,
+  ],
   providers: [AuthMiddleware],
 })
 export class AppModule implements NestModule {
@@ -78,6 +84,7 @@ export class AppModule implements NestModule {
         'auth/resend-otp',
         'auth/forgot-password',
         'auth/reset-password',
+        'auth/register/assistant',
         'doctors',
         'doctors/(.*)/reviews',
         'doctors/(.*)/available-slots',
@@ -88,7 +95,8 @@ export class AppModule implements NestModule {
         // Apply auth middleware to these controllers
         AuthController,
         DoctorController,
-        NotificationController, // ← ADD THIS
+        NotificationController,
+        AssistantController,
       );
   }
 }

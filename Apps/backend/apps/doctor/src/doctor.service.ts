@@ -1,5 +1,5 @@
 // src/doctor.service.ts - FIXED VERSION
-import { Injectable, Inject } from '@nestjs/common'; // ← FIXED: Single import
+import { Injectable, Inject, Delete } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
@@ -15,7 +15,11 @@ import { UpdateAppointmentDto } from './DTOs/update-appointment.dto';
 import { CreateReviewDto } from './DTOs/create-review.Dto';
 import { GetAppointmentsDto } from './DTOs/get-appointments.dto';
 import { GetDoctorsDto } from './DTOs/get-doctors.dto';
-
+import { AssistantInvite, InviteStatus } from './assistant-invite.entity';
+import { DoctorWorkplace, WorkplaceType } from './doctor-workplace.entity';
+import { Address } from './address.entity';
+import { AppointmentSlot } from './appointment-slot.entity';
+import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
 // Define interfaces for type safety
 interface UserInfo {
   id: string;
@@ -34,11 +38,19 @@ export class DoctorService {
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(DoctorReview)
     private readonly reviewRepo: Repository<DoctorReview>,
-
-    @Inject('NOTIFICATION_SERVICE') // ← FIXED: Add notification service
+    @InjectRepository(DoctorWorkplaceAssistant)
+    private readonly doctorWorkplaceAssistantRepo: Repository<DoctorWorkplaceAssistant>,
+    @InjectRepository(DoctorWorkplace)
+    private readonly workplaceRepo: Repository<DoctorWorkplace>,
+    @InjectRepository(Address)
+    private readonly addressRepo: Repository<Address>,
+    @InjectRepository(AppointmentSlot)
+    private readonly appointmentSlotRepo: Repository<AppointmentSlot>,
+    @InjectRepository(AssistantInvite)
+    private readonly assistantInviteRepo: Repository<AssistantInvite>,
+    @Inject('NOTIFICATION_SERVICE')
     private readonly notificationClient: ClientProxy,
-
-    @Inject('AUTH_SERVICE') // ← FIXED: Add auth service client
+    @Inject('AUTH_SERVICE')
     private readonly authClient: ClientProxy,
   ) {}
 
@@ -446,12 +458,9 @@ export class DoctorService {
         ),
       );
 
-      console.log('✅ Doctor verification notification sent:', result);
+      console.log('Doctor verification notification sent:', result);
     } catch (error) {
-      console.error(
-        '❌ Failed to send doctor verification notification:',
-        error,
-      );
+      console.error('Failed to send doctor verification notification:', error);
       // Don't throw error - verification should still complete
     }
   }
@@ -518,9 +527,9 @@ export class DoctorService {
         );
       }
 
-      console.log('✅ Appointment reminder sent');
+      console.log('Appointment reminder sent');
     } catch (error) {
-      console.error('❌ Failed to send appointment reminder:', error);
+      console.error('Failed to send appointment reminder:', error);
     }
   }
 
@@ -549,9 +558,551 @@ export class DoctorService {
         await this.sendAppointmentReminderNotification(appointment);
       }
 
-      console.log('✅ All appointment reminders processed');
+      console.log('All appointment reminders processed');
     } catch (error) {
-      console.error('❌ Error scheduling appointment reminders:', error);
+      console.error('Error scheduling appointment reminders:', error);
     }
+  }
+
+  // ==================== UPDATED ASSISTANT METHODS WITH WORKPLACE ====================
+
+  // 10. Add to doctor.service.ts
+
+  async inviteAssistant(
+    doctorUserId: string,
+    assistantEmail: string,
+    workplaceId: string,
+    message?: string,
+  ): Promise<AssistantInvite> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      // Verify workplace belongs to doctor
+      const workplace = await this.validateDoctorWorkplace(
+        doctor.id,
+        workplaceId,
+      );
+      if (!workplace) {
+        throw this.rpcError('Workplace not found or access denied', 403);
+      }
+
+      // Get assistant user from auth service
+      const assistantUser = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_email' },
+          { email: assistantEmail },
+        ),
+      )) as UserInfo;
+
+      if (!assistantUser || assistantUser.role !== 'assistant') {
+        throw this.rpcError('Assistant not found or invalid role', 404);
+      }
+
+      // Check if already invited to this workplace
+      const existingInvite = await this.assistantInviteRepo.findOne({
+        where: {
+          doctorId: doctor.id,
+          assistantId: assistantUser.id,
+          workplaceId: workplaceId, // ← NOW INCLUDES WORKPLACE
+          status: InviteStatus.PENDING,
+        },
+      });
+
+      if (existingInvite) {
+        throw this.rpcError('Assistant already invited to this workplace', 409);
+      }
+
+      // Create invite
+      const invite = this.assistantInviteRepo.create({
+        doctorId: doctor.id,
+        assistantId: assistantUser.id,
+        workplaceId: workplaceId, // ← NOW INCLUDES WORKPLACE
+        status: InviteStatus.PENDING,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        message,
+      });
+
+      const savedInvite = await this.assistantInviteRepo.save(invite);
+
+      // Send notification to assistant
+      await this.sendAssistantInviteNotification(
+        assistantUser,
+        doctor,
+        workplace,
+        message,
+      );
+
+      return savedInvite;
+    } catch (error) {
+      console.error('Error inviting assistant:', error);
+      throw error;
+    }
+  }
+
+  async respondToAssistantInvite(
+    assistantUserId: string,
+    inviteId: string,
+    response: 'accept' | 'reject',
+  ): Promise<{ message: string }> {
+    try {
+      // Get invite
+      const invite = await this.assistantInviteRepo.findOne({
+        where: { id: inviteId, assistantId: assistantUserId },
+      });
+
+      if (!invite) {
+        throw this.rpcError('Invite not found', 404);
+      }
+
+      if (invite.status !== InviteStatus.PENDING) {
+        throw this.rpcError('Invite already responded to', 400);
+      }
+
+      if (invite.expires_at < new Date()) {
+        invite.status = InviteStatus.EXPIRED;
+        await this.assistantInviteRepo.save(invite);
+        throw this.rpcError('Invite has expired', 400);
+      }
+
+      // Update invite status
+      invite.status =
+        response === 'accept' ? InviteStatus.ACCEPTED : InviteStatus.REJECTED;
+      await this.assistantInviteRepo.save(invite);
+
+      if (response === 'accept') {
+        // Add assistant to workplace
+        await this.addAssistantToWorkplace(invite);
+
+        // Send acceptance notification to doctor
+        await this.sendInviteResponseNotification(invite, 'accepted');
+
+        return { message: 'Invite accepted successfully' };
+      } else {
+        // Send rejection notification to doctor
+        await this.sendInviteResponseNotification(invite, 'rejected');
+
+        return { message: 'Invite rejected' };
+      }
+    } catch (error) {
+      console.error('Error responding to invite:', error);
+      throw error;
+    }
+  }
+
+  async getAssistantInvites(
+    assistantUserId: string,
+  ): Promise<AssistantInvite[]> {
+    return this.assistantInviteRepo.find({
+      where: { assistantId: assistantUserId },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getDoctorAssistants(doctorUserId: string): Promise<any[]> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+
+    // Get all assistants for this doctor's workplaces
+    const assistants = await this.doctorWorkplaceAssistantRepo
+      .createQueryBuilder('dwa')
+      .leftJoin('doctor_workplaces', 'dw', 'dw.id = dwa.doctorWorkplaceId')
+      .where('dw.doctorId = :doctorId', { doctorId: doctor.id })
+      .andWhere('dwa.status = :status', { status: 'active' })
+      .getMany();
+
+    // Get user details for each assistant
+    const assistantDetails = [];
+    for (const assistant of assistants) {
+      const userInfo = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_id' },
+          { userId: assistant.assistantId },
+        ),
+      )) as UserInfo;
+
+      assistantDetails.push({
+        ...assistant,
+        userInfo,
+      });
+    }
+
+    return assistantDetails;
+  }
+
+  private async addAssistantToWorkplace(
+    invite: AssistantInvite,
+  ): Promise<void> {
+    // Get workplace ID from invite (you'll need to store this in invite)
+    const workplaceAssistant = this.doctorWorkplaceAssistantRepo.create({
+      doctorWorkplaceId: invite.workplaceId, // You'll need to add this to invite entity
+      assistantId: invite.assistantId,
+      inviteId: invite.id,
+      status: 'active',
+    });
+
+    await this.doctorWorkplaceAssistantRepo.save(workplaceAssistant);
+  }
+
+  // ==================== NOTIFICATION METHODS ====================
+
+  private async sendAssistantInviteNotification(
+    assistant: UserInfo,
+    doctor: Doctor,
+    workplace: any,
+    message?: string,
+  ): Promise<void> {
+    try {
+      const doctorUser = (await firstValueFrom(
+        this.authClient.send(
+          { cmd: 'get_user_by_id' },
+          { userId: doctor.userId },
+        ),
+      )) as UserInfo;
+
+      await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_template_notification' },
+          {
+            userId: assistant.id,
+            templateName: 'assistant_invite',
+            type: 'email',
+            recipient: assistant.email,
+            templateData: {
+              assistantName: assistant.name,
+              doctorName: doctorUser.name,
+              workplaceName: workplace.workplace_name,
+              message: message || '',
+              inviteLink: `${process.env.FRONTEND_URL}/assistant/invites`,
+            },
+          },
+        ),
+      );
+
+      console.log('Assistant invite notification sent');
+    } catch (error) {
+      console.error('Failed to send assistant invite notification:', error);
+    }
+  }
+
+  private async sendInviteResponseNotification(
+    invite: AssistantInvite,
+    response: 'accepted' | 'rejected',
+  ): Promise<void> {
+    try {
+      // Get doctor and assistant info
+      const [doctorUser, assistantUser] = await Promise.all([
+        firstValueFrom(
+          this.authClient.send(
+            { cmd: 'get_user_by_doctor_id' },
+            { doctorId: invite.doctorId },
+          ),
+        ) as Promise<UserInfo>,
+        firstValueFrom(
+          this.authClient.send(
+            { cmd: 'get_user_by_id' },
+            { userId: invite.assistantId },
+          ),
+        ) as Promise<UserInfo>,
+      ]);
+
+      await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_template_notification' },
+          {
+            userId: doctorUser.id,
+            templateName: `assistant_invite_${response}`,
+            type: 'email',
+            recipient: doctorUser.email,
+            templateData: {
+              doctorName: doctorUser.name,
+              assistantName: assistantUser.name,
+              response: response,
+            },
+          },
+        ),
+      );
+
+      console.log(`Assistant invite ${response} notification sent to doctor`);
+    } catch (error) {
+      console.error(`Failed to send invite ${response} notification:`, error);
+    }
+  }
+
+  // ==================== WORKPLACE MANAGEMENT ====================
+
+  async createWorkplace(
+    doctorUserId: string,
+    workplaceData: {
+      workplace_name: string;
+      workplace_type: WorkplaceType;
+      phone_number?: string;
+      email?: string;
+      description?: string;
+      website?: string;
+      working_hours?: any;
+      consultation_fee?: number;
+      services_offered?: string[];
+      insurance_accepted?: string[];
+      is_primary?: boolean;
+      address: {
+        building_name?: string;
+        building_number?: string;
+        floor_number?: string;
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+        zipcode?: string;
+        area_description?: string;
+        maps_link?: string;
+      };
+    },
+  ): Promise<DoctorWorkplace> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      // If this is the first workplace or marked as primary, make it primary
+      if (workplaceData.is_primary) {
+        // Remove primary flag from other workplaces
+        await this.workplaceRepo.update(
+          { doctorId: doctor.id },
+          { is_primary: false },
+        );
+      }
+
+      // Create workplace
+      const workplace = this.workplaceRepo.create({
+        ...workplaceData,
+        doctorId: doctor.id,
+      });
+
+      const savedWorkplace = await this.workplaceRepo.save(workplace);
+
+      // Create address for workplace
+      const address = this.addressRepo.create({
+        ...workplaceData.address,
+        doctor_workplace_id: savedWorkplace.id,
+      });
+
+      await this.addressRepo.save(address);
+
+      return savedWorkplace;
+    } catch (error) {
+      console.error('Error creating workplace:', error);
+      throw this.rpcError('Failed to create workplace');
+    }
+  }
+
+  async getDoctorWorkplaces(doctorUserId: string): Promise<DoctorWorkplace[]> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      const workplaces = await this.workplaceRepo.find({
+        where: { doctorId: doctor.id, is_active: true },
+        order: { is_primary: 'DESC', created_at: 'ASC' },
+      });
+
+      // Get addresses for each workplace
+      for (const workplace of workplaces) {
+        workplace.addresses = await this.addressRepo.find({
+          where: { doctor_workplace_id: workplace.id, is_active: true },
+        });
+      }
+
+      return workplaces;
+    } catch (error) {
+      console.error('Error getting doctor workplaces:', error);
+      throw error;
+    }
+  }
+
+  async updateWorkplace(
+    doctorUserId: string,
+    workplaceId: string,
+    updates: Partial<DoctorWorkplace>,
+  ): Promise<DoctorWorkplace> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      // Verify workplace belongs to doctor
+      const workplace = await this.workplaceRepo.findOne({
+        where: { id: workplaceId, doctorId: doctor.id },
+      });
+
+      if (!workplace) {
+        throw this.rpcError('Workplace not found or access denied', 404);
+      }
+
+      // If setting as primary, remove primary from others
+      if (updates.is_primary) {
+        await this.workplaceRepo.update(
+          { doctorId: doctor.id },
+          { is_primary: false },
+        );
+      }
+
+      // Update workplace
+      Object.assign(workplace, updates);
+      return await this.workplaceRepo.save(workplace);
+    } catch (error) {
+      console.error('Error updating workplace:', error);
+      throw error;
+    }
+  }
+
+  async deleteWorkplace(
+    doctorUserId: string,
+    workplaceId: string,
+  ): Promise<{ message: string }> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      // Verify workplace belongs to doctor
+      const workplace = await this.workplaceRepo.findOne({
+        where: { id: workplaceId, doctorId: doctor.id },
+      });
+
+      if (!workplace) {
+        throw this.rpcError('Workplace not found or access denied', 404);
+      }
+
+      // Check if workplace has active assistants
+      const activeAssistants = await this.doctorWorkplaceAssistantRepo.count({
+        where: { doctorWorkplaceId: workplaceId, status: 'active' },
+      });
+
+      if (activeAssistants > 0) {
+        throw this.rpcError(
+          'Cannot delete workplace with active assistants. Remove assistants first.',
+          400,
+        );
+      }
+
+      // Soft delete (mark as inactive)
+      await this.workplaceRepo.update(workplaceId, { is_active: false });
+      await this.addressRepo.update(
+        { doctor_workplace_id: workplaceId },
+        { is_active: false },
+      );
+
+      return { message: 'Workplace deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting workplace:', error);
+      throw error;
+    }
+  }
+
+  async validateDoctorWorkplace(
+    doctorId: string,
+    workplaceId: string,
+  ): Promise<DoctorWorkplace | null> {
+    return this.workplaceRepo.findOne({
+      where: { id: workplaceId, doctorId, is_active: true },
+    });
+  }
+
+  // ==================== APPOINTMENT SLOTS MANAGEMENT ====================
+
+  async createAppointmentSlots(
+    doctorUserId: string,
+    workplaceId: string,
+    slotsData: {
+      date: string;
+      start_time: string;
+      end_time: string;
+      slot_duration: number; // in minutes
+    },
+  ): Promise<AppointmentSlot[]> {
+    try {
+      const doctor = await this.getDoctorByUserId(doctorUserId);
+
+      // Verify workplace belongs to doctor
+      const workplace = await this.validateDoctorWorkplace(
+        doctor.id,
+        workplaceId,
+      );
+      if (!workplace) {
+        throw this.rpcError('Workplace not found or access denied', 403);
+      }
+
+      // Generate time slots
+      const slots = this.generateTimeSlots(
+        slotsData.start_time,
+        slotsData.end_time,
+        slotsData.slot_duration,
+      );
+
+      const appointmentSlots: AppointmentSlot[] = [];
+
+      for (const slot of slots) {
+        // Check if slot already exists
+        const existingSlot = await this.appointmentSlotRepo.findOne({
+          where: {
+            doctor_id: doctor.id,
+            workplace_id: workplaceId,
+            slot_date: slotsData.date,
+            start_time: slot.start,
+            end_time: slot.end,
+          },
+        });
+
+        if (!existingSlot) {
+          const appointmentSlot = this.appointmentSlotRepo.create({
+            doctor_id: doctor.id,
+            workplace_id: workplaceId,
+            slot_date: slotsData.date,
+            start_time: slot.start,
+            end_time: slot.end,
+            is_available: true,
+          });
+
+          appointmentSlots.push(appointmentSlot);
+        }
+      }
+
+      if (appointmentSlots.length > 0) {
+        return await this.appointmentSlotRepo.save(appointmentSlots);
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error creating appointment slots:', error);
+      throw error;
+    }
+  }
+
+  private generateTimeSlots(
+    startTime: string,
+    endTime: string,
+    durationMinutes: number,
+  ): { start: string; end: string }[] {
+    const slots = [];
+    const start = new Date(`2000-01-01 ${startTime}`);
+    const end = new Date(`2000-01-01 ${endTime}`);
+
+    while (start < end) {
+      const slotStart = start.toTimeString().slice(0, 5);
+      start.setMinutes(start.getMinutes() + durationMinutes);
+
+      if (start <= end) {
+        const slotEnd = start.toTimeString().slice(0, 5);
+        slots.push({ start: slotStart, end: slotEnd });
+      }
+    }
+
+    return slots;
+  }
+
+  async getWorkplaceAppointmentSlots(
+    workplaceId: string,
+    date: string,
+  ): Promise<AppointmentSlot[]> {
+    return this.appointmentSlotRepo.find({
+      where: {
+        workplace_id: workplaceId,
+        slot_date: date,
+        is_available: true,
+      },
+      order: { start_time: 'ASC' },
+    });
   }
 }

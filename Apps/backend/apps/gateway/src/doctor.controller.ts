@@ -14,6 +14,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 import { AuthenticatedRequest } from './middleware/auth.middleware';
+import { Delete } from '@nestjs/common';
 
 @Controller('doctors')
 export class DoctorController {
@@ -304,6 +305,150 @@ export class DoctorController {
       { cmd: 'get_appointments_by_doctor' },
       { token: req.token, doctorId, status, date_from, date_to, page, limit },
       'Failed to get doctor appointments',
+    );
+  }
+  @Post('invite-assistant')
+  async inviteAssistant(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      assistantEmail: string;
+      workplaceId: string;
+      message?: string;
+    },
+  ) {
+    // Check if user is doctor
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'invite_assistant' },
+      {
+        token: req.token,
+        doctorUserId: req.user.id,
+        assistantEmail: body.assistantEmail,
+        workplaceId: body.workplaceId,
+        message: body.message,
+      },
+      'Failed to invite assistant',
+    );
+  }
+
+  @Get('my-assistants')
+  async getMyAssistants(@Req() req: AuthenticatedRequest) {
+    // Check if user is doctor
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_doctor_assistants' },
+      { token: req.token, doctorUserId: req.user.id },
+      'Failed to get assistants',
+    );
+  }
+
+  @Get('pending-invites')
+  async getPendingInvites(@Req() req: AuthenticatedRequest) {
+    // Check if user is doctor
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_pending_invites' },
+      { token: req.token, doctorUserId: req.user.id },
+      'Failed to get pending invites',
+    );
+  }
+
+  @Delete('remove-assistant')
+  async removeAssistant(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      assistantId: string;
+      workplaceId: string;
+      reason?: string;
+    },
+  ) {
+    // Check if user is doctor
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'remove_assistant' },
+      {
+        token: req.token,
+        doctorUserId: req.user.id,
+        assistantId: body.assistantId,
+        workplaceId: body.workplaceId,
+        reason: body.reason,
+      },
+      'Failed to remove assistant',
+    );
+  }
+
+  @Delete('cancel-invite/:inviteId')
+  async cancelInvite(
+    @Req() req: AuthenticatedRequest,
+    @Param('inviteId') inviteId: string,
+  ) {
+    // Check if user is doctor
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'cancel_invite' },
+      {
+        token: req.token,
+        doctorUserId: req.user.id,
+        inviteId: inviteId,
+      },
+      'Failed to cancel invite',
     );
   }
 }

@@ -14,6 +14,13 @@ import { MicroserviceAuthGuard } from './guards/microservice-auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
 
+import { AssistantInvite } from './assistant-invite.entity';
+import { DoctorWorkplace } from './doctor-workplace.entity';
+import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
+
+import { Address } from './address.entity';
+import { AppointmentSlot } from './appointment-slot.entity';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -31,7 +38,16 @@ import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
       logging: process.env.NODE_ENV === 'development',
     }),
 
-    TypeOrmModule.forFeature([Doctor, Appointment, DoctorReview]),
+    TypeOrmModule.forFeature([
+      Doctor,
+      Appointment,
+      DoctorReview,
+      DoctorWorkplaceAssistant,
+      DoctorWorkplace,
+      Address,
+      AppointmentSlot,
+      AssistantInvite,
+    ]),
 
     // RabbitMQ clients
     ClientsModule.register([
@@ -65,6 +81,9 @@ import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
     MicroserviceAuthGuard,
     RoleGuard,
     DoctorOwnershipGuard,
+    AssistantInvite,
+    DoctorWorkplaceAssistant,
+    DoctorWorkplace,
   ],
 })
 export class DoctorModule {}
