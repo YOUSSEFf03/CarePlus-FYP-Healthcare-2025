@@ -1,5 +1,7 @@
+// Replace your existing app.service.ts with this
 import { Injectable } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { JwtService } from '@nestjs/jwt';
+import { RpcException } from '@nestjs/microservices';
 import { UsersService } from './users.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -11,16 +13,15 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { EmailService } from './email.service';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  @MessagePattern({ cmd: 'register_user' })
-  async registerUser(
-    @Payload() data: RegisterUserDto,
-  ): Promise<AuthResponseDto> {
+  async registerUser(data: RegisterUserDto): Promise<AuthResponseDto> {
     try {
       const user = await this.usersService.createUser(data);
       if (!user) {
@@ -36,12 +37,11 @@ export class AppService {
       };
     } catch (err) {
       console.error('Error in registerUser:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'login_user' })
-  async loginUser(@Payload() data: LoginUserDto): Promise<AuthResponseDto> {
+  async loginUser(data: LoginUserDto): Promise<AuthResponseDto> {
     try {
       const userWithTokens = await this.usersService.login(
         data.email,
@@ -51,19 +51,16 @@ export class AppService {
       return {
         access_token: userWithTokens.access_token,
         refresh_token: userWithTokens.refresh_token,
-        expires_in: '15m',
+        expires_in: '30m',
         token_type: 'Bearer',
       };
     } catch (err) {
       console.error('Error in loginUser:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'refresh_token' })
-  async refreshToken(
-    @Payload() data: RefreshTokenDto,
-  ): Promise<AuthResponseDto> {
+  async refreshToken(data: RefreshTokenDto): Promise<AuthResponseDto> {
     try {
       const tokens = await this.usersService.refreshUserToken(
         data.refresh_token,
@@ -77,52 +74,47 @@ export class AppService {
       };
     } catch (err) {
       console.error('Error in refreshToken:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'logout_user' })
-  async logoutUser(@Payload() data: { userId: string }) {
+  async logoutUser(data: { userId: string }) {
     try {
       await this.usersService.logout(data.userId);
       return { message: 'Logged out successfully' };
     } catch (err) {
       console.error('Error in logoutUser:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'verify_otp' })
-  async verifyOtp(@Payload() data: VerifyOtpDto): Promise<{ message: string }> {
+  async verifyOtp(data: VerifyOtpDto): Promise<{ message: string }> {
     try {
       const message = await this.usersService.verifyOtp(data.email, data.otp);
       return { message };
     } catch (err) {
       console.error('Error in verifyOtp:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'resend_otp' })
-  async resendOtp(@Payload() data: ResendOtpDto): Promise<{ message: string }> {
+  async resendOtp(data: ResendOtpDto): Promise<{ message: string }> {
     try {
       const message = await this.usersService.resendOtp(data.email);
       return { message };
     } catch (err) {
       console.error('Error in resendOtp:', err?.message);
-      throw err; // Rethrow original RpcException
+      throw err;
     }
   }
 
-  @MessagePattern({ cmd: 'get_user_profile' })
-  async getUserProfile(@Payload() data: { userId: string }) {
+  async getUserProfile(data: { userId: string }) {
     try {
       const user = await this.usersService.findById(data.userId);
       if (!user) {
         throw new Error('User not found');
       }
 
-      // Return user without sensitive data
       const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
         user;
       return safeUser;
@@ -132,15 +124,13 @@ export class AppService {
     }
   }
 
-  @MessagePattern({ cmd: 'update_user_profile' })
-  async updateUserProfile(@Payload() data: UpdateProfileDto) {
+  async updateUserProfile(data: UpdateProfileDto) {
     try {
       const user = await this.usersService.findById(data.userId);
       if (!user) {
         throw new Error('User not found');
       }
 
-      // Update user fields
       if (data.name) user.name = data.name;
       if (data.phone) user.phone = data.phone;
       if (data.profile_picture_url)
@@ -148,7 +138,6 @@ export class AppService {
 
       const updatedUser = await this.usersService.updateUser(user);
 
-      // Return updated user without sensitive data
       const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
         updatedUser;
       return safeUser;
@@ -158,8 +147,7 @@ export class AppService {
     }
   }
 
-  @MessagePattern({ cmd: 'change_password' })
-  async changePassword(@Payload() data: ChangePasswordDto) {
+  async changePassword(data: ChangePasswordDto) {
     try {
       const result = await this.usersService.changePassword(
         data.userId,
@@ -173,8 +161,7 @@ export class AppService {
     }
   }
 
-  @MessagePattern({ cmd: 'forgot_password' })
-  async forgotPassword(@Payload() data: ForgotPasswordDto) {
+  async forgotPassword(data: ForgotPasswordDto) {
     try {
       const result = await this.usersService.forgotPassword(data.email);
       return { message: result };
@@ -184,8 +171,7 @@ export class AppService {
     }
   }
 
-  @MessagePattern({ cmd: 'reset_password' })
-  async resetPassword(@Payload() data: ResetPasswordDto) {
+  async resetPassword(data: ResetPasswordDto) {
     try {
       const result = await this.usersService.resetPassword(
         data.email,
@@ -199,8 +185,46 @@ export class AppService {
     }
   }
 
-  @MessagePattern()
-  handleUnknown(@Payload() data: any) {
+  // Token verification method
+  async verifyToken(data: { token: string }) {
+    try {
+      // Verify JWT token
+      const payload = this.jwtService.verify(data.token);
+
+      // Get user from database
+      const user = await this.usersService.findById(payload.sub);
+
+      if (!user) {
+        throw new RpcException({
+          status: 401,
+          message: 'User not found',
+        });
+      }
+
+      if (!user.is_verified) {
+        throw new RpcException({
+          status: 401,
+          message: 'User account is not verified',
+        });
+      }
+
+      // Return user info (exclude sensitive fields)
+      const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
+        user;
+      return safeUser;
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException({
+        status: 401,
+        message: 'Invalid or expired token',
+      });
+    }
+  }
+
+  handleUnknown(data: any) {
     console.warn('Received unknown message pattern:', data);
     return { error: 'Unknown command', data };
   }
