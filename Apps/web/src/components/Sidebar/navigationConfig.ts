@@ -26,14 +26,27 @@ export type SidebarItem = {
 
 export const sidebarConfig: {
     doctor: NavigationItem[];
+    assistant: NavigationItem[];
+    // pharmacy: NavigationItem[];
     general: NavigationItem[];
 } = {
     doctor: [
+        { title: "Overview", icon: "Grid3X3", url: "/doctor/dashboard" },
+        { title: "Appointments", icon: "FileText", url: "/doctor/appointments" },
+        { title: "Calendar", icon: "Calendar", url: "/doctor/calendar" },
+        { title: "Patients", icon: "Users", url: "/doctor/patients" },
+        { title: "Workplaces", icon: "Workplaces", url: "/doctor/workplaces" },
+        { title: "Assistants", icon: "AssistantsIcon", url: "/doctor/assistants" },
+    ],
+    assistant: [
         { title: "Overview", icon: "Grid3X3", url: "/doctor" },
         { title: "Appointments", icon: "Calendar", url: "/doctor/appointments" },
-        { title: "Patients", icon: "Users", url: "/doctor/patients" },
+        { title: "Doctors", icon: "Users", url: "/doctor/patients" },
+        { title: "Workplaces", icon: "Users", url: "/doctor/patients" },
     ],
     general: [
-        { title: "Logout", icon: "LogOut", url: "/logout" },
+        { title: "Help", icon: "HelpCircle", url: "/logout" },
+        { title: "Settings", icon: "Settings", url: "/logout" },
+        { title: "Tutorial", icon: "BookOpen", url: "/logout" },
     ],
 };

@@ -1,0 +1,164 @@
+.appointments-header {
+    margin-bottom: 8px;
+}
+
+.appointments-tabs {
+    display: flex;
+    gap: 24px;
+    border-bottom: 2px solid #e5e7eb;
+    margin: 0px 0px 16px 0px;
+    position: relative;
+}
+
+.appointments-tab {
+    background: none;
+    border: none;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    color: var(--neutral-600);
+    transition: color 0.3s ease;
+    font-family: var(--ff-red-hat-display);
+}
+
+.tab-count {
+    background-color: var(--secondary-10);
+    color: var(--secondary-70);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--radius-50);
+    margin-left: 8px;
+    line-height: 1;
+}
+
+.appointments-tab.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.appointments-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+}
+
+.appointments-tab.active::after {
+    transform: scaleX(1);
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.appointments-table {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.appointments-header-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr 2fr 2fr 1fr;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--neutral-900);
+    font-family: var(--ff-red-hat-display);
+    /* padding-bottom: 6px; */
+    border-bottom: 1px solid #e5e7eb;
+    background-color: var(--neutral-200);
+    padding: 8px;
+    border-radius: var(--radius-4);
+}
+
+.appointments-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr 2fr 2fr 1fr;
+    padding: 10px 8px;
+    font-size: 14px;
+    color: var(--primary-color);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.action-icon {
+    cursor: pointer;
+    /* font-size: 16px; */
+    /* color: var(--primary-20); */
+    /* color: var(--secondary-70); */
+    color: var(--neutral-400);
+    /* display: flex;
+    align-items: center;
+    justify-content: center; */
+    /* text-align: center; */
+    margin-left: 10px;
+    width: fit-content;
+    height: 24px;
+    padding: 0px 4px;
+    border-radius: var(--radius-4);
+}
+
+.action-icon:hover {
+    /* color: var(--primary-color); */
+    color: var(--secondary-70);
+    background-color: var(--secondary-10);
+}
+
+.tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    background-color: #111827;
+    color: #fff;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    position: absolute;
+    z-index: 10;
+    bottom: 105%;
+    /* above the icon */
+    left: 45%;
+    transform: translateX(-50%);
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.appointments-empty {
+    text-align: center;
+    color: var(--neutral-500);
+    padding: 16px;
+    font-size: 14px;
+}

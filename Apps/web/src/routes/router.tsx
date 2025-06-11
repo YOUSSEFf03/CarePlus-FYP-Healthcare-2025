@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import NotFound from '../pages/NotFound';
 import DoctorLayout from '../layouts/DoctorLayout';
@@ -11,6 +11,9 @@ import AssistantLayout from '../layouts/AssistantLayout';
 import AssistantDashboard from '../pages/assistant/AssistantDashboard';
 import DoctorAddPatient from '../pages/doctor/DoctorAddPatient';
 import DoctorAppointments from '../pages/doctor/DoctorAppointments';
+import DoctorCalendar from '../pages/doctor/DoctorCalendar';
+import DoctorWorkplaces from '../pages/doctor/DoctorWorkplaces';
+import WorkplaceDetails from '../pages/doctor/WorkplaceDetails';
 
 export default function AppRoutes() {
     return (
@@ -26,10 +29,13 @@ export default function AppRoutes() {
                 element={<ProtectedRoute allowedRoles={['doctor']} />}
             >
                 <Route element={<DoctorLayout />}>
-                    <Route index element={<DoctorDashboard />} />
+                    <Route index element={<Navigate to="dashboard" />} />
+                    <Route path='dashboard' element={<DoctorDashboard />} />
                     <Route path="patients" element={<DoctorPatients />} />
-                    <Route path="patients/add" element={<DoctorAddPatient />} />
+                    <Route path="calendar" element={<DoctorCalendar />} />
                     <Route path="appointments" element={<DoctorAppointments />} />
+                    <Route path="workplaces" element={<DoctorWorkplaces />} />
+                    <Route path="workplaces/:name" element={<WorkplaceDetails />} />
                 </Route>
             </Route>
 

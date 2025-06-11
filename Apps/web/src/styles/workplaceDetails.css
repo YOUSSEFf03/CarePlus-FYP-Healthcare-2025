@@ -1,0 +1,22 @@
+.workplace-details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--gap-16);
+}
+
+.workplace-details-header .edit-button, .workplace-details-header .delete-button, .workplace-details-header .save-button {
+    gap: var(--gap-4);
+    /* padding: 8px 16px; */
+}
+
+.workplace-details-header .delete-button {
+    color: var(--error-color);
+    /* padding: 0; */
+}
+
+.workplace-details-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-12);
+}

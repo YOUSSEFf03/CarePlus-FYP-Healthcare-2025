@@ -1,0 +1,85 @@
+.calendar-container {
+    background-color: #f9f9f9;
+}
+
+.calendar-header {
+    margin-bottom: 16px;
+}
+
+.calendar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0px 0px 12px 0px;
+    gap: 12px;
+}
+
+.toolbar-left,
+.toolbar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.calendar-toolbar button {
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.calendar-toolbar button.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.rbc-time-content {
+    overflow: visible !important;
+}
+
+.rbc-day-slot {
+    overflow: visible !important;
+}
+
+.rbc-event {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow: visible !important;
+    position: relative;
+}
+
+.rbc-event-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow: visible !important;
+    padding: 0 !important;
+    white-space: normal !important;
+    height: auto !important;
+}
+
+.appointment-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rbc-events-container {
+    position: relative !important;
+    height: auto !important;
+}
+
+/* Optional: allow stacking if overlapping */
+.rbc-event-label {
+    display: none;
+    /* hide built-in time label if you're showing it in your card */
+}
+
+.rbc-time-slot {
+    min-height: 60px !important;
+}

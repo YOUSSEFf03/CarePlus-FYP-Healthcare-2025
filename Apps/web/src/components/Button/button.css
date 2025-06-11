@@ -15,6 +15,11 @@
     font-family: var(--ff-poppins);
 }
 
+.dashboard-header .btn {
+    padding: var(--padding-8-16);
+    font-size: var(--fs-14);
+}
+
 .btn__icon {
     display: inline-flex;
 }

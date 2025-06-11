@@ -1,0 +1,92 @@
+.custom-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--ff-poppins);
+}
+
+.custom-input-label {
+    font-size: 14px;
+    /* font-weight: 500; */
+    color: var(--primary-color);
+}
+
+.optional-text {
+    font-weight: 300;
+    font-size: var(--fs-12);
+    color: var(--neutral-600);
+}
+
+.custom-input-wrapper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--neutral-400);
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: white;
+    transition: border-color 0.2s ease;
+    position: relative;
+}
+
+.custom-input-field {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+    color: var(--primary-color);
+    background: transparent;
+    font-family: var(--ff-poppins);
+}
+
+.input-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-600);
+}
+
+.input-icon.left {
+    margin-right: 8px;
+}
+
+.input-icon.right {
+    margin-left: 8px;
+}
+
+/* Focus state */
+.custom-input-container.normal .custom-input-wrapper:focus-within {
+    border-color: var(--primary-color);
+}
+
+/* Error variant */
+.custom-input-container.error .custom-input-wrapper {
+    border-color: var(--error-color);
+}
+
+.custom-input-container.error .custom-input-message {
+    color: var(--error-color);
+}
+
+/* Disabled variant */
+.custom-input-container.disabled .custom-input-wrapper {
+    background-color: var(--neutral-200);
+    cursor: not-allowed;
+}
+
+.custom-input-container.disabled .custom-input-field {
+    color: var(--neutral-800);
+}
+
+.custom-input-message {
+    font-size: 12px;
+    color: var(--neutral-500);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.message-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
