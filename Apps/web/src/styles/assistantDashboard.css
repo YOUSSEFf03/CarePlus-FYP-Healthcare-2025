@@ -1,0 +1,195 @@
+.dashboard-container {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-left {
+    flex: 1;
+    /* background-color: #ffffff; */
+    /* padding: 24px; */
+    border-radius: 12px;
+    /* box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); */
+}
+
+.dashboard-right {
+    width: 280px;
+    /* background-color: #fff; */
+    border-radius: 12px;
+    /* box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); */
+    /* padding: 16px; */
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.dashboard-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.overall-button {
+    padding: 6px 12px;
+    background-color: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.overall-button:hover {
+    background-color: #e5e7eb;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background-color: var(--white);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-title {
+    font-size: 14px;
+    /* color: #4b5563; */
+    color: var(--neutral-900);
+    font-weight: 500;
+    /* font-family: var(--ff-red-hat-display); */
+}
+
+.stat-icon {
+    width: 20px;
+    height: 20px;
+    background-color: #e2effd;
+    color: var(--secondary-70) !important;
+    fill: var(--secondary-70) !important;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: var(--ff-red-hat-display);
+    color: var(--black);
+}
+
+.stat-change {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.stat-change.up {
+    color: var(--success-color);
+}
+
+.stat-change.down {
+    color: var(--error-color);
+}
+
+.pending-appointments-div {
+    /* background-color: var(--neutral-202); */
+    background: var(--gradient-warning-white);
+    /* background-color: var(--white); */
+    /* box-shadow: var(--shadow-light); */
+    /* background-color: var(--secondary-10); */
+    /* background-image: url(../assets/images/bg-6.png); */
+    background-size: cover;
+    margin: 24px 0;
+    padding: 16px;
+    border-radius: var(--radius-8);
+    max-height: 200px;
+}
+
+.pending-appointments-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-12);
+    padding: 8px;
+}
+
+.pending-appointments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--gap-24);
+}
+
+.pending-appointments-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-4);
+}
+
+.pending-appointments-header-content .text-body-md-r {
+    color: var(--neutral-700);
+}
+
+.pending-appointments-header .btn {
+    font-size: var(--fs-14);
+    padding: 4px 8px;
+    /* border: 1px solid var(--primary-color); */
+}
+
+/* .pending-appointments-header .btn:hover {
+    background-color: var(--primary-05);
+    color: var(--primary-80);
+} */
+
+.pending-appointments-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-12);
+    max-height: 150px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.pending-appointments-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.pending-appointment-item {
+    background-color: var(--white);
+    /* background-color: var(--neutral-202); */
+    padding: 12px;
+    border-radius: var(--radius-8);
+    box-shadow: var(--shadow-light);
+}
+
+.pending-appointment-item:last-child {
+    margin-bottom: 16px !important;
+}
+
+.quick-links-buttons a button {
+    white-space: nowrap;
+}
+
+.dashboard-right {
+    width: 300px;
+    padding: 16px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+}

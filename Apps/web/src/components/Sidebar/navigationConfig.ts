@@ -6,29 +6,10 @@ export type SidebarItem = {
     url: string;
 };
 
-// export const sidebarConfig: Record<string, SidebarItem[]> = {
-//     doctor: [
-//         { title: "Overview", icon: "Grid3X3", url: "/doctor" },
-//         { title: "Patients", icon: "Users", url: "/doctor/patients" },
-//         // ...more doctor items
-//     ],
-//     assistant: [
-//         { title: "Overview", icon: "Grid3X3", url: "/assistant" },
-//         { title: "Support", icon: "MessageSquare", url: "/assistant/support" },
-//         // ...more assistant items
-//     ],
-//     pharmacy: [
-//         { title: "Dashboard", icon: "Grid3X3", url: "/pharmacy" },
-//         { title: "Inventory", icon: "FileText", url: "/pharmacy/inventory" },
-//         // ...more pharmacy items
-//     ],
-// };
-
 export const sidebarConfig: {
     doctor: NavigationItem[];
     assistant: NavigationItem[];
-    // pharmacy: NavigationItem[];
-    general: NavigationItem[];
+    pharmacy: NavigationItem[];
 } = {
     doctor: [
         { title: "Overview", icon: "Grid3X3", url: "/doctor/dashboard" },
@@ -39,14 +20,22 @@ export const sidebarConfig: {
         { title: "Assistants", icon: "AssistantsIcon", url: "/doctor/assistants" },
     ],
     assistant: [
-        { title: "Overview", icon: "Grid3X3", url: "/doctor" },
-        { title: "Appointments", icon: "Calendar", url: "/doctor/appointments" },
-        { title: "Doctors", icon: "Users", url: "/doctor/patients" },
-        { title: "Workplaces", icon: "Users", url: "/doctor/patients" },
+        { title: "Overview", icon: "Grid3X3", url: "/assistant" },
+        { title: "Doctors", icon: "Doctor", url: "/assistant/doctors" },
+        { title: "Workplaces", icon: "Workplaces", url: "/assistant/workplaces" },
+        { title: "Invites", icon: "Inivitations", url: "/assistant/workplaces/appointments" },
     ],
-    general: [
-        { title: "Help", icon: "HelpCircle", url: "/logout" },
-        { title: "Settings", icon: "Settings", url: "/logout" },
-        { title: "Tutorial", icon: "BookOpen", url: "/logout" },
-    ],
+    pharmacy: [
+        { title: "Overview", icon: "Grid3X3", url: "/pharmacy/dashboard" },
+        { title: "Inventory", icon: "Workplaces", url: "/pharmacy/inventory" },
+        { title: "Prescriptions", icon: "Workplaces", url: "/pharmacy/prescriptions" },
+        { title: "Orders", icon: "Workplaces", url: "/pharmacy/orders" },
+        { title: "Reports", icon: "Workplaces", url: "/pharmacy/reports" },
+    ]
 };
+
+export const getGeneralItems = (role: 'doctor' | 'assistant' | 'pharmacy'): NavigationItem[] => [
+    { title: "Help", icon: "HelpCircle", url: `/${role}/help` },
+    { title: "Settings", icon: "Settings", url: `/${role}/settings` },
+    { title: "Tutorial", icon: "BookOpen", url: `/${role}/tutorial` },
+];

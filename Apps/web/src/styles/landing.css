@@ -1,0 +1,261 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.landing-container {
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+}
+
+/* Navbar */
+.navbar {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--white);
+    color: var(--primary-color);
+    padding: var(--padding-12-24);
+    border-radius: var(--radius-12);
+    box-shadow: var(--shadow-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: fit-content;
+    min-width: 80%;
+    z-index: 10;
+    gap: var(--gap-24);
+    transition: max-height 1s ease, padding 0.6s ease;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: flex-start;
+    max-height: 70px;
+}
+
+.navbar-wrapper {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-16);
+}
+
+/* When open */
+.navbar.expanded {
+    transition: max-height 1s ease, padding 0.6s ease;
+    max-height: 300px;
+    /* enough to show menu cards */
+}
+
+/* Menu cards wrapper inside navbar */
+.nav-menu-cards {
+    opacity: 0;
+    display: flex;
+    gap: 1rem;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+/* Make them visible when menu is open */
+.nav-menu-cards.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Card style */
+.menu-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-24);
+    height: 200px;
+    width: 260px;
+    padding: var(--padding-16);
+    border-radius: var(--radius-8);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    justify-content: space-between;
+}
+
+.menu-card-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-4);
+    justify-content: end;
+}
+
+.menu-card-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-family: var(--ff-poppins);
+    font-size: var(--fs-14);
+    transition: color 0.3s ease;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-8);
+    color: var(--white);
+}
+
+.menu-card-link:hover {
+    color: var(--neutral-300);
+    /* color: var(--primary-05); */
+}
+
+.menu-card .text-heading-H3 {
+    /* font-family: var(--ff-poppins); */
+    /* font-weight: 600; */
+    font-family: var(--ff-red-hat-display);
+}
+
+#doctors {
+    background-color: var(--secondary-70);
+    color: var(--white);
+}
+
+#doctors {
+    background-color: var(--secondary-70);
+    color: var(--white);
+}
+
+#pharmacy {
+    background-color: var(--primary-70);
+    color: var(--white);
+}
+
+#assistant {
+    background-color: var(--tertiary-70);
+    color: var(--white);
+}
+
+#explore {
+    background: url('../assets/images/bg-2.png');
+    background-size: cover;
+    color: var(--white);
+}
+
+.nav-menu-cards.visible .menu-card:nth-child(1) {
+    transition-delay: 0.2s;
+}
+
+.nav-menu-cards.visible .menu-card:nth-child(2) {
+    transition-delay: 0.4s;
+}
+
+.nav-menu-cards.visible .menu-card:nth-child(3) {
+    transition-delay: 0.6s;
+}
+
+.nav-menu-cards.visible .menu-card:nth-child(4) {
+    transition-delay: 0.8s;
+}
+
+.nav-menu-cards.visible .menu-card {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Burger container style */
+.burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--gap-4);
+    border: none;
+    background-color: transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: var(--padding-4);
+}
+
+/* Burger lines (bars) */
+.burger .bar.short {
+    width: 32px;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: var(--transition-300);
+    margin: 0 auto;
+}
+
+.burger:hover {
+    transition: var(--transition-300);
+    /* gap: 6px; */
+}
+
+.burger:not(.open):hover {
+    gap: 6px;
+}
+
+.burger:hover .bar.short {
+    background-color: var(--primary-30);
+}
+
+.burger.open .bar.short:first-child {
+    transform: rotate(45deg);
+    transform-origin: center;
+}
+
+.burger.open .bar.short:last-child {
+    transform: rotate(-45deg) translate(5px, -5px);
+    transform-origin: center;
+}
+
+
+
+/* Hero Section */
+.hero-section {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(to right, #f3f4f6, #a78bfa);
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-image {
+    flex: 1;
+    /* background-image: url('/assets/hero-woman.png'); */
+    /* Replace with your actual image path */
+    background-size: cover;
+    background-position: center left;
+    min-height: 100%;
+}
+
+.hero-content {
+    flex: 1;
+    padding: 2rem;
+    background-color: #1e1b4b;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-content h1 {
+    font-size: 2rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.learn-btn {
+    padding: 0.75rem 1.25rem;
+    background-color: #8b5cf6;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+}

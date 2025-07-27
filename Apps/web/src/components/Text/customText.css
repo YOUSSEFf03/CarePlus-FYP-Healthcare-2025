@@ -30,6 +30,14 @@
     font-family: var(--ff-poppins);
 }
 
+.text-heading-H5 {
+    margin: 0;
+    font-size: 14px;
+    line-height: normal;
+    font-weight: 600;
+    font-family: var(--ff-poppins);
+}
+
 .text-body-lg-r {
     margin: 0;
     font-size: 16px;
