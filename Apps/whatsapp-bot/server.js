@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const twilio = require('twilio');
 const { format, addDays, parse, isWithinInterval } = require('date-fns');
-
+const userStates={};
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -123,7 +123,18 @@ const generateSlots = () => {
 
 let appointmentSlots = generateSlots();
 let appointments = [];
-let userStates = {};
+let users = [
+  {
+    user_id: 1,
+    phone: "++96171522745", // Use a real number here
+    name: "Admin User",
+    email: "admin@clinic.com",
+    role: "admin",
+    profile_picture_url: "",
+    created_at: new Date(),
+    updated_at: new Date()
+  }
+];
 
 // =============================================
 // BUSINESS LOGIC FUNCTIONS
@@ -175,52 +186,49 @@ const getPatientAppointments = (patientId) => {
 // MESSAGE HANDLER
 // =============================================
 
+
 app.post('/whatsapp', async (req, res) => {
   const incomingMsg = req.body.Body.trim();
-  const sender = req.body.From;
-  const currentState = userStates[sender] || { step: null, data: {} };
+  const sender = req.body.From.replace('whatsapp:', '');
+  
+  // Initialize user state if it doesn't exist
+  if (!userStates[sender]) {
+    userStates[sender] = { step: null, data: {} };
+  }
+  const currentState = userStates[sender];
 
   try {
+    // Check if user exists on first interaction
+    if (!userExists(sender) && currentState.step === null && !/^(hi|hello|start|register)$/i.test(incomingMsg)) {
+      await promptRegistration(sender);
+      return res.status(200).send();
+    }
+
     if (/^(hi|hello|start)$/i.test(incomingMsg)) {
       await sendWelcomeMessage(sender);
-      userStates[sender] = { step: null, data: {} };
+      userStates[sender] = { step: null, data: {} }; // Reset state
+    }
+    else if (/^register$/i.test(incomingMsg)) {
+      await startRegistrationFlow(sender);
+    }
+    else if (currentState.step === 'register_name') {
+      await handleRegistrationName(sender, incomingMsg, currentState);
+    }
+    else if (currentState.step === 'register_email') {
+      await handleRegistrationEmail(sender, incomingMsg, currentState);
+    }
+    else if (currentState.step === 'register_dob') {
+      await handleRegistrationDOB(sender, incomingMsg, currentState);
+    }
+    else if (currentState.step === 'register_gender') {
+      await handleRegistrationGender(sender, incomingMsg, currentState);
     }
     else if (/^new appointment$|^book appointment$/i.test(incomingMsg)) {
-      await startAppointmentFlow(sender);
-    }
-    else if (/^my appointments$|^view appointments$/i.test(incomingMsg)) {
-      await showPatientAppointments(sender);
-    }
-    else if (/^delete appointment$/i.test(incomingMsg)) {
-      await showAppointmentsForDeletion(sender);
-    }
-    else if (currentState.step === 'get_name') {
-      await handleNameInput(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_region') {
-      await handleRegionSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_clinic') {
-      await handleClinicSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_specialization') {
-      await handleSpecializationSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_doctor') {
-      await handleDoctorSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_date') {
-      await handleDateSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'select_slot') {
-      await handleSlotSelection(sender, incomingMsg, currentState);
-    }
-    else if (currentState.step === 'delete_appointment') {
-      await handleAppointmentDeletion(sender, incomingMsg, currentState);
-    }
-    else if (/^cancel$/i.test(incomingMsg)) {
-      await cancelAppointment(sender);
-      userStates[sender] = { step: null, data: {} };
+      if (!userExists(sender)) {
+        await promptRegistration(sender);
+      } else {
+        await startAppointmentFlow(sender);
+      }
     }
     else {
       await sendInvalidCommand(sender);
@@ -228,52 +236,221 @@ app.post('/whatsapp', async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     await sendErrorMessage(sender);
-    userStates[sender] = { step: null, data: {} };
+    userStates[sender] = { step: null, data: {} }; // Reset state on error
   }
 
   res.status(200).send();
 });
 
 // =============================================
+// REGISTRATION FUNCTIONS
+// =============================================
+
+function userExists(phone) {
+  return users.some(user => user.phone === phone);
+}
+
+async function promptRegistration(sender) {
+  await client.messages.create({
+    body: "🔒 You need to register first. Please reply with:\n\n" +
+          "REGISTER - To start registration\n\n" +
+          "We'll need your:\n" +
+          "- Full Name\n" +
+          "- Email\n" +
+          "- Date of Birth (DD/MM/YYYY)\n" +
+          "- Gender",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+  userStates[sender] = { step: 'awaiting_registration', data: {} };
+}
+
+async function startRegistrationFlow(sender) {
+  await client.messages.create({
+    body: "📝 Let's get you registered!\n\n" +
+          "Please enter your FULL NAME:",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+  userStates[sender] = { step: 'register_name', data: {} };
+}
+
+async function handleRegistrationName(sender, fullName, state) {
+  const names = fullName.trim().split(/\s+/);
+  
+  if (names.length < 2) {
+    await client.messages.create({
+      body: "❌ Please enter both your FIRST and LAST name:",
+      from: 'whatsapp:+14155238886',
+      to: `whatsapp:${sender}`
+    });
+    return;
+  }
+
+  await client.messages.create({
+    body: "📧 Now please enter your EMAIL address:",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+
+  userStates[sender] = { 
+    step: 'register_email', 
+    data: { 
+      ...state.data, 
+      firstName: names[0], 
+      lastName: names.slice(1).join(' ') 
+    } 
+  };
+}
+
+async function handleRegistrationEmail(sender, email, state) {
+  // Simple email validation
+  if (!email.includes('@') || !email.includes('.')) {
+    await client.messages.create({
+      body: "❌ Please enter a valid EMAIL address:",
+      from: 'whatsapp:+14155238886',
+      to: `whatsapp:${sender}`
+    });
+    return;
+  }
+
+  await client.messages.create({
+    body: "📅 Please enter your DATE OF BIRTH (DD/MM/YYYY):",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+
+  userStates[sender] = { 
+    ...state, 
+    step: 'register_dob',
+    data: { ...state.data, email: email.trim() } 
+  };
+}
+
+async function handleRegistrationDOB(sender, dobInput, state) {
+  const [day, month, year] = dobInput.split('/').map(Number);
+  const dob = new Date(year, month - 1, day);
+
+  if (isNaN(dob.getTime())) {
+    await client.messages.create({
+      body: "❌ Invalid date format. Please use DD/MM/YYYY (e.g. 15/05/1985):",
+      from: 'whatsapp:+14155238886',
+      to: `whatsapp:${sender}`
+    });
+    return;
+  }
+
+  await client.messages.create({
+    body: "👤 Please specify your GENDER (Male/Female/Other):",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+
+  userStates[sender] = { 
+    ...state, 
+    step: 'register_gender',
+    data: { ...state.data, dob: dob } 
+  };
+}
+
+async function handleRegistrationGender(sender, genderInput, state) {
+  const gender = genderInput.toLowerCase();
+  if (!['male', 'female', 'other'].includes(gender)) {
+    await client.messages.create({
+      body: "❌ Please specify Male, Female or Other:",
+      from: 'whatsapp:+14155238886',
+      to: `whatsapp:${sender}`
+    });
+    return;
+  }
+
+  // Create user record
+  const newUser = {
+    user_id: users.length + 1,
+    phone: sender,
+    name: `${state.data.firstName} ${state.data.lastName}`,
+    email: state.data.email,
+    role: "patient",
+    profile_picture_url: "",
+    created_at: new Date(),
+    updated_at: new Date()
+  };
+  users.push(newUser);
+
+  // Create patient record
+  const newPatient = {
+    patient_id: patients.length + 1,
+    user_id: newUser.user_id,
+    date_of_birth: format(state.data.dob, "yyyy-MM-dd"),
+    gender: gender,
+    medical_history: ""
+  };
+  patients.push(newPatient);
+
+  await client.messages.create({
+    body: `✅ Registration complete! Welcome ${state.data.firstName} ${state.data.lastName}.\n\n` +
+          `DOB: ${format(state.data.dob, "dd/MM/yyyy")}\n` +
+          `Gender: ${gender.charAt(0).toUpperCase() + gender.slice(1)}\n\n` +
+          "You can now book appointments by replying 'NEW APPOINTMENT'",
+    from: 'whatsapp:+14155238886',
+    to: `whatsapp:${sender}`
+  });
+
+  userStates[sender] = { step: null, data: {} };
+}
+// =============================================
 // CONVERSATION FLOW HANDLERS
 // =============================================
 
 async function sendWelcomeMessage(sender) {
-  await client.messages.create({
-    body: "👋 Welcome to *MediBook Appointment System*!\n\n" +
-          "You can:\n" +
-          "1. *NEW APPOINTMENT* - Book new appointment\n" +
-          "2. *MY APPOINTMENTS* - View your appointments\n" +
-          "3. *DELETE APPOINTMENT* - Cancel appointments\n" +
-          "4. *CANCEL* - Quick cancel if you have one appointment",
-    from: 'whatsapp:+14155238886',
-    to: sender
-  });
-}
-
-async function startAppointmentFlow(sender) {
-  const existingPatient = patients.find(p => p.phone === sender.replace('whatsapp:', ''));
+  const isRegistered = userExists(sender);
   
-  if (existingPatient) {
-    userStates[sender] = { 
-      step: 'select_region', 
-      data: { 
-        patientId: existingPatient.patient_id,
-        firstName: existingPatient.first_name,
-        lastName: existingPatient.last_name
-      } 
-    };
-    await sendRegionSelection(sender);
+  if (isRegistered) {
+    const user = users.find(u => u.phone === sender);
+    await client.messages.create({
+      body: `👋 Welcome back, ${user.name.split(' ')[0]}!\n\n` +
+            "You can:\n" +
+            "1. *NEW APPOINTMENT* - Book new appointment\n" +
+            "2. *MY APPOINTMENTS* - View your appointments\n" +
+            "3. *DELETE APPOINTMENT* - Cancel appointments",
+      from: 'whatsapp:+14155238886',
+      to: `whatsapp:${sender}`
+    });
   } else {
     await client.messages.create({
-      body: "To book an appointment, please enter your FULL NAME (First and Last name):",
+      body: "👋 Welcome to *MediBook Appointment System*!\n\n" +
+            "You need to register first. Please reply with:\n\n" +
+            "REGISTER - To start registration\n\n" +
+            "We'll need your:\n" +
+            "- Full Name\n" +
+            "- Email\n" +
+            "- Date of Birth\n" +
+            "- Gender",
       from: 'whatsapp:+14155238886',
-      to: sender
+      to: `whatsapp:${sender}`
     });
-    userStates[sender] = { step: 'get_name', data: {} };
   }
 }
 
+async function startAppointmentFlow(sender) {
+  const user = users.find(u => u.phone === sender);
+  if (!user) {
+    await promptRegistration(sender);
+    return;
+  }
+
+  const patient = patients.find(p => p.user_id === user.user_id);
+  
+  userStates[sender] = { 
+    step: 'select_region', 
+    data: { 
+      patientId: patient.patient_id,
+      firstName: user.name.split(' ')[0],
+      lastName: user.name.split(' ').slice(1).join(' ')
+    } 
+  };
+  await sendRegionSelection(sender);
+}
 async function handleNameInput(sender, fullName, state) {
   const names = fullName.trim().split(/\s+/);
   
@@ -543,14 +720,18 @@ async function handleSlotSelection(sender, timeInput, state) {
 }
 
 async function showPatientAppointments(sender) {
-  const patientPhone = sender.replace('whatsapp:', '');
-  const patient = patients.find(p => p.phone === patientPhone);
-  
+  const user = users.find(u => u.phone === sender);
+  if (!user) {
+    await promptRegistration(sender);
+    return;
+  }
+
+  const patient = patients.find(p => p.user_id === user.user_id);
   if (!patient) {
     await client.messages.create({
-      body: "❌ You don't have any appointments yet.",
+      body: "❌ Patient record not found. Please register again.",
       from: 'whatsapp:+14155238886',
-      to: sender
+      to: `whatsapp:${sender}`
     });
     return;
   }
