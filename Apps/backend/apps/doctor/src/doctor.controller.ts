@@ -259,4 +259,142 @@ export class DoctorController {
     console.warn('Received unknown message pattern:', data);
     return { error: 'Unknown command' };
   }
+
+  // ==================== WORKPLACE MANAGEMENT ====================
+
+  @Post('workplaces')
+  async createWorkplace(@Req() req: AuthenticatedRequest, @Body() body: any) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_workplace' },
+      { token: req.token, doctorUserId: req.user.id, ...body },
+      'Failed to create workplace',
+    );
+  }
+
+  @Get('workplaces/me')
+  async getMyWorkplaces(@Req() req: AuthenticatedRequest) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_doctor_workplaces' },
+      { token: req.token, doctorUserId: req.user.id },
+      'Failed to get workplaces',
+    );
+  }
+
+  @Put('workplaces/:workplaceId')
+  async updateWorkplace(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body() updates: any,
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_workplace' },
+      { token: req.token, doctorUserId: req.user.id, workplaceId, updates },
+      'Failed to update workplace',
+    );
+  }
+
+  @Delete('workplaces/:workplaceId')
+  async deleteWorkplace(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'delete_workplace' },
+      { token: req.token, doctorUserId: req.user.id, workplaceId },
+      'Failed to delete workplace',
+    );
+  }
+
+  // ==================== APPOINTMENT SLOTS ====================
+
+  @Post('workplaces/:workplaceId/slots')
+  async createAppointmentSlots(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body()
+    body: {
+      date: string;
+      start_time: string;
+      end_time: string;
+      slot_duration: number;
+    },
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_appointment_slots' },
+      { token: req.token, doctorUserId: req.user.id, workplaceId, ...body },
+      'Failed to create appointment slots',
+    );
+  }
+
+  @Get('workplaces/:workplaceId/slots')
+  async getWorkplaceAppointmentSlots(
+    @Param('workplaceId') workplaceId: string,
+    @Query('date') date: string,
+  ) {
+    return this.handleRequest(
+      { cmd: 'get_workplace_appointment_slots' },
+      { workplaceId, date },
+      'Failed to get appointment slots',
+    );
+  }
 }
