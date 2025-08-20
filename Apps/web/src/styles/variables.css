@@ -50,6 +50,7 @@
     --neutral-300: #D3D3D3;
     --neutral-200: #E8E8E8;
     --neutral-201: #F2F2F2;
+    --neutral-202: #F5F5F5;
     --neutral-100: #FCFCFC;
     --white: #FFFFFF;
 
@@ -99,8 +100,8 @@
     --info-05: #E6FBFF;
 
     /* Gradient */
-    --gradient-lavender-pink: linear-gradient(45deg, var(--primary-color) 0%, var(--quaternary-20) 100%);
-    --gradient-lavender-white: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-10) 100%);
+    --gradient-1: linear-gradient(65deg, var(--secondary-10) 0%, var(--secondary-40) 100%);
+    --gradient-warning-white: linear-gradient(90deg, var(--warning-05) 0%, var(--warning-10) 100%);
     --gradient-apricot-white: linear-gradient(180deg, var(--secondary-color) 0%, var(--secondary-10) 100%);
     --gradient-teal-white: linear-gradient(180deg, var(--tertiary-color) 0%, var(--tertiary-10) 100%);
     --gradient-pink-white: linear-gradient(180deg, var(--quaternary-color) 0%, var(--quaternary-10) 100%);
@@ -138,7 +139,9 @@
     /* Border Radius */
     --radius-4: 4px;
     --radius-8: 8px;
+    --radius-12: 12px;
     --radius-16: 16px;
+    --radius-24: 24px;
     --radius-50: 50px;
     --radius-100: 100px;
     --radius-full: 50% 50%;
@@ -170,7 +173,9 @@
     --gap-150: 150px;
 
     /* Paddings */
+    --padding-4: 4px;
     --padding-8: 8px;
+    --padding-12: 12px;
     --padding-16: 16px;
     --padding-4-16: 4px 16px;
     --padding-8-16: 8px 16px;

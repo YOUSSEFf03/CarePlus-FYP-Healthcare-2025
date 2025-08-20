@@ -29,7 +29,7 @@
     font-size: 12px;
     font-weight: 600;
     padding: 2px 6px;
-    border-radius: var(--radius-50);
+    border-radius: var(--radius-4);
     margin-left: 8px;
     line-height: 1;
 }
