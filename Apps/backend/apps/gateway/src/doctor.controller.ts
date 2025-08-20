@@ -451,4 +451,122 @@ export class DoctorController {
       'Failed to cancel invite',
     );
   }
+
+  // ==================== WORKPLACE MANAGEMENT ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'create_workplace' })
+  async createWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.createWorkplace(user.id, data);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_doctor_workplaces' })
+  async getDoctorWorkplaces(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorWorkplaces(user.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'update_workplace' })
+  async updateWorkplace(
+    @Payload() data: { workplaceId: string; updates: any },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.updateWorkplace(
+      user.id,
+      data.workplaceId,
+      data.updates,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'delete_workplace' })
+  async deleteWorkplace(
+    @Payload() data: { workplaceId: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.deleteWorkplace(user.id, data.workplaceId);
+  }
+
+  // ==================== WORKPLACE MANAGEMENT ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'create_workplace' })
+  async createWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.createWorkplace(user.id, data);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_doctor_workplaces' })
+  async getDoctorWorkplaces(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorWorkplaces(user.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'update_workplace' })
+  async updateWorkplace(
+    @Payload() data: { workplaceId: string; updates: any },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.updateWorkplace(
+      user.id,
+      data.workplaceId,
+      data.updates,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'delete_workplace' })
+  async deleteWorkplace(
+    @Payload() data: { workplaceId: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.deleteWorkplace(user.id, data.workplaceId);
+  }
+
+  // ==================== APPOINTMENT SLOTS ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'create_appointment_slots' })
+  async createAppointmentSlots(
+    @Payload()
+    data: {
+      workplaceId: string;
+      date: string;
+      start_time: string;
+      end_time: string;
+      slot_duration: number;
+    },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.createAppointmentSlots(
+      user.id,
+      data.workplaceId,
+      {
+        date: data.date,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        slot_duration: data.slot_duration,
+      },
+    );
+  }
+
+  @MessagePattern({ cmd: 'get_workplace_appointment_slots' })
+  async getWorkplaceAppointmentSlots(
+    @Payload() data: { workplaceId: string; date: string },
+  ) {
+    return this.doctorService.getWorkplaceAppointmentSlots(
+      data.workplaceId,
+      data.date,
+    );
+  }
 }
