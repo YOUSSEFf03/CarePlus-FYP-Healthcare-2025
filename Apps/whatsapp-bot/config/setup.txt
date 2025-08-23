@@ -1,0 +1,41 @@
+-- =========================================
+-- PostgreSQL Setup Script for medibook DB
+-- =========================================
+
+-- Connect as superuser (e.g., postgres)
+-- Run: psql -U postgres
+
+-- 1. Create the database
+CREATE DATABASE medibook;
+
+-- 2. Create the user
+CREATE USER medibook_admin WITH PASSWORD 'daniel';
+
+-- 3. Grant ownership of the database
+ALTER DATABASE medibook OWNER TO medibook_admin;
+
+-- 4. Connect to the database
+\c medibook
+
+-- 5. Grant privileges on schema and tables
+GRANT USAGE ON SCHEMA public TO medibook_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO medibook_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO medibook_admin;
+
+-- 6. Ensure future tables and sequences automatically grant privileges
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO medibook_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO medibook_admin;
+
+--7 Creating the tables
+psql -U postgres -d medibook -f database/schema.sql
+
+8-- Adding the seed.sql
+psql -U postgres -d medibook -f database/seed.sql
+
+9-- Check if it was added 
+psql -U postgres -d medibook -c "
+SELECT COUNT(*) as regions FROM regions;
+SELECT COUNT(*) as users FROM users; 
+SELECT COUNT(*) as doctors FROM doctors;
+SELECT COUNT(*) as workplaces FROM doctor_workplaces;
+"
