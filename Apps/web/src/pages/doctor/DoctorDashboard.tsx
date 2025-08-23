@@ -6,6 +6,7 @@ import { ReactComponent as AppointmentIcon } from "../../assets/svgs/CalendarBla
 import { ReactComponent as RevenueIcon } from "../../assets/svgs/CurrencyCircleDollar.svg";
 import { ReactComponent as RatingIcon } from "../../assets/svgs/Star.svg";
 import Button from "../../components/Button/Button";
+import StatsCard from "../../components/StatsCard/StatsCard";
 // import {
 //     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
 // } from 'recharts';
@@ -144,16 +145,14 @@ export default function DoctorDashboard() {
 
                 <div className="stats-grid">
                     {statsData.map(({ id, title, value, change, Icon }) => (
-                        <div key={id} className="stat-card">
-                            <div className="stat-card-header">
-                                <span className="stat-title">{title}</span>
-                                <Icon className="stat-icon" />
-                            </div>
-                            <div className="stat-value">{value}</div>
-                            <div className={`stat-change ${change >= 0 ? 'up' : 'down'}`}>
-                                {change >= 0 ? '▲' : '▼'} {Math.abs(change)} from last {timeframe === "7d" ? "week" : "month"}
-                            </div>
-                        </div>
+                        <StatsCard
+                            key={id}
+                            title={title}
+                            value={value}
+                            icon={Icon}
+                            change={change}
+                            timeframe={timeframe}
+                        />
                     ))}
                 </div>
 
@@ -192,7 +191,7 @@ export default function DoctorDashboard() {
             </div>
 
             <div className="dashboard-right">
-                
+
             </div>
         </div>
     );

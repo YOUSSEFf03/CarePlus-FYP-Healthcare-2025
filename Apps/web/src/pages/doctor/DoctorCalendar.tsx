@@ -46,8 +46,8 @@ const initialAppointments: Appointment[] = [
         title: 'General Checkup',
         patientName: 'Dianne Russell',
         consultationType: 'Initial Consultation',
-        start: new Date(2025, 5, 10, 8, 0),
-        end: new Date(2025, 5, 10, 9, 0),
+        start: new Date(2025, 7, 22, 9, 30),
+        end: new Date(2025, 7, 22, 10, 0),
         avatarUrl: '/avatars/dianne.png',
         video: true,
         contact: {
@@ -62,8 +62,8 @@ const initialAppointments: Appointment[] = [
         title: 'Follow-Up',
         patientName: 'Ralph Edwards',
         consultationType: 'Antibiotics Treatment',
-        start: new Date(2025, 5, 10, 9, 30),
-        end: new Date(2025, 5, 10, 10, 0),
+        start: new Date(2025, 7, 21, 9, 30),
+        end: new Date(2025, 7, 21, 10, 0),
         avatarUrl: '/avatars/ralph.png',
         contact: {
             phone: '(505) 555-0125',
@@ -77,8 +77,8 @@ const initialAppointments: Appointment[] = [
         title: 'Follow-Up',
         patientName: 'Ralph Edwards',
         consultationType: 'Antibiotics Treatment',
-        start: new Date(2025, 5, 9, 9, 30),
-        end: new Date(2025, 5, 9, 10, 0),
+        start: new Date(2025, 7, 20, 9, 30),
+        end: new Date(2025, 7, 20, 10, 0),
         avatarUrl: '/avatars/ralph.png',
         contact: {
             phone: '(505) 555-0125',
@@ -147,26 +147,14 @@ const EventComponent = ({
     );
 };
 
+
 export default function DoctorCalendar() {
     const [appointments] = useState<Appointment[]>(initialAppointments);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [hoveredEvent, setHoveredEvent] = useState<Appointment | null>(null);
-    const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
-
-    const handleEventHover = (event: Appointment, e: React.MouseEvent) => {
-        setHoveredEvent(event);
-        setTooltipPosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleEventLeave = () => {
-        setHoveredEvent(null);
-        setTooltipPosition(null);
-    };
 
     const handleNavigate = (newDate: Date) => {
         const todayStart = startOfWeek(new Date(), { weekStartsOn: 1 });
         const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 });
-
         if (!isBefore(newWeekStart, todayStart)) {
             setCurrentDate(newDate);
         }
@@ -174,19 +162,12 @@ export default function DoctorCalendar() {
 
     const WrappedEventComponent = ({ event }: { event: Appointment }) => {
         const isPast = event.end ? new Date(event.end) < new Date() : false;
-
-        let status: 'scheduled' | 'pending' | 'done' = 'scheduled'; // default
-        if (isPast) {
-            status = 'done';
-        } else {
-            // You can enhance this to use a real "status" field if available in the event
-            status = 'scheduled';
-        }
+        const status: "scheduled" | "pending" | "done" = isPast ? "done" : "scheduled";
 
         return (
             <AppointmentCard
                 title={event.title}
-                time={`${format(event.start, 'hh:mm a')} - ${format(event.end, 'hh:mm a')}`}
+                time={`${format(event.start, "hh:mm a")} - ${format(event.end, "hh:mm a")}`}
                 location={event.consultationType}
                 status={status}
                 patientName={event.patientName}
@@ -195,52 +176,23 @@ export default function DoctorCalendar() {
         );
     };
 
-    const eventStyleGetter = () => {
-        return {
-            style: {
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: 0,
-            },
-        };
-    };
-
     return (
         <div className="calendar-container">
-            <AppointmentCard
-                title="Follow-up Appointment"
-                time="08:00 AM - 09:00 AM"
-                location="city center clinic"
-                status="scheduled"
-                patientName="lorem ipsum"
-                avatarUrl="https://img.freepik.com/free-psd/3d-illustration-with-online-avatar_23-2151303097.jpg?uid=R137855058&ga=GA1.1.132194846.1728578884&semt=ais_hybrid&w=740"
-            />
-            <AppointmentCard
-                title="Follow-up Appointment"
-                time="08:00 AM - 09:00 AM"
-                location="city center clinic"
-                status="pending"
-                patientName="lorem ipsum"
-                avatarUrl="https://img.freepik.com/free-psd/3d-illustration-with-online-avatar_23-2151303097.jpg?uid=R137855058&ga=GA1.1.132194846.1728578884&semt=ais_hybrid&w=740"
-            />
-            <AppointmentCard
-                title="Follow-up Appointment"
-                time="08:00 AM - 09:00 AM"
-                location="city center clinic"
-                status="done"
-                patientName="lorem ipsum"
-                avatarUrl="https://img.freepik.com/free-psd/3d-illustration-with-online-avatar_23-2151303097.jpg?uid=R137855058&ga=GA1.1.132194846.1728578884&semt=ais_hybrid&w=740"
-            />
             <CustomText variant="text-heading-H2" as="h2" className="calendar-header">
                 Doctor Calendar
             </CustomText>
+
             <Calendar
+                step={30}
+                timeslots={2}             // 2 slots per hour (pairs with step)
+                scrollToTime={new Date(1970, 0, 1, 8, 0)} // auto-scroll to 8 AM
+                min={new Date(1970, 0, 1, 8, 0)}          // earliest visible time
+                max={new Date(1970, 0, 1, 18, 0)}
                 localizer={localizer}
                 events={appointments}
-                // onSelectEvent={handleEventClick}
                 startAccessor="start"
                 endAccessor="end"
-                views={['month', 'week', 'day']}
+                views={["week"]}
                 defaultView="week"
                 date={currentDate}
                 onNavigate={handleNavigate}
@@ -248,54 +200,10 @@ export default function DoctorCalendar() {
                     toolbar: CustomToolbar,
                     event: WrappedEventComponent,
                 }}
-                eventPropGetter={eventStyleGetter}
-                popup
+                eventPropGetter={() => ({
+                    style: { backgroundColor: "transparent", border: "none", padding: 0 },
+                })}
             />
-            {hoveredEvent && tooltipPosition && (
-                <div
-                    className="hover-tooltip"
-                    style={{
-                        position: 'fixed',
-                        top: tooltipPosition.y + 10,
-                        left: tooltipPosition.x + 10,
-                        zIndex: 9999,
-                        background: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        padding: '12px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                        width: '260px',
-                    }}
-                >
-                    <div className="tooltip-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <img src={hoveredEvent.avatarUrl} alt="avatar" className="avatar" style={{ width: 40, height: 40, borderRadius: '50%' }} />
-                        <div>
-                            <strong>{hoveredEvent.patientName}</strong>
-                            <div style={{ fontSize: 12 }}>{hoveredEvent.consultationType}</div>
-                        </div>
-                    </div>
-                    <div className="tooltip-body" style={{ marginTop: 8, fontSize: 12 }}>
-                        <div><b>📞</b> {hoveredEvent.contact?.phone}</div>
-                        <div><b>📧</b> {hoveredEvent.contact?.email}</div>
-                        <div>{hoveredEvent.contact?.notes}</div>
-                        <div><i>Last Visit: {hoveredEvent.contact?.lastVisit}</i></div>
-                        <button
-                            style={{
-                                marginTop: 8,
-                                padding: '6px 12px',
-                                border: '1px solid #ccc',
-                                background: '#f9fafb',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                width: '100%',
-                            }}
-                        >
-                            See Patient Details
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

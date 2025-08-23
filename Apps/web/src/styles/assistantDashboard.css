@@ -54,60 +54,6 @@
     gap: 16px;
 }
 
-.stat-card {
-    background-color: var(--white);
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.stat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.stat-title {
-    font-size: 14px;
-    /* color: #4b5563; */
-    color: var(--neutral-900);
-    font-weight: 500;
-    /* font-family: var(--ff-red-hat-display); */
-}
-
-.stat-icon {
-    width: 20px;
-    height: 20px;
-    background-color: #e2effd;
-    color: var(--secondary-70) !important;
-    fill: var(--secondary-70) !important;
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    font-family: var(--ff-red-hat-display);
-    color: var(--black);
-}
-
-.stat-change {
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.stat-change.up {
-    color: var(--success-color);
-}
-
-.stat-change.down {
-    color: var(--error-color);
-}
-
 .pending-appointments-div {
     /* background-color: var(--neutral-202); */
     background: var(--gradient-warning-white);
@@ -161,7 +107,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--gap-12);
-    max-height: 150px;
+    max-height: 100px;
     overflow-y: auto;
     scrollbar-width: none;
 }

@@ -1,0 +1,218 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.login-page {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--section-padding);
+    height: 100vh;
+}
+
+.login-slider {
+    height: 100%;
+    width: 40%;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-8);
+}
+
+.login-brand-logo {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    background-color: var(--white);
+    padding: 8px 8px 4px 8px;
+    border-radius: var(--radius-8);
+}
+
+.slider-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s ease-in-out;
+}
+
+.slide {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* .slide {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    animation: fade 0.8s ease-in-out;
+} */
+
+.slide-image-full {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    inset: 0;
+}
+
+.slide-overlay {
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    width: 100%;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.7) 0%,
+            rgba(0, 0, 0, 0.4) 50%,
+            rgba(0, 0, 0, 0) 100%);
+    padding: var(--padding-16);
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: end;
+    gap: var(--gap-8);
+}
+
+.slide-overlay p {
+    color: var(--white);
+    margin: 0;
+}
+
+.slide-overlay .text-body-md-r {
+    margin-bottom: 24px;
+}
+
+.slide-overlay .text-body-lg-r {
+    /* font-style: italic; */
+    font-weight: 200;
+}
+
+.slide-link {
+    color: var(--white);
+    text-decoration: none;
+    padding: var(--padding-8-16);
+    border-radius: var(--radius-8);
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-6);
+    transition: var(--transition-300);
+}
+
+.slide-link:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    transition: var(--transition-300);
+}
+
+.slide-link-icon {
+    width: 16px;
+    height: 16px;
+    fill: var(--white);
+}
+
+.slider-indicator {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: var(--padding-16);
+    z-index: 5;
+}
+
+.slider-bar {
+    flex: 1;
+    height: 4px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.slider-bar.active::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 0%;
+    top: 0;
+    left: 0;
+    border-radius: 6px;
+    background: var(--gradient-1);
+    animation: fill-bar 5s linear forwards;
+}
+
+@keyframes fill-bar {
+    from {
+        width: 0%;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+.login-section {
+    width: 60%;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-36);
+}
+
+.login-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-8);
+}
+
+.login-logo-n-back {
+    margin-bottom: 64px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-32);
+    justify-content: space-between;
+    width: 100%;
+}
+
+.login-logo-n-back .btn {
+    background-color: var(--neutral-202);
+    transition: var(--transition-300);
+    padding: var(--padding-8);
+}
+
+.login-logo-n-back .btn:hover {
+    background-color: var(--neutral-201);
+    transition: var(--transition-300);
+}
+
+.login-header p {
+    color: var(--primary-30);
+}
+
+.login-form {
+    width: 100%;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-16);
+}

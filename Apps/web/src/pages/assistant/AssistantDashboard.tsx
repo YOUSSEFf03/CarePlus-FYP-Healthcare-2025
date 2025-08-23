@@ -2,7 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
+import StatsCard from "../../components/StatsCard/StatsCard";
 import "../../styles/assistantDashboard.css";
+import { ReactComponent as AttentionIcon } from "../../assets/svgs/Warning.svg";
+import { dimensionValueTypes } from "framer-motion";
 
 export default function AssistantDashboard() {
     const hasInvitesOrDoctors = true; // you will dynamically fetch this later
@@ -11,6 +14,7 @@ export default function AssistantDashboard() {
         totalDoctors: 4,
         totalWorkplaces: 2,
         pendingAppointments: 6,
+        Icon: AttentionIcon,
         mostActiveDoctor: {
             name: "Dr. Amina Farhat",
             id: "123",
@@ -76,14 +80,17 @@ export default function AssistantDashboard() {
                 </div>
 
                 <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-title">Doctors Managed</div>
-                        <div className="stat-value">{stats.totalDoctors}</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-title">Workplaces</div>
-                        <div className="stat-value">{stats.totalWorkplaces}</div>
-                    </div>
+                    <StatsCard title="Doctors Managed" value={stats.totalDoctors} icon={AttentionIcon} bottomContent={
+                        <div className="stat-bottom-content">
+                            <Link to={`/assistant/appointments`} className="stat-bottom-content-link">
+                                <CustomText variant="text-body-sm-sb" as="p">Take Actions</CustomText>
+                            </Link>
+                            <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M27.7075 16.7081L18.7075 25.7081C18.5199 25.8957 18.2654 26.0011 18 26.0011C17.7346 26.0011 17.4801 25.8957 17.2925 25.7081C17.1049 25.5204 16.9994 25.2659 16.9994 25.0006C16.9994 24.7352 17.1049 24.4807 17.2925 24.2931L24.5863 17.0006H5C4.73478 17.0006 4.48043 16.8952 4.29289 16.7077C4.10536 16.5201 4 16.2658 4 16.0006C4 15.7353 4.10536 15.481 4.29289 15.2934C4.48043 15.1059 4.73478 15.0006 5 15.0006H24.5863L17.2925 7.70806C17.1049 7.52042 16.9994 7.26592 16.9994 7.00056C16.9994 6.73519 17.1049 6.4807 17.2925 6.29306C17.4801 6.10542 17.7346 6 18 6C18.2654 6 18.5199 6.10542 18.7075 6.29306L27.7075 15.2931C27.8005 15.3859 27.8742 15.4962 27.9246 15.6176C27.9749 15.739 28.0008 15.8691 28.0008 16.0006C28.0008 16.132 27.9749 16.2621 27.9246 16.3835C27.8742 16.5049 27.8005 16.6152 27.7075 16.7081Z" fill="currentColor" />
+                            </svg>
+                        </div>
+                    } />
+                    <StatsCard title="Workplaces" value={stats.totalWorkplaces} icon={AttentionIcon} />
                 </div>
 
                 <div className="pending-appointments-div">

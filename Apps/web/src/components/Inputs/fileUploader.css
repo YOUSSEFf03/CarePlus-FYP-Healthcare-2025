@@ -1,0 +1,131 @@
+.fu-container {
+    width: 100%;
+}
+
+.fu-desc {
+    margin: 6px 0 10px;
+    color: var(--neutral-700);
+    font-size: var(--fs-14);
+}
+
+.fu-dropzone {
+    border: 1px dashed var(--neutral-300);
+    border-radius: var(--radius-12);
+    padding: 18px;
+    background: var(--neutral-100);
+    cursor: pointer;
+    transition: border-color var(--transition-200), background var(--transition-200);
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fu-dropzone:hover {
+    border-color: var(--secondary-60);
+}
+
+.fu-dropzone.drag {
+    border-color: var(--secondary-color);
+    background: var(--secondary-05);
+}
+
+.fu-dropzone.error {
+    border-color: var(--error-color);
+}
+
+.fu-empty {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: var(--neutral-800);
+}
+
+.fu-icon {
+    color: var(--secondary-80);
+    display: grid;
+    place-items: center;
+}
+
+.fu-text strong {
+    color: var(--black);
+}
+
+.fu-sub {
+    color: var(--neutral-600);
+    font-size: var(--fs-12);
+}
+
+.fu-file {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.fu-preview {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-8);
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-201);
+}
+
+.fu-pdf {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-8);
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-201);
+    color: var(--primary-40);
+    gap: 4px;
+    font-size: var(--fs-12);
+}
+
+.fu-meta {
+    overflow: hidden;
+}
+
+.fu-name {
+    font-size: var(--fs-15);
+    color: var(--black);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fu-size {
+    font-size: var(--fs-12);
+    color: var(--neutral-600);
+}
+
+.fu-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.fu-btn {
+    border: 1px solid var(--neutral-300);
+    background: var(--white);
+    border-radius: var(--radius-8);
+    padding: var(--padding-8-16);
+    font-size: var(--fs-14);
+    cursor: pointer;
+}
+
+.fu-btn:hover {
+    border-color: var(--secondary-60);
+}
+
+.fu-btn.danger {
+    color: var(--error-color);
+    border-color: var(--error-20);
+}
+
+.fu-btn.danger:hover {
+    border-color: var(--error-color);
+}

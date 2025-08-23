@@ -26,11 +26,12 @@ export const sidebarConfig: {
         { title: "Invites", icon: "Inivitations", url: "/assistant/workplaces/appointments" },
     ],
     pharmacy: [
-        { title: "Overview", icon: "Grid3X3", url: "/pharmacy/dashboard" },
-        { title: "Inventory", icon: "Workplaces", url: "/pharmacy/inventory" },
-        { title: "Prescriptions", icon: "Workplaces", url: "/pharmacy/prescriptions" },
-        { title: "Orders", icon: "Workplaces", url: "/pharmacy/orders" },
-        { title: "Reports", icon: "Workplaces", url: "/pharmacy/reports" },
+        { title: "Overview", icon: "Grid3X3", url: "/pharmacy" },
+        { title: "Orders", icon: "Cart", url: "/pharmacy/orders" },
+        { title: "Reservations", icon: "Reservations", url: "/pharmacy/reservations" },
+        { title: "Inventory", icon: "Inventory", url: "/pharmacy/inventory" },
+        { title: "Prescriptions", icon: "FileText", url: "/pharmacy/prescriptions" },
+        { title: "Customers", icon: "Users", url: "/pharmacy/customers" },
     ]
 };
 

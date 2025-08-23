@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./deleteModal.css";
 import CustomInput from "../Inputs/CustomInput";
 import Button from "../Button/Button";
 import CustomText from "../Text/CustomText";
+import ReactDOM from "react-dom";
 
 interface DeleteModalProps {
     name: string;
@@ -15,7 +16,14 @@ export default function DeleteConfirmationModal({ name, onConfirm, onCancel }: D
 
     const isMatch = input.trim() === name.trim();
 
-    return (
+    useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = "auto";
+        };
+    }, []);
+
+    return ReactDOM.createPortal(
         <div className="delete-modal-backdrop">
             <div className="delete-modal">
                 <CustomText variant="text-heading-H4" as="h4">
@@ -43,6 +51,7 @@ export default function DeleteConfirmationModal({ name, onConfirm, onCancel }: D
                     />
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
