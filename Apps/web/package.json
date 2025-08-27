@@ -5,6 +5,7 @@
   "dependencies": {
     "@nivo/core": "^0.99.0",
     "@nivo/pie": "^0.99.0",
+    "@supabase/supabase-js": "^2.55.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -12,6 +13,10 @@
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.126",
     "date-fns": "^4.1.0",
+    "firebase": "^12.1.0",
+    "framer-motion": "^12.23.11",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.540.0",
     "react": "^19.1.0",
     "react-big-calendar": "^1.19.2",
     "react-calendar": "^6.0.0",

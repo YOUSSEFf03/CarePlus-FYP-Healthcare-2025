@@ -6,7 +6,8 @@
     justify-content: center;
     gap: var(--gap-8);
     padding: var(--padding-8-16);
-    font-size: var(--fs-16);
+    font-size: var(--fs-15);
+    /* font-size: var(--fs-16); */
     border-radius: var(--radius-8);
     font-weight: var(--fw-400);
     border: none;

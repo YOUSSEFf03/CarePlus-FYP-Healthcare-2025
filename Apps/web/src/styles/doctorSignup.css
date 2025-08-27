@@ -1,0 +1,340 @@
+/* Base */
+.ds-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px;
+    color: var(--black);
+    font-family: var(--ff-open-sans);
+    background: var(--neutral-100);
+}
+
+.ds-card {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-24);
+    padding: 24px;
+    box-shadow: var(--shadow-1);
+}
+
+/* Header + progress */
+.ds-step-header {
+    margin-bottom: 20px;
+}
+
+.ds-step-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.ds-title {
+    font-family: var(--ff-red-hat-display);
+    font-size: var(--fs-24);
+    font-weight: var(--fw-700);
+    color: var(--primary-color);
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-8);
+}
+
+.ds-title img {
+    border-right: 2px solid var(--neutral-200);
+    padding-right: 8px;
+}
+
+.ds-step-count {
+    font-size: var(--fs-12);
+    color: var(--neutral-700);
+}
+
+.ds-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--neutral-201);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.ds-progress-fill {
+    height: 100%;
+    background: var(--secondary-color);
+    transition: width var(--transition-300, .3s) ease;
+}
+
+/* Intro hero */
+.ds-hero {
+    background: var(--gradient-2);
+    border-radius: var(--radius-16);
+    padding: 24px;
+    color: var(--primary-90);
+    position: relative;
+}
+
+.ds-hero-badge {
+    display: inline-block;
+    background: var(--secondary-05);
+    color: var(--secondary-90);
+    border: 1px solid var(--secondary-20);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: var(--fs-12);
+    font-weight: var(--fw-600);
+}
+
+.ds-hero-title {
+    font-family: var(--ff-red-hat-display);
+    margin: 10px 0 6px;
+    font-size: 28px;
+    font-weight: var(--fw-700);
+    color: var(--primary-90);
+}
+
+.ds-hero-sub {
+    margin: 0 0 14px;
+    color: var(--primary-90);
+    font-size: var(--fs-14);
+}
+
+.ds-checklist {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 840px) {
+    .ds-checklist {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.ds-checklist-col {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-12);
+    padding: 14px;
+}
+
+.ds-check-title {
+    margin: 0 0 8px;
+    font-size: var(--fs-16);
+    font-weight: var(--fw-600);
+    color: var(--primary-70);
+}
+
+.ds-checklist-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ds-checklist-col li {
+    position: relative;
+    padding-left: 22px;
+    margin: 6px 0;
+    font-size: var(--fs-14);
+    color: var(--neutral-900);
+}
+
+.ds-checklist-col li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0;
+    line-height: 1;
+    color: var(--success-50);
+    font-weight: var(--fw-700);
+}
+
+.ds-intro-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    margin-top: 14px;
+}
+
+/* Steps */
+.ds-step {
+    display: grid;
+    gap: var(--gap-16);
+}
+
+.ds-section-title {
+    font-size: var(--fs-20);
+    font-weight: var(--fw-600);
+    margin: 2px 0 6px;
+    color: var(--primary-70);
+}
+
+.ds-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .ds-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.ds-label {
+    display: block;
+    font-size: var(--fs-14);
+    color: var(--neutral-700);
+    margin-bottom: 6px;
+}
+
+.ds-input {
+    width: 100%;
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-12);
+    padding: 10px 12px;
+    font-size: var(--fs-14);
+    outline: none;
+    transition: border-color var(--transition-200, .2s), box-shadow var(--transition-200, .2s);
+}
+
+.ds-input:focus {
+    border-color: var(--secondary-60);
+    box-shadow: 0 0 0 3px var(--secondary-10);
+}
+
+.ds-help {
+    font-size: var(--fs-12);
+    color: var(--neutral-700);
+}
+
+.ds-review-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .ds-review-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.ds-review-card {
+    background: var(--neutral-202);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-12);
+    padding: 14px;
+}
+
+.ds-review-title {
+    margin: 0 0 8px;
+    font-weight: var(--fw-600);
+    color: var(--primary-70);
+}
+
+.ds-muted {
+    color: var(--neutral-800);
+}
+
+.ds-spaced {
+    margin-top: 8px;
+}
+
+.ds-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ds-col-span-2 {
+    grid-column: span 1;
+}
+
+@media (min-width: 768px) {
+    .ds-col-span-2 {
+        grid-column: span 2;
+    }
+}
+
+/* Footer */
+.ds-footer {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ds-auth-hint {
+    font-size: var(--fs-14);
+    color: var(--neutral-700);
+}
+
+.ds-link {
+    color: var(--secondary-80);
+    text-decoration: underline;
+}
+
+.ds-link:hover {
+    color: var(--secondary-color);
+}
+
+.ds-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Alerts & legal */
+.ds-alert {
+    padding: 10px 12px;
+    border-radius: var(--radius-12);
+    border: 1px solid var(--neutral-200);
+    margin-bottom: 14px;
+    font-size: var(--fs-14);
+}
+
+.ds-alert-error {
+    background: var(--error-05);
+    color: var(--error-70);
+    border-color: var(--error-20);
+}
+
+.ds-legal {
+    font-size: var(--fs-12);
+    color: var(--neutral-700);
+    margin-top: 12px;
+}
+
+.ds-step-anim {
+    will-change: transform, opacity;
+    animation: ds-slide-in-right 250ms var(--transition-200, cubic-bezier(.2, .8, .2, 1)) both;
+}
+
+.ds-step-anim.left {
+    animation-name: ds-slide-in-left;
+}
+
+@keyframes ds-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes ds-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

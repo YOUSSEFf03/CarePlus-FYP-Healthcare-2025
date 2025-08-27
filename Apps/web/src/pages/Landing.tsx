@@ -2,8 +2,85 @@ import React, { useState } from "react";
 import '../styles/landing.css';
 import { Link } from 'react-router-dom';
 import CustomText from "../components/Text/CustomText";
+import Button from "../components/Button/Button";
+import { motion, Easing } from "framer-motion";
+import { text } from "stream/consumers";
+
 
 const Landing: React.FC = () => {
+    const ease: Easing = "easeOut";
+
+    const parentVariant = {
+        hidden: {},
+        visible: {
+            transition: {
+                staggerChildren: 0.3,
+            },
+        },
+    };
+
+    const heroVariants = {
+        hidden: { opacity: 0, scale: 0.96 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 1.2,
+                ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+                when: "beforeChildren",
+                staggerChildren: 0.25,
+            },
+        },
+    };
+
+    const textReveal = {
+        hidden: {
+            opacity: 0,
+            y: 20,
+            clipPath: 'inset(100% 0 0 0)', // masked from bottom
+        },
+        visible: {
+            opacity: 1,
+            y: 0,
+            clipPath: 'inset(0 0 0 0)',
+            transition: {
+                duration: 1,
+                ease: [0.65, 0, 0.35, 1] as [number, number, number, number],
+            },
+        },
+    };
+
+    const fadeBlur = {
+        hidden: {
+            opacity: 0,
+            filter: "blur(8px)",
+        },
+        visible: {
+            opacity: 1,
+            filter: "blur(0px)",
+            transition: {
+                duration: 1.2,
+                ease: "easeOut" as Easing,
+            },
+        },
+    };
+
+    const popButton = {
+        hidden: {
+            opacity: 0,
+            scale: 0.85,
+        },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                type: "spring" as const,
+                stiffness: 120,
+                damping: 10,
+            },
+        },
+    };
+
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -21,6 +98,9 @@ const Landing: React.FC = () => {
                         </svg>
                     </div>
                     <div className="nav-actions">
+                        <Link to="/login">
+                            <Button variant="primary" text="Access Your Portal">Get Started</Button>
+                        </Link>
                         <button
                             className={`burger ${menuOpen ? "open" : ""}`}
                             onClick={() => setMenuOpen(!menuOpen)}
@@ -48,12 +128,12 @@ const Landing: React.FC = () => {
                                 </svg>
                                 Register your Pharmacy
                             </Link>
-                            <Link to="/login" className="menu-card-link">
+                            {/* <Link to="/login" className="menu-card-link">
                                 <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="var(--primary-20)" />
                                 </svg>
                                 Login
-                            </Link>
+                            </Link> */}
                         </div>
                     </div>
                     <div className="menu-card" id="doctors" onClick={() => setMenuOpen(false)}>
@@ -65,18 +145,18 @@ const Landing: React.FC = () => {
                                 </svg>
                                 CarePlus for Doctors
                             </Link>
-                            <Link to="/doctor/appointments" className="menu-card-link">
+                            <Link to="/register/doctor" className="menu-card-link">
                                 <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="var(--secondary-20)" />
                                 </svg>
                                 Join as a Doctor
                             </Link>
-                            <Link to="/login" className="menu-card-link">
+                            {/* <Link to="/login" className="menu-card-link">
                                 <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="var(--secondary-20)" />
                                 </svg>
                                 Login
-                            </Link>
+                            </Link> */}
                         </div>
                     </div>
                     <div className="menu-card" id="assistant" onClick={() => setMenuOpen(false)}>
@@ -94,12 +174,12 @@ const Landing: React.FC = () => {
                                 </svg>
                                 Create Assistant Account
                             </Link>
-                            <Link to="/login" className="menu-card-link">
+                            {/* <Link to="/login" className="menu-card-link">
                                 <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="var(--tertiary-20)" />
                                 </svg>
                                 Login
-                            </Link>
+                            </Link> */}
                         </div>
                     </div>
                     <div className="menu-card" id="explore" onClick={() => setMenuOpen(false)}>
@@ -134,11 +214,51 @@ const Landing: React.FC = () => {
                 </div>
             </nav>
 
-            <section className="hero-section">
-                <div className="hero-image"></div>
-                <div className="hero-content">
-                    <h1>Design and run quick and confident clinical trials with AI-generated digital twins</h1>
-                    <Link to="/learn-more" className="learn-btn">Learn more</Link>
+            <motion.section className="hero-section"
+                variants={heroVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <motion.div className="hero-content"
+                    variants={parentVariant}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.div
+                        variants={textReveal}
+                    >
+                        <CustomText variant="text-heading-H1" as="h1">Care Made Simple. For Everyone.</CustomText>
+                    </motion.div>
+                    <motion.div
+                        variants={textReveal}
+                    >
+                        <CustomText variant="text-body-md-r" as="p">Whether you’re a patient, doctor, pharmacy, or assistant — CarePlus is your smart, secure platform to manage healthcare with ease.</CustomText>
+                    </motion.div>
+                    <motion.div
+                        variants={textReveal}
+                    >
+                        <Button variant="primary"
+                            iconRight={<svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 3.00049C13.4288 3.00049 10.9154 3.76293 8.77759 5.19138C6.63975 6.61984 4.97351 8.65016 3.98957 11.0256C3.00563 13.401 2.74819 16.0149 3.2498 18.5367C3.75141 21.0584 4.98953 23.3748 6.80762 25.1929C8.6257 27.011 10.9421 28.2491 13.4638 28.7507C15.9856 29.2523 18.5995 28.9949 20.9749 28.0109C23.3503 27.027 25.3807 25.3607 26.8091 23.2229C28.2376 21.0851 29 18.5716 29 16.0005C28.9964 12.5538 27.6256 9.2493 25.1884 6.81212C22.7512 4.37494 19.4467 3.00413 16 3.00049ZM16 27.0005C13.8244 27.0005 11.6977 26.3554 9.88873 25.1467C8.07979 23.938 6.66989 22.22 5.83733 20.21C5.00477 18.2 4.78693 15.9883 5.21137 13.8545C5.63581 11.7207 6.68345 9.76069 8.22183 8.22231C9.76021 6.68394 11.7202 5.63629 13.854 5.21185C15.9878 4.78741 18.1995 5.00525 20.2095 5.83781C22.2195 6.67038 23.9375 8.08027 25.1462 9.88922C26.3549 11.6982 27 13.8249 27 16.0005C26.9967 18.9169 25.8367 21.7128 23.7745 23.775C21.7123 25.8372 18.9164 26.9972 16 27.0005ZM19.7075 15.293C19.8005 15.3859 19.8742 15.4962 19.9246 15.6175C19.9749 15.7389 20.0008 15.8691 20.0008 16.0005C20.0008 16.1319 19.9749 16.262 19.9246 16.3834C19.8742 16.5048 19.8005 16.6151 19.7075 16.708L14.7075 21.708C14.6146 21.8009 14.5043 21.8746 14.3829 21.9249C14.2615 21.9752 14.1314 22.001 14 22.001C13.8686 22.001 13.7385 21.9752 13.6171 21.9249C13.4957 21.8746 13.3854 21.8009 13.2925 21.708C13.1996 21.6151 13.1259 21.5048 13.0756 21.3834C13.0253 21.262 12.9994 21.1319 12.9994 21.0005C12.9994 20.8691 13.0253 20.739 13.0756 20.6176C13.1259 20.4962 13.1996 20.3859 13.2925 20.293L17.5863 16.0005L13.2925 11.708C13.1049 11.5203 12.9994 11.2659 12.9994 11.0005C12.9994 10.7351 13.1049 10.4806 13.2925 10.293C13.4801 10.1053 13.7346 9.99993 14 9.99993C14.2654 9.99993 14.5199 10.1053 14.7075 10.293L19.7075 15.293Z" fill="currentColor" />
+                            </svg>}
+                            text="Learn More">
+                        </Button>
+                    </motion.div>
+                </motion.div>
+                <motion.div className="hero-banner"
+                    variants={fadeBlur}
+                    transition={{ delay: 0.6 }}
+                >
+                    <CustomText variant="text-heading-H5" as="h5">Care Made Simple. For Everyone.</CustomText>
+                    <CustomText variant="text-body-md-r" as="p">Join us in revolutionizing healthcare for all.</CustomText>
+                    <Button variant="secondary" text="Get Started"></Button>
+                </motion.div>
+            </motion.section>
+
+            <section className="about-section">
+                <div className="about-content">
+                    <CustomText variant="text-heading-H2" as="h2">Why CarePlus?</CustomText>
+                    <CustomText variant="text-body-md-r" as="p">CarePlus is designed to simplify healthcare management for everyone involved. From patients to doctors, pharmacies, and assistants, our platform provides a seamless experience that enhances communication, efficiency, and care quality.</CustomText>
                 </div>
             </section>
         </div>

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from '../pages/Landing';
 import NotFound from '../pages/NotFound';
 import DoctorLayout from '../layouts/DoctorLayout';
+import PharmacyLayout from '../layouts/PharmacyLayout';
 import DoctorDashboard from '../pages/doctor/DoctorDashboard';
 import DoctorPatients from '../pages/doctor/DoctorPatients';
 import ProtectedRoute from './ProtectedRoute';
@@ -14,14 +15,32 @@ import DoctorAppointments from '../pages/doctor/DoctorAppointments';
 import DoctorCalendar from '../pages/doctor/DoctorCalendar';
 import DoctorWorkplaces from '../pages/doctor/DoctorWorkplaces';
 import WorkplaceDetails from '../pages/doctor/WorkplaceDetails';
+import DoctorSignup from '../pages/DoctorSignup';
+import GuestOnly from './GuestOnly';
+import PharmacyDashboard from '../pages/pharmacy/PharmacyDashboard';
 
 export default function AppRoutes() {
     return (
         <Routes>
             {/* Public */}
             <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+
+            {/* Auth (guest-only) */}
+            <Route element={<GuestOnly />}>
+                <Route path="/login" element={<Login />} />
+
+                {/* Signups by role */}
+                <Route path="/register/doctor" element={<DoctorSignup />} />
+                {/* <Route path="/register/pharmacy" element={<PharmacySignup />} />
+                <Route path="/register/assistant" element={<AssistantSignup />} /> */}
+
+                {/* Common auth flows */}
+                {/* <Route path="/verify-otp" element={<VerifyOtp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/register/success" element={<RegisterSuccess />} /> */}
+            </Route>
 
             {/* Doctor Dashboard */}
             <Route
@@ -51,17 +70,17 @@ export default function AppRoutes() {
             </Route>
 
             {/* Pharmacy Dashboard */}
-            {/* <Route
+            <Route
                 path="/pharmacy"
                 element={
-                    <ProtectedRoute allowedRoles={['pharmacy']}>
-                        <PharmacyLayout />
-                    </ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['pharmacy']}></ProtectedRoute>
                 }
             >
-                <Route index element={<PharmacyDashboard />} />
-                <Route path="inventory" element={<PharmacyInventory />} />
-            </Route> */}
+                <Route element={<PharmacyLayout />}>
+                    <Route index element={<PharmacyDashboard />} />
+                    {/* <Route path="inventory" element={<PharmacyInventory />} /> */}
+                </Route>
+            </Route>
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />

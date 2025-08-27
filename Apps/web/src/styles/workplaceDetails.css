@@ -1,22 +1,365 @@
-.workplace-details-header {
+/* .wpd-container {
+    max-width: 1200px;
+}
+
+.wpd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.wpd-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.wpd-subtitle {
+    color: #6b7280;
+}
+
+.wpd-header-actions>*+* {
+    margin-left: 8px;
+}
+
+.wpd-alert {
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 16px 0;
+}
+
+.wpd-alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.wpd-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+}
+
+.wpd-col-main {
+    min-width: 0;
+}
+
+.wpd-col-aside {
+    min-width: 0;
+}
+
+.wpd-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.wpd-section-header h2 {
+    margin: 0 0 2px 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.wpd-section-header p {
+    margin: 0 0 16px 0;
+    color: #6b7280;
+}
+
+.wpd-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.wpd-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.wpd-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.wpd-input {
+    height: 44px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0 12px;
+    outline: none;
+}
+
+.wpd-input:disabled {
+    background: #f9fafb;
+    color: #6b7280;
+}
+
+.wpd-amount-suffix {
+    color: #6b7280;
+    margin-left: 8px;
+    font-size: 12px;
+}
+
+.wpd-map-embed {
+    margin-top: 6px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.wpd-map-embed iframe {
+    display: block;
+    width: 100%;
+    height: 320px;
+    border: 0;
+}
+
+.wpd-sticky {
+    position: sticky;
+    top: 16px;
+}
+
+.wpd-add-assistant {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.wpd-assistant-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wpd-assistant-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--gap-16);
+    gap: 10px;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #fafbfc;
 }
 
-.workplace-details-header .edit-button, .workplace-details-header .delete-button, .workplace-details-header .save-button {
-    gap: var(--gap-4);
-    /* padding: 8px 16px; */
+.wpd-assistant-name {
+    font-weight: 600;
 }
 
-.workplace-details-header .delete-button {
-    color: var(--error-color);
-    /* padding: 0; */
+.wpd-assistant-sub {
+    color: #6b7280;
+    font-size: 13px;
 }
 
-.workplace-details-actions {
+.wpd-empty {
+    color: #6b7280;
+} */
+
+
+
+/* Container & header */
+.wpd-container {
+    max-width: 1120px;
+}
+
+.wpd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.wpd-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.wpd-subtitle {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.wpd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1;
+    color: #374151;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+}
+
+.wpd-chip.ok {
+    /* color: #065f46;
+    background: #ecfdf5;
+    border-color: #a7f3d0; */
+    background: var(--secondary-05);
+    border-color: var(--secondary-70);
+    color: var(--secondary-70);
+}
+
+.wpd-header-actions>*+* {
+    margin-left: 8px;
+}
+
+/* Alerts */
+.wpd-alert {
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 14px 0;
+}
+
+.wpd-alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Grid */
+.wpd-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 22px;
+}
+
+.wpd-col-main,
+.wpd-col-aside {
+    min-width: 0;
+}
+
+/* Card */
+.wpd-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+
+.wpd-section-header h2 {
+    margin: 0 0 2px 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.wpd-section-header p {
+    margin: 0 0 16px 0;
+    color: #6b7280;
+}
+
+/* Fields layout */
+.wpd-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.wpd-row-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.wpd-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.wpd-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+/* Toggle wrapper (so disabled matches CustomInput) */
+/* .wpd-toggle-wrap {
     display: flex;
     align-items: center;
-    gap: var(--gap-12);
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.wpd-toggle-wrap.is-disabled {
+    background: #f5f7fa;
+    color: #94a3b8;
+    border-color: #e5e7eb;
+    pointer-events: none;
+    opacity: .9;
+} */
+
+/* Map embed */
+.wpd-map-embed {
+    margin-top: 8px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    aspect-ratio: 16/9;
+}
+
+.wpd-map-embed iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Assistants */
+.wpd-sticky {
+    position: sticky;
+    top: 16px;
+}
+
+.wpd-add-assistant {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.wpd-assistant-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wpd-assistant-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #fafbfc;
+}
+
+.wpd-assistant-name {
+    font-weight: 600;
+}
+
+.wpd-assistant-sub {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.wpd-empty {
+    color: #6b7280;
 }
