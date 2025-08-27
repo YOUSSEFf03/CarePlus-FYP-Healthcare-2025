@@ -18,7 +18,7 @@
     "appointments",
     "twilio"
   ],
-  "author": "Daniel",
+  "author": "",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
