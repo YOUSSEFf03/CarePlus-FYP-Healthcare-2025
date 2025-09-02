@@ -1,0 +1,32 @@
+.rg-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.rg-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.rg-group {
+    display: inline-flex;
+    gap: 12px;
+}
+
+.rg-group.is-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.rg-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.rg-hint {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+}

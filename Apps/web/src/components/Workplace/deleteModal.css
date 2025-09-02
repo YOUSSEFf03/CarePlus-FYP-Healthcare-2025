@@ -4,11 +4,19 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    /* background-color: rgba(0, 0, 0, 0.5); */
+    /* Subtle glass effect */
+    background: rgba(0, 0, 0, 0.05);
+    /* background: rgba(240, 240, 255, 0.08); */
+    /* lower opacity */
+    backdrop-filter: blur(2px);
+    /* softer blur */
+    -webkit-backdrop-filter: blur(2px);
+    /* Safari support */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999;
 }
 
 .delete-modal {
@@ -17,6 +25,7 @@
     border-radius: 8px;
     width: 100%;
     max-width: 400px;
+    z-index: 10000;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -31,4 +40,12 @@
     justify-content: flex-end;
     gap: 12px;
     margin-top: 16px;
+}
+
+.delete-confirm-button {
+    background-color: var(--error-color);
+}
+
+.delete-confirm-button:hover {
+    background-color: var(--error-60);
 }

@@ -86,13 +86,12 @@ export class AppModule implements NestModule {
         'auth/reset-password',
         'auth/register/assistant',
         'doctors',
-        'doctors/(.*)/reviews',
-        'doctors/(.*)/available-slots',
-        'doctors/(.*)/stats',
+        { path: 'doctors/:id/reviews', method: RequestMethod.GET },
+        { path: 'doctors/:id/available-slots', method: RequestMethod.GET },
+        { path: 'doctors/:id/stats', method: RequestMethod.GET },
         { path: 'doctors/:id', method: RequestMethod.GET },
       )
       .forRoutes(
-        // Apply auth middleware to these controllers
         AuthController,
         DoctorController,
         NotificationController,

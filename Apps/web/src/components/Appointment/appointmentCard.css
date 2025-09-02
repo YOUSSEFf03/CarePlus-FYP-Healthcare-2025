@@ -5,7 +5,7 @@
     border-radius: var(--radius-4);
     background-color: var(--tertiary-10);
     /* width: fit-content; */
-    max-width: 200px;
+    /* max-width: 200px; */
     gap: var(--gap-12);
     /* width: 100%; */
     /* max-width: 260px; */
@@ -21,6 +21,10 @@
     border-left: 2px solid var(--tertiary-60);
     border-radius: 2px;
     padding-left: 4px;
+}
+
+.appointment-card-title {
+    color: var(--black);
 }
 
 .appointment-card-header {

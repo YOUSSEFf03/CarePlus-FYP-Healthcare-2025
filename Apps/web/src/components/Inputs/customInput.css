@@ -35,6 +35,7 @@
     font-size: 14px;
     color: var(--primary-color);
     background: transparent;
+    width: 100%;
     font-family: var(--ff-poppins);
 }
 
@@ -89,4 +90,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.custom-input-wrapper.is-textarea {
+    align-items: flex-start;
+}
+
+/* textarea sizing/behavior */
+.custom-textarea {
+    min-height: 110px;
+    /* feel free to tweak */
+    line-height: 1.5;
+    resize: vertical;
+    /* let user expand */
+}
+
+.custom-input-container.disabled .custom-textarea {
+    background: var(--neutral-201);
+    cursor: not-allowed;
 }

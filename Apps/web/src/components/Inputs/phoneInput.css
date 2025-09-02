@@ -1,0 +1,83 @@
+/* piggyback on customInput.css look & feel */
+.pi-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    /* min-width: 110px; */
+}
+
+.pi-flag {
+    width: 18px;
+    height: 12px;
+    border-radius: 2px;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px var(--neutral-200);
+}
+
+.pi-dial {
+    font-family: var(--ff-poppins);
+    font-size: 14px;
+    color: var(--primary-color);
+}
+
+.pi-caret {
+    color: var(--neutral-600);
+}
+
+.pi-divider {
+    width: 1px;
+    height: 22px;
+    background: var(--neutral-300);
+    margin: 0 10px;
+}
+
+.pi-input {
+    letter-spacing: 0.3px;
+}
+
+/* Dropdown */
+.pi-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 8px;
+    right: 8px;
+    background: #fff;
+    border: 1px solid var(--neutral-300);
+    border-radius: 8px;
+    box-shadow: var(--shadow-light, 0 4px 16px rgba(178, 178, 178, 0.15));
+    z-index: 20;
+    padding: 6px;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.pi-option {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pi-option:hover {
+    background: var(--neutral-201);
+}
+
+.pi-option.active {
+    background: var(--secondary-05);
+}
+
+.pi-name {
+    color: var(--primary-70, #040b1e);
+}
+
+.pi-option .pi-dial {
+    color: var(--neutral-700);
+}

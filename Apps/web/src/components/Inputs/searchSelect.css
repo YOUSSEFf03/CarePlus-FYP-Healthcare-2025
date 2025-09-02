@@ -1,0 +1,140 @@
+/* uses your variables.css tokens and CustomInput look */
+
+.ss-trigger {
+    position: relative;
+    padding: 0;
+}
+
+.ss-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    border: 0;
+    padding: var(--padding-8-12);
+    font-family: var(--ff-poppins);
+    font-size: var(--fs-14);
+    color: var(--black);
+    cursor: pointer;
+}
+
+.ss-btn:disabled {
+    cursor: not-allowed;
+    color: var(--neutral-500);
+}
+
+.ss-value.placeholder {
+    color: var(--neutral-800);
+}
+
+.ss-caret {
+    flex: 0 0 auto;
+    opacity: 0.7;
+}
+
+.ss-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-12);
+    box-shadow: var(--shadow-1);
+    z-index: 40;
+    overflow: hidden;
+}
+
+.ss-popover {
+    position: absolute;
+    z-index: 30;
+    margin-top: 6px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+.ss-search {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-8);
+    padding: var(--padding-8-16);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.ss-search-icon {
+    opacity: 0.6;
+}
+
+.ss-search-input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    font-family: var(--ff-open-sans);
+    font-size: var(--fs-14);
+    color: var(--black);
+}
+
+.ss-options {
+    max-height: 240px;
+    overflow: auto;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+}
+
+.ss-empty {
+    padding: var(--padding-12-24);
+    color: var(--neutral-600);
+    font-size: var(--fs-14);
+}
+
+.ss-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--padding-12-24);
+    cursor: pointer;
+    gap: var(--gap-12);
+    font-size: var(--fs-14);
+}
+
+.ss-option:hover,
+.ss-option.active {
+    background: var(--secondary-05);
+}
+
+.ss-option.selected {
+    font-weight: var(--fw-600);
+}
+
+.ss-option-label {
+    color: var(--black);
+    font-size: var(--fs-14);
+}
+
+.ss-check {
+    color: var(--secondary-color);
+}
+
+.ss-sep {
+    height: 1px;
+    background: var(--neutral-200);
+    margin: 6px 0;
+}
+
+.ss-create {
+    padding: var(--padding-12-24);
+    cursor: pointer;
+    color: var(--primary-70);
+    font-size: var(--fs-14);
+    /* font-weight: var(--fw-400); */
+}
+
+.ss-create:hover {
+    background: var(--secondary-05);
+}

@@ -59,7 +59,7 @@ let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(auth_middleware_1.AuthMiddleware)
-            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', 'doctors', 'doctors/(.*)/reviews', 'doctors/(.*)/available-slots', 'doctors/(.*)/stats', { path: 'doctors/:id', method: common_2.RequestMethod.GET })
+            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', 'doctors', { path: 'doctors/:id/reviews', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/available-slots', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/stats', method: common_2.RequestMethod.GET }, { path: 'doctors/:id', method: common_2.RequestMethod.GET })
             .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController, assistant_controller_1.AssistantController);
     }
 };
