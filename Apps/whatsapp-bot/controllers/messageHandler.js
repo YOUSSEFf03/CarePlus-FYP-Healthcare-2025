@@ -60,14 +60,15 @@ class MessageHandler {
         await AppointmentController.showPatientAppointments(sender);
       }
       else if (/^delete appointment$|^cancel appointment$/i.test(incomingMsg)) {
-        await AppointmentController.showAppointmentsForDeletion(sender);
+        const deleteState = await AppointmentController.showAppointmentsForDeletion(sender);
+        userStates[sender] = deleteState; // Store the returned state
       }
       else if (currentState.step && currentState.step.startsWith('appointment_')) {
         userStates[sender] = await AppointmentController.handleAppointmentStep(sender, incomingMsg, currentState);
       }
       else if (currentState.step === 'delete_appointment') {
-        await AppointmentController.handleAppointmentDeletion(sender, incomingMsg, currentState);
-        userStates[sender] = { step: null, data: {} };
+        // FIX: Always update state with the returned value from handleAppointmentDeletion
+        userStates[sender] = await AppointmentController.handleAppointmentDeletion(sender, incomingMsg, currentState);
       }
       else {
         await TwilioService.sendMessage(sender, invalidCommandMessage());

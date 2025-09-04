@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "245f2c92-036d-41f1-b332-6a32f4caddcf",
 		"name": "FYP",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "40355306"
 	},
 	"item": [
@@ -19,25 +19,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"dr.bob@example.com\",\r\n  \"password\": \"TestPassword123!\"\r\n}\r\n",
+							"raw": "{\r\n  \"email\": \"yousseffarah313@gmail.com\",\r\n  \"password\": \"youssef123\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "http://localhost:3000/auth/login",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"auth",
-								"login"
-							]
-						}
+						"url": "http://localhost:3000/auth/login"
 					},
 					"response": []
 				},
@@ -51,25 +40,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "// {\r\n//   \"name\": \"Alice Patient\",\r\n//   \"email\": \"alice.patiewddw2t@example.com\",\r\n//   \"password\": \"TestPassword123!\",\r\n//   \"role\": \"patient\",\r\n//   \"phone\": \"+96181207953\",\r\n//   \"profile_picture_url\": \"https://example.com/patient.jpg\",\r\n//   \"date_of_birth\": \"1990-01-01\",\r\n//   \"gender\": \"female\",\r\n//   \"medical_history\": \"No known allergies\"\r\n// }\r\n\r\n\r\n\r\n{\r\n  \"name\": \"Dr. Bob\",\r\n  \"email\": \"dr.bob@example.com\",\r\n  \"password\": \"TestPassword123!\",\r\n  \"role\": \"doctor\",\r\n  \"phone\": \"2345678901\",\r\n  \"profile_picture_url\": \"https://example.com/doctor.jpg\",\r\n  \"specialization\": \"Cardiology\",\r\n  \"license_number\": \"DOC123456\",\r\n  \"dr_idCard_url\": \"https://example.com/idcard.jpg\",\r\n  \"biography\": \"Experienced cardiologist.\",\r\n  \"medical_license_url\": \"https://example.com/license.pdf\",\r\n  \"verification_status\": \"pending\"\r\n}\r\n\r\n\r\n\r\n// {\r\n//   \"name\": \"Pharmacy User\",\r\n//   \"email\": \"pharmacy@example.com\",\r\n//   \"password\": \"TestPassword123!\",\r\n//   \"role\": \"pharmacy\",\r\n//   \"phone\": \"3456789012\",\r\n//   \"profile_picture_url\": \"https://example.com/pharmacy.jpg\",\r\n//   \"pharmacy_owner\": \"John Owner\",\r\n//   \"pharmacy_name\": \"HealthPlus Pharmacy\"\r\n// }",
+							"raw": "{\r\n  \"name\": \"Alice Patient\",\r\n  \"email\": \"alice.patiewddw2t@example.com\",\r\n  \"password\": \"TestPassword123!\",\r\n  \"role\": \"patient\",\r\n  \"phone\": \"+96181207953\",\r\n  \"profile_picture_url\": \"https://example.com/patient.jpg\",\r\n  \"date_of_birth\": \"1990-01-01\",\r\n  \"gender\": \"female\",\r\n  \"medical_history\": \"No known allergies\"\r\n}\r\n\r\n\r\n\r\n// {\r\n//   \"name\": \"Dr. Bob\",\r\n//   \"email\": \"dr.bob@example.com\",\r\n//   \"password\": \"TestPassword123!\",\r\n//   \"role\": \"doctor\",\r\n//   \"phone\": \"2345678901\",\r\n//   \"profile_picture_url\": \"https://example.com/doctor.jpg\",\r\n//   \"specialization\": \"Cardiology\",\r\n//   \"license_number\": \"DOC123456\",\r\n//   \"dr_idCard_url\": \"https://example.com/idcard.jpg\",\r\n//   \"biography\": \"Experienced cardiologist.\",\r\n//   \"medical_license_url\": \"https://example.com/license.pdf\",\r\n//   \"verification_status\": \"pending\"\r\n// }\r\n\r\n\r\n\r\n// {\r\n//   \"name\": \"Pharmacy User\",\r\n//   \"email\": \"pharmacy@example.com\",\r\n//   \"password\": \"TestPassword123!\",\r\n//   \"role\": \"pharmacy\",\r\n//   \"phone\": \"3456789012\",\r\n//   \"profile_picture_url\": \"https://example.com/pharmacy.jpg\",\r\n//   \"pharmacy_owner\": \"John Owner\",\r\n//   \"pharmacy_name\": \"HealthPlus Pharmacy\"\r\n// }",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "http://localhost:3000/auth/register",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"auth",
-								"register"
-							]
-						}
+						"url": "http://localhost:3000/auth/register"
 					},
 					"response": []
 				}
@@ -84,24 +62,8 @@
 						{
 							"name": "add appointment",
 							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "",
-											"type": "string"
-										}
-									]
-								},
 								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
+								"header": [],
 								"body": {
 									"mode": "raw",
 									"raw": "{\r\n  \"doctorId\": \"519dbc36-deb6-4bcb-a2f3-262a52d40622\",\r\n  \"patientId\": \"\", \r\n  \"appointment_date\": \"2025-05-30\",\r\n  \"appointment_time\": \"14:30\",\r\n  \"symptoms\": \"Chest pain\"\r\n}\r\n",
@@ -111,62 +73,21 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "http://localhost:3000/doctors/appointments",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"doctors",
-										"appointments"
-									]
-								}
+								"url": "http://localhost:3000/doctors/appointments"
 							},
 							"response": []
 						},
 						{
 							"name": "get doctor appointments",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
 							"request": {
 								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/doctors/519dbc36-deb6-4bcb-a2f3-262a52d40622/appointments",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"doctors",
-										"519dbc36-deb6-4bcb-a2f3-262a52d40622",
-										"appointments"
-									]
-								}
+								"header": [],
+								"url": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/appointments"
 							},
 							"response": []
 						},
 						{
-							"name": "Get appointment status",
+							"name": "New Request",
 							"request": {
 								"method": "GET",
 								"header": [],
@@ -212,18 +133,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "http://localhost:3000/doctors/reviews ",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"doctors",
-										"reviews "
-									]
-								}
+								"url": "http://localhost:3000/doctors/reviews "
 							},
 							"response": []
 						},
@@ -232,19 +142,7 @@
 							"request": {
 								"method": "GET",
 								"header": [],
-								"url": {
-									"raw": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/reviews",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"doctors",
-										"27238362-1bd5-42dd-9159-d07ae354ade2",
-										"reviews"
-									]
-								}
+								"url": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/reviews"
 							},
 							"response": []
 						}
@@ -267,18 +165,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "http://localhost:3000/doctors/",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								""
-							]
-						}
+						"url": "http://localhost:3000/doctors/"
 					},
 					"response": []
 				},
@@ -287,18 +174,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"27238362-1bd5-42dd-9159-d07ae354ade2"
-							]
-						}
+						"url": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2"
 					},
 					"response": []
 				},
@@ -307,19 +183,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/doctors/profile/27238362-1bd5-42dd-9159-d07ae354ade2",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"profile",
-								"27238362-1bd5-42dd-9159-d07ae354ade2"
-							]
-						}
+						"url": "http://localhost:3000/doctors/profile/519dbc36-deb6-4bcb-a2f3-262a52d40622"
 					},
 					"response": []
 				},
@@ -327,13 +191,7 @@
 					"name": "Update doctor profile by userID",
 					"request": {
 						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "beared",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\r\n    \"specialization\": \"Cardiology\"\r\n}",
@@ -343,19 +201,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "http://localhost:3000/doctors/profile/519dbc36-deb6-4bcb-a2f3-262a52d40622",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"profile",
-								"519dbc36-deb6-4bcb-a2f3-262a52d40622"
-							]
-						}
+						"url": "http://localhost:3000/doctors/profile/519dbc36-deb6-4bcb-a2f3-262a52d40622"
 					},
 					"response": []
 				},
@@ -364,19 +210,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/available-slots",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"27238362-1bd5-42dd-9159-d07ae354ade2",
-								"available-slots"
-							]
-						}
+						"url": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/available-slots"
 					},
 					"response": []
 				},
@@ -385,18 +219,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/doctors/stats",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"stats"
-							]
-						}
+						"url": "http://localhost:3000/doctors/27238362-1bd5-42dd-9159-d07ae354ade2/stats"
 					},
 					"response": []
 				},
@@ -405,18 +228,7 @@
 					"request": {
 						"method": "POST",
 						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/doctors/verify",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"doctors",
-								"verify"
-							]
-						}
+						"url": "http://localhost:3000/doctors/verify"
 					},
 					"response": []
 				}
@@ -426,7 +238,7 @@
 			"name": "patient",
 			"item": [
 				{
-					"name": "make a appointments",
+					"name": "New Request",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -447,462 +259,6 @@
 									"key": "patientId",
 									"value": ""
 								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "notification",
-			"item": [
-				{
-					"name": "RBAC",
-					"item": [
-						{
-							"name": "notification send to all",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"type\": \"email\", // \"email\" or \"whatsapp\"\r\n  \"recipient\": \"patient@email.com\",\r\n  \"subject\": \"Appointment Update\",\r\n  \"content\": \"Important UpdateYour appointment has been rescheduled to 3 PM.\",\r\n  \"targetUserId\": \"patient-123\" \r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/send",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"send"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "notification send template",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"templateName\": \"appointment_reminder\",\r\n  \"type\": \"email\",\r\n  \"recipient\": \"patient@email.com\",\r\n  \"templateData\": {\r\n    \"patientName\": \"John Doe\",\r\n    \"doctorName\": \"Dr. Sarah Smith\",\r\n    \"appointmentDate\": \"June 15, 2025\",\r\n    \"appointmentTime\": \"10:00 AM\",\r\n    \"hospitalName\": \"City Hospital\"\r\n  },\r\n  \"targetUserId\": \"patient-123\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/send-template",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"send-template"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "send appointment-reminder",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"appointmentId\": \"appt-123\",\r\n  \"type\": \"email\" // \"email\" or \"whatsapp\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/send-appointment-reminder",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"send-appointment-reminder"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Broadcast System Notification",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"type\": \"email\",\r\n  \"subject\": \"System Maintenance Notice\",\r\n  \"content\": \"Scheduled MaintenanceOur system will be down for maintenance on June 10th from 2 AM to 4 AM UTC.Please plan accordingly.\",\r\n  \"targetRole\": \"doctor\", // Optional: \"patient\", \"doctor\", \"pharmacy\", \"admin\" (omit to send to all)\r\n  \"templateName\": \"system_announcement\", // Optional: use template instead of raw content\r\n  \"templateData\": {\r\n    \"announcementTitle\": \"System Maintenance\",\r\n    \"maintenanceDate\": \"June 10th, 2025\",\r\n    \"maintenanceTime\": \"2 AM - 4 AM UTC\"\r\n  }\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/send-appointment-reminder",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"send-appointment-reminder"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "get templates",
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/templates",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"templates"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get Specific Template",
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/templates/:name/:type",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"templates",
-										":name",
-										":type"
-									],
-									"variable": [
-										{
-											"key": "name",
-											"value": ""
-										},
-										{
-											"key": "type",
-											"value": ""
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get Admin Notification History (Any User)",
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/templates/:name/:type",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"templates",
-										":name",
-										":type"
-									],
-									"variable": [
-										{
-											"key": "name",
-											"value": ""
-										},
-										{
-											"key": "type",
-											"value": ""
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "create template",
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"name\": \"payment_confirmation\",\r\n  \"type\": \"email\",\r\n  \"subject\": \"Payment Received - {{amount}}\",\r\n  \"content\": \"Payment ConfirmedHi {{userName}},We received your payment of {{amount}} for {{serviceName}}.Transaction ID: {{transactionId}}Thank you for choosing our healthcare services!\",\r\n  \"defaultData\": {\r\n    \"userName\": \"Patient\",\r\n    \"serviceName\": \"Medical Consultation\",\r\n    \"amount\": \"$0.00\",\r\n    \"transactionId\": \"TXN-000000\"\r\n  }\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/templates",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"templates"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "update template",
-							"request": {
-								"method": "PUT",
-								"header": [
-									{
-										"key": "Authorization",
-										"value": "Bearer {{auth_token}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"subject\": \"Updated: Payment Received - {{amount}}\",\r\n  \"content\": \"Payment Confirmed ✓Hi {{userName}},We have successfully received your payment of {{amount}} for {{serviceName}}.Transaction Details:Transaction ID: {{transactionId}}Date: {{paymentDate}}Method: {{paymentMethod}}Thank you for choosing our healthcare services!\",\r\n  \"isActive\": true\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/notifications/templates/templateID",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"notifications",
-										"templates",
-										"templateID"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "get notifaction setting for a user",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:3000/api/notifications/preferences",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"notifications",
-								"preferences"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get notifications",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:3000/api/notifications/history",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"notifications",
-								"history"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "get notifaction status",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "http://localhost:3000/api/notifications/status/:logId",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"notifications",
-								"status",
-								":logId"
-							],
-							"variable": [
-								{
-									"key": "logId",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "update notifaction setting for a user",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{auth_token}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n   \r\n        \"emailEnabled\": false,\r\n        \"whatsappEnabled\": true,\r\n        \"smsEnabled\": true,\r\n        \"pushEnabled\": true,\r\n        \"notificationTypes\": null,\r\n        \"preferredLanguage\": null,\r\n        \"timezone\": null\r\n\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:3000/api/notifications/preferences",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"api",
-								"notifications",
-								"preferences"
 							]
 						}
 					},

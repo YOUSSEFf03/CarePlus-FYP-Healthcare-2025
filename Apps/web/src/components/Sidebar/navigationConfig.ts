@@ -6,10 +6,29 @@ export type SidebarItem = {
     url: string;
 };
 
+// export const sidebarConfig: Record<string, SidebarItem[]> = {
+//     doctor: [
+//         { title: "Overview", icon: "Grid3X3", url: "/doctor" },
+//         { title: "Patients", icon: "Users", url: "/doctor/patients" },
+//         // ...more doctor items
+//     ],
+//     assistant: [
+//         { title: "Overview", icon: "Grid3X3", url: "/assistant" },
+//         { title: "Support", icon: "MessageSquare", url: "/assistant/support" },
+//         // ...more assistant items
+//     ],
+//     pharmacy: [
+//         { title: "Dashboard", icon: "Grid3X3", url: "/pharmacy" },
+//         { title: "Inventory", icon: "FileText", url: "/pharmacy/inventory" },
+//         // ...more pharmacy items
+//     ],
+// };
+
 export const sidebarConfig: {
     doctor: NavigationItem[];
     assistant: NavigationItem[];
-    pharmacy: NavigationItem[];
+    // pharmacy: NavigationItem[];
+    general: NavigationItem[];
 } = {
     doctor: [
         { title: "Overview", icon: "Grid3X3", url: "/doctor/dashboard" },
@@ -25,6 +44,7 @@ export const sidebarConfig: {
         { title: "Workplaces", icon: "Workplaces", url: "/assistant/workplaces" },
         { title: "Invites", icon: "Inivitations", url: "/assistant/workplaces/appointments" },
     ],
+<<<<<<< HEAD
     pharmacy: [
         { title: "Overview", icon: "Grid3X3", url: "/pharmacy/dashboard" },
         { title: "Orders", icon: "Cart", url: "/pharmacy/orders" },
@@ -40,3 +60,11 @@ export const getGeneralItems = (role: 'doctor' | 'assistant' | 'pharmacy'): Navi
     { title: "Settings", icon: "Settings", url: `/${role}/settings` },
     { title: "Tutorial", icon: "BookOpen", url: `/${role}/tutorial` },
 ];
+=======
+    general: [
+        { title: "Help", icon: "HelpCircle", url: "/logout" },
+        { title: "Settings", icon: "Settings", url: "/logout" },
+        { title: "Tutorial", icon: "BookOpen", url: "/logout" },
+    ],
+};
+>>>>>>> parent of 94b044c (Merge branch 'master' of https://dev.azure.com/FYP-Healthcare-2025/FYP%20Healthcare%202025/_git/FYP%20Healthcare%202025)

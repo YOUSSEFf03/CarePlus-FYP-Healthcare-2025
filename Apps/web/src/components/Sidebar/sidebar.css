@@ -206,59 +206,6 @@
     color: #b91c1c;
 }
 
-.sidebar-upgrade {
-    /* padding: 16px; */
-    background-color: var(--tertiary-05);
-    border-radius: 8px;
-    margin: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-8);
-}
-
-.sidebar-upgrade-star-icon {
-    background-color: var(--white);
-    padding: 4px;
-    color: var(--tertiary-80);
-    border-radius: var(--radius-4);
-}
-
-.sidebar-upgrade-star-icon-collapsed {
-    background-color: none;
-    padding: 4px;
-    color: var(--tertiary-80);
-    border-radius: var(--radius-4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.sidebar-upgrade .upgrade-text {
-    /* margin-bottom: 8px; */
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap-4);
-}
-
-.sidebar-upgrade .text-body-sm-r {
-    color: var(--neutral-700);
-}
-
-.sidebar-upgrade strong {
-    display: block;
-    margin-top: 4px;
-    font-weight: 600;
-    color: var(--neutral-900);
-}
-
-.sidebar-upgrade .btn {
-    font-size: 12px;
-    padding: 6px 8px;
-    width: 100%;
-    /* font-weight: 500; */
-    /* background-color: var(--tertiary-90); */
-}
-
 .sidebar.collapsed .sidebar-logout-button {
     justify-content: center;
     padding: 10px;
