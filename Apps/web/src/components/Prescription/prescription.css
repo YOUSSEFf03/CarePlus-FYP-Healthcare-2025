@@ -1,0 +1,233 @@
+/* A4 canvas (pt = 1/72 inch) -> we’ll render via html2canvas/jsPDF */
+.rx-doc {
+    --rx-bg: #ffffff;
+    --rx-ink: #0f172a;
+    /* slate-900 */
+    --rx-muted: #6b7280;
+    /* gray-500 */
+    --rx-accent: #1d4ed8;
+    /* default = patient */
+    --rx-border: #e5e7eb;
+    /* gray-200 */
+
+    width: 794px;
+    /* ~ A4 @ 96dpi */
+    min-height: 1123px;
+    background: var(--rx-bg);
+    color: var(--rx-ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
+        "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    padding: 28px 32px 24px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Themes (audiences) */
+.rx-doc.rx-patient {
+    background: #ffffff;
+}
+
+.rx-doc.rx-doctor {
+    background: rgba(234, 179, 8, 0.08);
+}
+
+/* pale red */
+.rx-doc.rx-pharmacy {
+    background: rgba(220, 38, 38, 0.06);
+}
+
+.rx-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--rx-border);
+}
+
+.rx-brand {
+    display: flex;
+    gap: 12px;
+}
+
+.rx-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    /* background: var(--rx-accent); */
+}
+
+.rx-title {
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.rx-subtle {
+    color: var(--rx-muted);
+    font-size: 12px;
+}
+
+.rx-meta {
+    display: grid;
+    gap: 6px;
+    text-align: right;
+}
+
+.rx-meta-row {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 8px;
+}
+
+.rx-label {
+    color: var(--rx-muted);
+    font-size: 12px;
+}
+
+.rx-value {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.rx-identity {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0 8px;
+}
+
+.rx-id-block {
+    border: 1px solid var(--rx-border);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.rx-id-title {
+    font-size: 12px;
+    color: var(--rx-muted);
+    margin-bottom: 6px;
+}
+
+.rx-id-name {
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 1.1;
+}
+
+.rx-id-sub {
+    color: var(--rx-muted);
+    font-size: 12px;
+}
+
+.rx-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    margin-bottom: 8px;
+    color: var(--rx-accent);
+}
+
+.rx-items {
+    margin-top: 6px;
+}
+
+.rx-empty {
+    color: var(--rx-muted);
+    font-size: 13px;
+    border: 1px dashed var(--rx-border);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.rx-table {
+    border: 1px solid var(--rx-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rx-th,
+.rx-tr {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1.1fr 1fr 1.5fr;
+}
+
+.rx-th {
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 12px;
+    border-bottom: 1px solid var(--rx-border);
+}
+
+.rx-th>div,
+.rx-td {
+    padding: 10px 12px;
+}
+
+.rx-tr {
+    border-bottom: 1px solid var(--rx-border);
+}
+
+.rx-td {
+    font-size: 13px;
+}
+
+.rx-instructions {
+    margin-top: 14px;
+    border: 1px solid var(--rx-border);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.rx-attachment {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--rx-muted);
+}
+
+.rx-attachment span {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.rx-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 24px;
+}
+
+.rx-sign {
+    text-align: center;
+    min-width: 180px;
+}
+
+.rx-sign-line {
+    height: 1px;
+    width: 100%;
+    background: #0f172a;
+    opacity: .6;
+    margin-bottom: 6px;
+}
+
+.rx-qr {
+    text-align: center;
+    font-size: 11px;
+    color: var(--rx-muted);
+}
+
+.rx-qr-label {
+    margin-top: 4px;
+}
+
+/* Accent strip at the very bottom for easy “audience color” identification */
+.rx-strip {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 8px;
+    background: var(--rx-accent);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}

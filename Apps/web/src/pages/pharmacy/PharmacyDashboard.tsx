@@ -6,6 +6,7 @@ import Button from "../../components/Button/Button";
 import { ReactComponent as BuildingOffice } from "../../assets/svgs/BuildingOffice.svg";
 import { ReactComponent as RevenueIcon } from "../../assets/svgs/CurrencyCircleDollar.svg";
 import { ReactComponent as PrescriptionIcon } from '../../assets/svgs/Files.svg';
+import { useNavigate } from "react-router-dom";
 
 type Order = {
     id: string;
@@ -58,6 +59,7 @@ const mockOrders: Order[] = [
 ];
 
 export default function PharmacyDashboard() {
+    const navigate = useNavigate();
     return (
         <div className="overview">
             {/* Top: Title + quick actions */}
@@ -72,11 +74,20 @@ export default function PharmacyDashboard() {
                             </svg>
                         }
                         className="btn-compact"
+                        onClick={() => navigate("/pharmacy/add-product")}
                     />
                     <Button
                         text="Review prescriptions"
                         variant="secondary"
-                        iconLeft={<BuildingOffice />}
+                        iconLeft={
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14,2 14,8 20,8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                                <polyline points="10,9 9,9 8,9" />
+                            </svg>
+                        }
                         className="btn-compact"
                     />
                 </div>
@@ -129,7 +140,7 @@ export default function PharmacyDashboard() {
                             <span>$600</span>
                         </div>
                     </div>
-{/* 
+                    {/* 
                     <div className="panel__footer">
                         <Button variant="tertiary" className="linklike" text="View full report" iconRight={<svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="currentColor" />
@@ -166,7 +177,7 @@ export default function PharmacyDashboard() {
                             </div>
                         ))}
                     </div>
-{/* 
+                    {/* 
                     <div className="panel__footer">
                         <Button variant="tertiary" className="linklike" text="View all" iconRight={<svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="currentColor" />

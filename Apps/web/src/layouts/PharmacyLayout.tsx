@@ -52,6 +52,7 @@ const LayoutContent: React.FC = () => {
         inventory: 'Inventory',
         dashboard: 'Overview',
         orders: "Orders",
+        reservations: "Reservations",
         prescriptions: 'Prescriptions',
         customers: 'Customers',
         security: 'Security & Privacy',

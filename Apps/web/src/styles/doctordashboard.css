@@ -13,12 +13,11 @@
     /* box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); */
 }
 
-.dashboard-right {
+.doctor-dashboard-right {
     width: 280px;
-    /* background-color: #fff; */
-    border-radius: 12px;
-    /* box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); */
-    /* padding: 16px; */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .dashboard-header {
@@ -156,25 +155,263 @@
     border: 1px solid #e5e7eb;
 }
 
+/* --- Calendar polish --- */
 .react-calendar {
     width: 100%;
     border: none;
     font-family: var(--ff-poppins);
     font-size: 14px;
+    background: transparent;
+    border: none !important;
+}
+
+.react-calendar__navigation {
+    margin-bottom: 8px;
+    display: flex;
+    gap: 6px;
+}
+
+.react-calendar__navigation button {
+    min-width: 36px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    transition: background .15s ease, box-shadow .15s ease;
+}
+
+.react-calendar__navigation button:hover {
+    background: #f8fafc;
+}
+
+.react-calendar__month-view__weekdays {
+    text-transform: none;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+    padding: 6px 0;
+}
+
+.rc-day {
+    position: relative;
+    border-radius: 12px;
+}
+
+.react-calendar__tile {
+    border-radius: 12px;
+    padding: 10px 0;
+    transition: background .15s ease, transform .05s ease;
+}
+
+.react-calendar__tile:hover {
+    background: #f3f4f6;
+}
+
+.react-calendar__tile--now {
+    background: #eef6ff;
 }
 
 .react-calendar__tile--active {
     background: #2563eb !important;
-    color: white !important;
-    border-radius: 50%;
+    color: #fff !important;
 }
 
-.react-calendar__tile--now {
-    background: #e0f2fe;
+.rc-dot {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
+    background: #10b981;
 }
 
-.react-calendar__tile--hover {
+.has-appts .rc-dot {
+    display: block;
+}
+
+/* --- Side chips (counts) --- */
+.appt-stats-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0 10px;
+}
+
+.appt-chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.chip-total {
+    background: #f8fafc;
+}
+
+.chip-confirmed {
+    background: var(--success-05);
+    border-color: var(--success-10);
+}
+
+.chip-pending {
+    background: var(--warning-05);
+    border-color: var(--warning-10);
+}
+
+.chip-checkedin {
+    background: var(--secondary-05);
+    border-color: var(--secondary-10);
+}
+
+/* --- Appointments list (enhanced) --- */
+.appointments-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.appt-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid #eef2f7;
+    border-left: 3px solid transparent;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+    transition: box-shadow .15s ease, transform .04s ease, border-color .15s ease;
+}
+
+.appt-item:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .06);
+}
+
+.appt-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.appt-time-badge {
+    font-weight: 600;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 8px;
     background: #f3f4f6;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+}
+
+.appt-avatar {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    /* background: linear-gradient(135deg, #dbeafe, #e9d5ff); */
+    background-color: var(--tertiary-20);
+    border: 1px solid #e5e7eb;
+}
+
+.appt-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.appt-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.appt-patient {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.appt-type {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.appt-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+/* Accent by status (colored left border) */
+.accent-confirmed {
+    border-left-color: var(--success-30);
+}
+
+.accent-pending {
+    border-left-color: var(--warning-30);
+}
+
+.accent-checkedin {
+    border-left-color: var(--secondary-30);
+}
+
+/* Status pills keep your earlier palette */
+.status-confirmed {
+    border-color: #bbf7d0;
+    background: #ecfdf5;
+}
+
+.status-pending {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+.status-checkedin {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+/* Empty state */
+.appt-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    border: 1px dashed #e5e7eb;
+    border-radius: 14px;
+    background: #fcfcfd;
+    color: #6b7280;
+}
+
+.appt-empty .empty-icon {
+    font-size: 24px;
 }

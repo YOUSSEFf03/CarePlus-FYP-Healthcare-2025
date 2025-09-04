@@ -17,6 +17,12 @@ const DEMO_PHARMACY = {
     name: 'City Care Pharmacy',
 };
 
+const DEMO_DOCTOR = {
+    email: 'doctor@demo.com',
+    password: 'doctor123',
+    name: 'John Doe',
+};
+
 type Role = 'doctor' | 'assistant' | 'pharmacy';
 
 type JwtPayload = {
@@ -59,6 +65,20 @@ export default function Login() {
 
             login({ name: DEMO_PHARMACY.name, role });        // from your AuthContext
             navigate('/pharmacy');
+            setLoading(false);
+            return;
+        } else if (
+            email.trim().toLowerCase() === DEMO_DOCTOR.email &&
+            password === DEMO_DOCTOR.password
+        ) {
+            // set whatever your app expects
+            const role: Role = 'doctor';
+            localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
+            localStorage.setItem('userName', DEMO_DOCTOR.name);
+            localStorage.setItem('userRole', role);
+
+            login({ name: DEMO_DOCTOR.name, role });        // from your AuthContext
+            navigate('/doctor');
             setLoading(false);
             return;
         }

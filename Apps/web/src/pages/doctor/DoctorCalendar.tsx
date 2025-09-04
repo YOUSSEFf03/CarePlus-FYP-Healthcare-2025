@@ -46,8 +46,8 @@ const initialAppointments: Appointment[] = [
         title: 'General Checkup',
         patientName: 'Dianne Russell',
         consultationType: 'Initial Consultation',
-        start: new Date(2025, 7, 22, 9, 30),
-        end: new Date(2025, 7, 22, 10, 0),
+        start: new Date(2025, 8, 5, 9, 30),
+        end: new Date(2025, 8, 5, 10, 0),
         avatarUrl: '/avatars/dianne.png',
         video: true,
         contact: {
@@ -62,8 +62,8 @@ const initialAppointments: Appointment[] = [
         title: 'Follow-Up',
         patientName: 'Ralph Edwards',
         consultationType: 'Antibiotics Treatment',
-        start: new Date(2025, 7, 21, 9, 30),
-        end: new Date(2025, 7, 21, 10, 0),
+        start: new Date(2025, 8, 3, 9, 30),
+        end: new Date(2025, 8, 3, 10, 0),
         avatarUrl: '/avatars/ralph.png',
         contact: {
             phone: '(505) 555-0125',
@@ -77,8 +77,8 @@ const initialAppointments: Appointment[] = [
         title: 'Follow-Up',
         patientName: 'Ralph Edwards',
         consultationType: 'Antibiotics Treatment',
-        start: new Date(2025, 7, 20, 9, 30),
-        end: new Date(2025, 7, 20, 10, 0),
+        start: new Date(2025, 8, 4, 9, 30),
+        end: new Date(2025, 8, 4, 10, 0),
         avatarUrl: '/avatars/ralph.png',
         contact: {
             phone: '(505) 555-0125',

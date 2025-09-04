@@ -1,0 +1,281 @@
+@import "../styles/variables.css";
+
+/* Layout */
+.orders {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-16);
+    /* padding: 0 24px 24px; */
+}
+
+/* Header */
+.orders__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 2px;
+}
+
+.orders__header-actions {
+    display: flex;
+    gap: var(--gap-12);
+}
+
+.btn-compact {
+    padding: var(--padding-8-16);
+    height: 36px;
+}
+
+/* Tabs */
+.orders__tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.orders-tab {
+    font: 500 13px var(--ff-red-hat-display);
+    color: var(--primary-color);
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-50);
+    padding: 6px 12px;
+    transition: background var(--transition-200), border-color var(--transition-200), color var(--transition-200);
+}
+
+.orders-tab:hover {
+    background: var(--neutral-201);
+    cursor: pointer;
+}
+
+.orders-tab.is-active {
+    background: var(--secondary-05);
+    border-color: var(--secondary-20);
+}
+
+/* Filters */
+.orders__filters {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-16);
+    box-shadow: var(--shadow-light);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-100);
+    border-radius: var(--radius-8);
+    padding: 11px 8px;
+}
+
+.input-with-icon .ph-input {
+    outline: none;
+    font-family: var(--ff-poppins);
+    border: 0;
+    background: transparent;
+    width: 100%;
+    font-size: 14px;
+    color: var(--primary-color);
+}
+
+.filters-row {
+    display: flex;
+    gap: 10px;
+}
+
+.ph-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-100);
+    border-radius: var(--radius-8);
+    padding: 6px 10px;
+}
+
+.ph-select select {
+    font-family: var(--ff-poppins);
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 14px;
+    color: var(--primary-color);
+}
+
+/* Panel base (reuse Overview look) */
+.panel {
+    background: var(--white);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-16);
+    box-shadow: var(--shadow-light);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-16);
+}
+
+.panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+/* Table (DoctorAppointments style) */
+.ph-table {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#orders-table .ph-head,
+#orders-table .ph-row {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 0.9fr 1.2fr 0.8fr 0.8fr 1fr;
+    column-gap: 12px;
+}
+
+.ph-head {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--neutral-900);
+    font-family: var(--ff-red-hat-display);
+    background-color: var(--neutral-200);
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-4);
+    padding: 8px;
+}
+
+.ph-row {
+    display: grid;
+    padding: 10px 8px;
+    font-size: 14px;
+    color: var(--primary-color);
+    border-bottom: 1px solid #f1f5f9;
+    align-items: center;
+    transition: background var(--transition-200);
+}
+
+.ph-row:hover {
+    background: var(--neutral-201);
+}
+
+/* Status pills */
+.status {
+    font-size: var(--fs-12);
+    padding: 4px 10px;
+    border-radius: var(--radius-4);
+    border: 1px solid var(--neutral-200);
+    justify-self: start;
+    white-space: nowrap;
+}
+
+.status--pending {
+    background: var(--warning-05);
+    color: var(--warning-80);
+    border-color: var(--warning-20);
+}
+
+.status--infulfillment {
+    background: var(--info-05);
+    color: var(--info-80);
+    border-color: var(--info-20);
+}
+
+.status--ready {
+    background: var(--secondary-05);
+    color: var(--secondary-80);
+    border-color: var(--secondary-20);
+}
+
+.status--completed {
+    background: var(--success-05);
+    color: var(--success-80);
+    border-color: var(--success-20);
+}
+
+.status--cancelled {
+    background: var(--error-05);
+    color: var(--error-80);
+    border-color: var(--error-20);
+}
+
+/* Row actions */
+.row-actions {
+    display: flex;
+    gap: 6px;
+    justify-self: start;
+}
+
+.btn-xs {
+    padding: 4px 8px;
+    height: 28px;
+}
+
+/* Empty state */
+.ph-empty {
+    text-align: center;
+    padding: 20px 8px;
+    border: 1px dashed var(--neutral-200);
+    border-radius: var(--radius-12);
+    background: var(--neutral-100);
+}
+
+/* Pagination */
+.orders__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.page-indicator {
+    font-size: 12px;
+    color: var(--neutral-700);
+}
+
+/* Utils */
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.muted {
+    color: var(--neutral-700);
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+
+    #orders-table .ph-head,
+    #orders-table .ph-row {
+        grid-template-columns: 1.2fr 1fr 0.8fr 1fr 0.8fr 0.8fr;
+    }
+
+    #orders-table .ph-head span:last-child,
+    #orders-table .ph-row span:last-child {
+        display: none;
+    }
+
+    /* hide actions column on smaller screens */
+}
+
+@media (max-width: 680px) {
+    .orders {
+        padding: 0 16px 16px;
+    }
+
+    .orders__filters {
+        grid-template-columns: 1fr;
+    }
+}

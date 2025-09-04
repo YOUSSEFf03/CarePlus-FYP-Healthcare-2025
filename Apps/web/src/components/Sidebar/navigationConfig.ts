@@ -20,13 +20,13 @@ export const sidebarConfig: {
         { title: "Assistants", icon: "AssistantsIcon", url: "/doctor/assistants" },
     ],
     assistant: [
-        { title: "Overview", icon: "Grid3X3", url: "/assistant" },
+        { title: "Overview", icon: "Grid3X3", url: "/assistant/dashboard" },
         { title: "Doctors", icon: "Doctor", url: "/assistant/doctors" },
         { title: "Workplaces", icon: "Workplaces", url: "/assistant/workplaces" },
         { title: "Invites", icon: "Inivitations", url: "/assistant/workplaces/appointments" },
     ],
     pharmacy: [
-        { title: "Overview", icon: "Grid3X3", url: "/pharmacy" },
+        { title: "Overview", icon: "Grid3X3", url: "/pharmacy/dashboard" },
         { title: "Orders", icon: "Cart", url: "/pharmacy/orders" },
         { title: "Reservations", icon: "Reservations", url: "/pharmacy/reservations" },
         { title: "Inventory", icon: "Inventory", url: "/pharmacy/inventory" },

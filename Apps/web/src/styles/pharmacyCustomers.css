@@ -1,0 +1,111 @@
+/* very small additions; most structure comes from doctorAppointments.css */
+.customers__filters {
+    gap: 12px;
+    align-items: center;
+}
+
+.customers__head .th-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: var(--ink-700);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+}
+
+.cust-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.cust-contact .muted {
+    color: var(--ink-500);
+    font-size: 12px;
+}
+
+.chip {
+    display: inline-block;
+    font-size: 11px;
+    line-height: 1;
+    padding: 6px 8px;
+    border-radius: 999px;
+    background: var(--bg-100);
+    border: 1px solid var(--border-200);
+    color: var(--ink-700);
+}
+
+.chip--new {
+    background: #eef7ff;
+    border-color: #cfe6ff;
+    color: #0f5db3;
+}
+
+.chip--returning {
+    background: #f4f7f9;
+    border-color: #e6ebf0;
+    color: #4b5563;
+}
+
+.chip--vip {
+    background: #fff7ea;
+    border-color: #ffe3b5;
+    color: #8a4b00;
+}
+
+.row-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+/* Drawer that reuses your overlay glass style from prescriptions */
+.customer-drawer {
+    width: min(880px, 92vw);
+    max-height: 86vh;
+    background: #fff;
+    border: 1px solid var(--border-200);
+    border-radius: 18px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+    padding: 20px;
+    overflow: auto;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-200);
+}
+
+.drawer-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    padding: 16px 0 8px;
+}
+
+.drawer-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-200);
+}
+
+/* reuse rx-viewer-overlay class so styles are already present:
+   subtle glass effect, centered panel */
+.rx-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    padding: 24px;
+    /* glass */
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}

@@ -118,7 +118,7 @@ type As = "input" | "textarea";
 interface CustomInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
     label?: string;
     as?: As;                                // <-- NEW (default: "input")
-    type?: "text" | "password" | "email" | "number";   // used only when as="input"
+    type?: "text" | "password" | "email" | "number" | "time";   // used only when as="input"
     placeholder?: string;
     value: string;
     onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;

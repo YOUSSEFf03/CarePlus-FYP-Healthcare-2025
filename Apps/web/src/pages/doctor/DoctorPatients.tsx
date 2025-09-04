@@ -1,108 +1,50 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import '../../styles/doctorPatients.css';
 import CustomText from "../../components/Text/CustomText";
+import PatientDrawer, { Patient } from "../../components/Patient/PatientDrawer";
 
-const patients = [
-    {
-        id: "P001",
-        name: "Dianne Russell",
-        phone: "(505) 555-0125",
-        email: "dianne.russell@example.com",
-        dob: "1985-03-25",
-        gender: "Female",
-    },
-    {
-        id: "P002",
-        name: "Ralph Edwards",
-        email: "ralph.edwards@example.com",
-        dob: "1978-11-03",
-        gender: "Male",
-    },
-    {
-        id: "P003",
-        name: "Jane Cooper",
-        phone: "(402) 555-0175",
-        dob: "1990-07-15",
-        gender: "Female",
-    },
-    {
-        id: "P004",
-        name: "Esther Howard",
-        phone: "(303) 555-0190",
-        email: "",
-        dob: "1988-05-20",
-        gender: "Female",
-    },
-    {
-        id: "P005",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P006",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P007",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P008",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P009",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P009",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P009",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
-    {
-        id: "P009",
-        name: "Cody Fisher",
-        phone: "(214) 555-0140",
-        email: "",
-        dob: "1992-09-10",
-        gender: "Male",
-    },
+const patients: Patient[] = [
+    { id: "P001", name: "Dianne Russell", phone: "(505) 555-0125", email: "dianne.russell@example.com", dob: "1985-03-25", gender: "Female" },
+    { id: "P002", name: "Ralph Edwards", email: "ralph.edwards@example.com", dob: "1978-11-03", gender: "Male" },
+    { id: "P003", name: "Jane Cooper", phone: "(402) 555-0175", dob: "1990-07-15", gender: "Female" },
+    { id: "P004", name: "Esther Howard", phone: "(303) 555-0190", email: "", dob: "1988-05-20", gender: "Female" },
+    { id: "P005", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P006", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P007", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P008", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P009", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P010", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P011", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
+    { id: "P012", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
 ];
 
 export default function DoctorPatients() {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedId = searchParams.get("selected");
+    const selectedPatient = useMemo(
+        () => patients.find(p => p.id === selectedId) ?? null,
+        [selectedId]
+    );
+
+    const openDrawer = (id: string) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set("selected", id);
+            return next;
+        }, { replace: false });
+    };
+
+    const closeDrawer = () => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete("selected");
+            return next;
+        }, { replace: true });
+    };
 
     const toggleMenu = (id: string) => {
         setOpenMenuId(prev => (prev === id ? null : id));
@@ -142,9 +84,25 @@ export default function DoctorPatients() {
                     </div>
 
                     {patients.map((patient) => (
-                        <div key={patient.id} className="patients-row">
+                        <div key={patient.id}
+                            className="patients-row patients-row--clickable"
+                            onClick={(e) => {
+                                // Allow inner controls (kebab) to work without opening the drawer
+                                const target = e.target as HTMLElement;
+                                const insideActions = target.closest(".patients-actions");
+                                if (!insideActions) openDrawer(patient.id);
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openDrawer(patient.id)}
+                            aria-label={`View details for ${patient.name}`}
+                        >
                             <span>{patient.id}</span>
-                            <span>{patient.name}</span>
+                            <span>
+                                <Link to={`/doctor/patients/${patient.id}`} onClick={(e) => e.stopPropagation()}>
+                                    {patient.name}
+                                </Link>
+                            </span>
                             <span>{patient.phone || "-"}</span>
                             <span>{patient.dob}</span>
                             <span>{patient.gender}</span>
@@ -157,7 +115,7 @@ export default function DoctorPatients() {
                                     <span className="tooltip-text">View Details</span>
                                 </span>
                                 <div className="dropdown-wrapper" ref={dropdownRef}>
-                                    <span className="action-icon tooltip-wrapper" style={{marginTop: "8px"}} onClick={() => toggleMenu(patient.id)} title="Options">
+                                    <span className="action-icon tooltip-wrapper" style={{ marginTop: "8px" }} onClick={() => toggleMenu(patient.id)} title="Options">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path
                                                 d="M12 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 2.25a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm0 5.25a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
@@ -192,6 +150,12 @@ export default function DoctorPatients() {
                     )}
                 </div>
             </div>
+            {selectedPatient && (
+                <PatientDrawer
+                    patient={selectedPatient}
+                    onClose={closeDrawer}
+                />
+            )}
         </div>
     );
 }

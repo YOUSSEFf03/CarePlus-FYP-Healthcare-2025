@@ -7,7 +7,15 @@ import CustomText from '../Text/CustomText';
 import { useAuth } from '../../context/AuthContext';
 // import isHotkey from 'is-hotkey';
 
-// Icons (you can replace these with your preferred icon library)
+const PROFILE_ROUTES: Record<string, string> = {
+    doctor: "/doctor/profile",
+    assistant: "/assistant/profile",
+    pharmacy: "/pharmacy/profile",
+    admin: "/admin/profile",
+};
+
+
+// Icons
 const Icons = {
     Grid3X3: () => (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap='round' strokeLinejoin='round' strokeWidth="1.5">
@@ -277,27 +285,46 @@ const NavigationItem: React.FC<{ item: NavigationItem; isActive: boolean }> = ({
 // User Profile Component
 const UserProfile: React.FC = () => {
     const { isCollapsed } = useSidebar();
+    const navigate = useNavigate();
+    const { user } = useAuth();
 
-    const storedUser = localStorage.getItem('user');
+    // pull from context first; fall back to localStorage if needed
+    const storedUser = localStorage.getItem("user");
     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
 
-    const name = parsedUser?.name || '';
-    const role = parsedUser?.role || '';
+    const name = user?.name ?? parsedUser?.name ?? "";
+    const roleRaw = (user?.role ?? parsedUser?.role ?? "").toString();
+    const role = roleRaw.toLowerCase();
+    const profileUrl = PROFILE_ROUTES[role] ?? "/account/profile";
 
     const initials = name
-        .split(' ')
-        .map((word: string) => word[0])
+        .split(" ")
+        .filter(Boolean)
+        .map((w: string) => w[0])
         .slice(0, 2)
-        .join('')
+        .join("")
         .toUpperCase();
 
-    const formattedRole = role.slice(0, 1).toUpperCase() + role.slice(1).toLowerCase();
+    const formattedRole =
+        role ? role.slice(0, 1).toUpperCase() + role.slice(1).toLowerCase() : "";
+
+    const openProfile = () => navigate(profileUrl);
 
     return (
-        <div className="sidebar-user-profile">
+        <div
+            className="sidebar-user-profile"
+            role="button"
+            tabIndex={0}
+            onClick={openProfile}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") openProfile();
+            }}
+            title="Open my profile"
+        >
             <Avatar className="user-avatar">
                 <div className="avatar-fallback">{initials}</div>
             </Avatar>
+
             {!isCollapsed && (
                 <div className="user-info">
                     <div className="user-name">{name}</div>

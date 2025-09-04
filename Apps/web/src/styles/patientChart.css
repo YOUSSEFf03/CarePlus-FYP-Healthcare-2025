@@ -1,0 +1,421 @@
+/* ================================
+   Patient Full Chart — Styles
+   ================================ */
+
+/* ---------- Page shell ---------- */
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Keep content at a readable width across the app */
+.chart-rail {
+    max-width: 1200px;
+    /* margin: 0 auto; */
+    /* padding: 0 16px; */
+}
+
+.chart-title {
+    margin: 0;
+}
+
+/* ---------- Sticky Header + Hero ---------- */
+.chart-header {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    /* above page content */
+    background: #fff;
+    border-bottom: 1px solid #eef2f7;
+    backdrop-filter: saturate(180%) blur(6px);
+}
+
+.patient-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0px 0px 16px 0px;
+}
+
+.hero-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+    width: 60%;
+}
+
+.hero-left .btn {
+    padding: 0;
+}
+
+.card-actions .btn--tertiary {
+    padding: 0;
+}
+
+.hero-id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-name {
+    font-weight: 800;
+    color: var(--neutral-900);
+    line-height: 1.1;
+}
+
+.hero-meta {
+    font-size: 12px;
+    color: var(--neutral-500);
+}
+
+.hero-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ---------- Tabs (attached to header) ---------- */
+.tabbar {
+    display: flex;
+    gap: 8px;
+    padding: 8px 0 12px;
+    border-bottom: 0;
+    /* remove double line under header */
+}
+
+.tab {
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    color: var(--neutral-600);
+}
+
+.tab:hover {
+    background: var(--secondary-05);
+}
+
+.tab--active {
+    background: var(--secondary-05);
+    color: var(--secondary-70);
+    border-color: var(--secondary-10);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02) inset;
+}
+
+/* ---------- Body / Layout ---------- */
+.chart-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* slightly looser rhythm */
+    padding: 12px 0 24px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 1080px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Cards ---------- */
+.card {
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    /* polished roundness */
+    padding: 12px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+.card-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    /* font-weight: 700; */
+    margin-bottom: 8px;
+    /* color: var(--neutral-800); */
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.muted {
+    color: var(--neutral-500);
+}
+
+/* ---------- Key/Value rows ---------- */
+.kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.kv>span:first-child {
+    color: var(--neutral-500);
+}
+
+/* ---------- Simple Table ---------- */
+.table {
+    display: grid;
+    gap: 6px;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1.4fr;
+    padding: 8px;
+    border: 1px solid #f8fafc;
+    border-radius: 6px;
+    align-items: center;
+}
+
+.table-row--head {
+    background: var(--neutral-100);
+    font-weight: 700;
+}
+
+/* Prescriptions grid tuning */
+.table-row--rx {
+    grid-template-columns: 1.1fr .8fr 1.2fr .9fr .7fr 1fr .5fr;
+}
+
+/* ---------- Lists / Timeline ---------- */
+.list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--neutral-800);
+}
+
+.list li {
+    margin: 6px 0;
+}
+
+.timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.timeline .badge {
+    margin-left: 6px;
+}
+
+/* ---------- Footer ---------- */
+.chart-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 28px;
+    /* consistent with rail */
+}
+
+.chart-footer .spacer {
+    flex: 1;
+}
+
+/* ---------- Links ---------- */
+.link-back {
+    font-weight: 600;
+    color: var(--neutral-700);
+    text-decoration: none;
+}
+
+.link-back:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Notes ---------- */
+.note-input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    resize: vertical;
+    font: inherit;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-10);
+    vertical-align: middle;
+}
+
+.badge--doctor {
+    background: var(--secondary-05);
+    color: var(--secondary-70);
+    border-color: var(--secondary-10);
+}
+
+.badge--patient {
+    background: var(--tertiary-05);
+    color: var(--tertiary-70);
+    border-color: var(--tertiary-10);
+}
+
+.badge--active {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #d1fae5;
+}
+
+/* ---------- Attachments (gallery & summary) ---------- */
+.attach {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* If you use the drag area from the old panel, keep these —
+   harmless alongside your FileUploader component. */
+.attach-drop {
+    border: 1.5px dashed #d1d5db;
+    border-radius: 12px;
+    background: #fafafa;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.attach-drop--drag {
+    background: #f1f5f9;
+}
+
+.attach-drop-inner {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+}
+
+.attach-drop-icon {
+    font-size: 24px;
+}
+
+.attach-drop-text {
+    display: grid;
+    gap: 4px;
+    color: var(--neutral-600);
+}
+
+.attach-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.attach-grid--summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1080px) {
+    .attach-grid--summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.attach-card {
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    background: #fff;
+    display: grid;
+    grid-template-rows: 150px auto auto;
+    overflow: hidden;
+}
+
+.attach-preview {
+    background: #f8fafc;
+    display: grid;
+    place-items: center;
+}
+
+.attach-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* avoid baseline gap */
+}
+
+.attach-pdf {
+    display: grid;
+    place-items: center;
+    gap: 6px;
+}
+
+.attach-pdf-icon {
+    font-size: 28px;
+}
+
+.attach-meta {
+    padding: 8px 10px;
+}
+
+.attach-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attach-sub {
+    font-size: 12px;
+    color: var(--neutral-500);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.attach-actions {
+    padding: 8px 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Tiny preview used in Summary card */
+.attach-thumb {
+    height: 80px;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    background: #f8fafc;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+
+.attach-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* prevents image “jump” */
+}
+
+.thumb-pdf {
+    font-weight: 700;
+    color: var(--neutral-700);
+}

@@ -13,7 +13,11 @@
     "start:doctor": "npm run start:dev --workspace=Apps/backend/apps/doctor",
     "start:notification": "npm run start:dev --workspace=Apps/backend/apps/notification",
     "start:pharmacy": "npm run start:dev --workspace=Apps/backend/apps/pharmacy",
-    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor start:notification start:pharmacy"
+    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor start:notification",
+    "start:mobile": "npm start --workspace=Apps/mobile",
+    "android:mobile": "npm run android --workspace=Apps/mobile",
+    "ios:mobile": "npm run ios --workspace=Apps/mobile",
+    "web:mobile": "npm run web --workspace=Apps/mobile"
   },
   "keywords": [],
   "packageManager": "npm@10.8.2",

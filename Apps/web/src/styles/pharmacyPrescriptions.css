@@ -1,0 +1,140 @@
+/* Controls row */
+.filters-row {
+    display: flex;
+    gap: var(--gap-12);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-box.slim {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--neutral-200);
+    background: var(--white);
+    border-radius: var(--radius-8);
+    padding: 6px 10px;
+    min-width: 260px;
+}
+
+.search-box.slim .search-icon {
+    display: inline-flex;
+    margin-right: 6px;
+    color: var(--neutral-700);
+}
+
+.search-box.slim input {
+    border: none;
+    outline: none;
+    width: 220px;
+    font-family: var(--ff-poppins);
+    font-size: var(--fs-14);
+}
+
+/* Segmented control */
+.segmented {
+    display: inline-flex;
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-8);
+    font-family: var(--ff-poppins);
+}
+
+.segmented.small .segmented-btn {
+    padding: 6px 10px;
+    font-family: var(--ff-poppins);
+    font-size: var(--fs-12);
+}
+
+.segmented-btn {
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-8);
+    font-weight: var(--fw-500);
+    font-family: var(--ff-red-hat-display);
+    color: var(--neutral-800);
+}
+
+.segmented-btn.is-active {
+    background: var(--secondary-10);
+    box-shadow: var(--shadow-light);
+    color: var(--primary-color);
+}
+
+/* Drawer viewer */
+.rx-viewer-overlay {
+    position: fixed;
+    inset: 0;
+    /* top:0; right:0; bottom:0; left:0 */
+    z-index: 1000;
+    /* above layouts & sidebars */
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.05);
+    /* your glass tint */
+    backdrop-filter: blur(2px);
+    /* softer blur */
+    -webkit-backdrop-filter: blur(2px);
+    /* Safari */
+}
+
+.rx-viewer-panel {
+    width: min(100%, 1080px);
+    max-height: 90vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow:
+        0 10px 30px rgba(5, 15, 42, 0.08),
+        0 2px 8px rgba(5, 15, 42, 0.06);
+}
+
+.rx-viewer-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef0f3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1;
+}
+
+.rx-viewer-meta {
+    padding: 12px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 16px;
+    border-bottom: 1px solid #f1f3f6;
+}
+
+.rx-viewer-body {
+    padding: 20px;
+    background: #fafbfc;
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+/* Status color aligns with your existing pills */
+.status--verified {
+    background: var(--info-05);
+    color: var(--info-80);
+    border-color: var(--info-20);
+}
+
+.status--fulfilled {
+    background: var(--success-05);
+    color: var(--success-80);
+    border-color: var(--success-20);
+}
+
+.status--rejected {
+    background: var(--warning-05);
+    color: var(--warning-80);
+    border-color: var(--warning-20);
+}
