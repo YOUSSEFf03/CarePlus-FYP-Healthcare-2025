@@ -7,12 +7,17 @@
     "build:all": "turbo run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:web": "npm start --workspace=Apps/web",
+    "start:bot": "npm start --workspace=Apps/whatsapp-bot",
     "start:auth": "npm run start:dev --workspace=Apps/backend/apps/auth",
     "start:gateway": "npm run start:dev --workspace=Apps/backend/apps/gateway",
     "start:doctor": "npm run start:dev --workspace=Apps/backend/apps/doctor",
     "start:notification": "npm run start:dev --workspace=Apps/backend/apps/notification",
     "start:pharmacy": "npm run start:dev --workspace=Apps/backend/apps/pharmacy",
-    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor"
+    "start:backend": "npm-run-all --parallel start:auth start:gateway start:doctor",
+    "start:mobile": "npm start --workspace=Apps/mobile",
+    "android:mobile": "npm run android --workspace=Apps/mobile",
+    "ios:mobile": "npm run ios --workspace=Apps/mobile",
+    "web:mobile": "npm run web --workspace=Apps/mobile"
   },
   "keywords": [],
   "packageManager": "npm@10.8.2",
@@ -22,7 +27,8 @@
   "workspaces": [
     "Apps/web",
     "Apps/backend/apps/*",
-    "Apps/mobile"
+    "Apps/mobile",
+    "Apps/whatsapp-bot"
   ],
   "devDependencies": {
     "npm-run-all": "^4.1.5",
