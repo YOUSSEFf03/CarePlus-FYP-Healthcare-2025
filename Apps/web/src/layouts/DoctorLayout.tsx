@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button/Button";
 import Sidebar, { SidebarProvider, useSidebar } from "../components/Sidebar/Sidebar";
-import { sidebarConfig } from '../components/Sidebar/navigationConfig';
+import { sidebarConfig, getGeneralItems } from '../components/Sidebar/navigationConfig';
 import "./doctorLayout.css";
 
 const LayoutContent: React.FC = () => {
@@ -155,7 +155,7 @@ export default function DoctorLayout() {
         <SidebarProvider>
             <div className="doctor-layout">
                 <Sidebar onLogout={handleLogout} items={sidebarConfig.doctor}
-                    generalItems={sidebarConfig.general} />
+                    generalItems={getGeneralItems('doctor')} />
                 <LayoutContent />
             </div>
         </SidebarProvider>

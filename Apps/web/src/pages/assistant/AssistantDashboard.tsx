@@ -1,5 +1,4 @@
 import React from "react";
-<<<<<<< HEAD
 import { Link } from "react-router-dom";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
@@ -145,21 +144,6 @@ export default function AssistantDashboard() {
                     ))}
                 </ul>
             </div>
-=======
-import { Link } from 'react-router-dom';
-
-export default function AssistantDashboard() {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <h1 className="text-4xl font-bold mb-4">Assistant Dashboard</h1>
-            <p className="text-lg mb-8">Manage your doctors and appointments.</p>
-            <Link
-                to="/doctor/patients"
-                className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-                View Doctors
-            </Link>
->>>>>>> parent of 94b044c (Merge branch 'master' of https://dev.azure.com/FYP-Healthcare-2025/FYP%20Healthcare%202025/_git/FYP%20Healthcare%202025)
         </div>
     );
 }

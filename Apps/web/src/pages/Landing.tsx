@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState } from "react";
 import '../styles/landing.css';
 import { Link } from 'react-router-dom';
@@ -83,13 +82,8 @@ const Landing: React.FC = () => {
     };
 
     const [menuOpen, setMenuOpen] = useState(false);
-=======
-import React from "react";
->>>>>>> parent of 94b044c (Merge branch 'master' of https://dev.azure.com/FYP-Healthcare-2025/FYP%20Healthcare%202025/_git/FYP%20Healthcare%202025)
 
-export default function Landing() {
     return (
-<<<<<<< HEAD
         <div className="landing-container">
             <nav className={`navbar ${menuOpen ? 'expanded' : ''}`}>
                 <div className='navbar-wrapper'>
@@ -267,17 +261,8 @@ export default function Landing() {
                     <CustomText variant="text-body-md-r" as="p">CarePlus is designed to simplify healthcare management for everyone involved. From patients to doctors, pharmacies, and assistants, our platform provides a seamless experience that enhances communication, efficiency, and care quality.</CustomText>
                 </div>
             </section>
-=======
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <h1 className="text-4xl font-bold mb-4">Welcome to Our Healthcare App</h1>
-            <p className="text-lg mb-8">Your health, our priority.</p>
-            <a
-                href="/login"
-                className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-                Get Started
-            </a>
->>>>>>> parent of 94b044c (Merge branch 'master' of https://dev.azure.com/FYP-Healthcare-2025/FYP%20Healthcare%202025/_git/FYP%20Healthcare%202025)
         </div>
     );
-}
+};
+
+export default Landing;
