@@ -1,8 +1,11 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Image, ImageBackground } from 'react-native';
 import Button from '../../src/components/Button';
 import CustomText from '../../src/components/CustomText';
+import { useRouter } from 'expo-router';
 import { colors, fontFamily, fontSize, spacing, radius, shadow } from '../../src/styles/tokens';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface WelcomeProps {
     onLoginPress?: () => void;
@@ -11,73 +14,75 @@ interface WelcomeProps {
 }
 
 export default function Welcome({ navigation, onLoginPress, onCreateAccountPress }: WelcomeProps) {
+    const router = useRouter();
+
     const goLogin = () => {
         if (onLoginPress) return onLoginPress();
+        router.push('/(auth)/login');
         navigation?.navigate?.('Login');
     };
 
     const goCreate = () => {
         if (onCreateAccountPress) return onCreateAccountPress();
+        router.push('/(auth)/signup');
         navigation?.navigate?.('SignUp');
     };
 
     return (
-        <SafeAreaView style={styles.safe}>
-            <StatusBar barStyle="dark-content" />
+        <SafeAreaView style={styles.safe} edges={['bottom']}>
+            <ImageBackground
+                source={require('../../assets/images/welcome-bg.png')}
+                style={styles.bg}
+                imageStyle={styles.bgImage}
+            >
+                <StatusBar style="dark" translucent backgroundColor="transparent" />
+                <View style={styles.container}>
+                    <View style={styles.topBlock}>
+                        {/* Brand mark / illustration (swap with your asset when ready) */}
+                        <Image source={require('../../assets/logo_primary.png')} style={styles.logo} resizeMode="contain" />
 
-            {/* Background decorations */}
-            <View style={styles.bgDecor} pointerEvents="none">
-                <View style={[styles.blob, styles.blobTopLeft]} />
-                <View style={[styles.blob, styles.blobTopRight]} />
-                <View style={[styles.blob, styles.blobBottom]} />
-            </View>
-
-            <View style={styles.container}>
-                <View style={styles.topBlock}>
-                    {/* Brand mark / illustration (swap with your asset when ready) */}
-                    <Image source={require('../../assets/logo_primary.png')} style={styles.logo} resizeMode="contain" />
-
-                    {/* Hero card */}
-                    <View style={styles.heroCard}>
-                        <View style={styles.heroBadge}>
+                        {/* Hero card */}
+                        <View style={styles.heroCard}>
+                            {/* <View style={styles.heroBadge}>
                             <CustomText variant="text-body-sm-r" style={styles.heroBadgeText}>FYP • Healthcare</CustomText>
+                        </View> */}
+
+                            <View>
+                                <CustomText variant="text-heading-H1" style={styles.title}>Welcome</CustomText>
+                                <CustomText variant="text-body-lg-r" style={styles.subtitle}>
+                                    Book appointments, manage treatments, and fill prescriptions — all in one place.
+                                </CustomText>
+                                <Image source={require('../../assets/images/welcome_image.png')} style={styles.illustration} />
+                            </View>
+
+                            {/* CTA block — buttons stay where they are */}
+                            <View style={styles.ctaBlock}>
+                                <Button
+                                    text="Login to your account"
+                                    variant="primary"
+                                    fullWidth
+                                    onPress={goLogin}
+                                // accessibilityLabel="Login to your account"
+                                />
+
+                                <View style={{ height: spacing[12] }} />
+
+                                <Button
+                                    text="Create an account"
+                                    variant="tertiary"
+                                    fullWidth
+                                    onPress={goCreate}
+                                // accessibilityLabel="Create a new account"
+                                />
+
+                                <CustomText variant="text-body-md-r" style={styles.helperText}>
+                                    New here? Creating an account takes less than a minute.
+                                </CustomText>
+                            </View>
                         </View>
-
-                        <CustomText variant="text-heading-H1" style={styles.title}>Welcome</CustomText>
-                        <CustomText variant="text-body-lg-r" style={styles.subtitle}>
-                            Book appointments, manage treatments, and fill prescriptions — all in one place.
-                        </CustomText>
-
-                        {/* Cute placeholder illustration (optional) */}
-                        <Image source={require('../../assets/images/welcome_image.png')} style={styles.illustration} />
                     </View>
                 </View>
-
-                {/* CTA block — buttons stay where they are */}
-                <View style={styles.ctaBlock}>
-                    <Button
-                        text="Login to your account"
-                        variant="primary"
-                        fullWidth
-                        onPress={goLogin}
-                        // accessibilityLabel="Login to your account"
-                    />
-
-                    <View style={{ height: spacing[12] }} />
-
-                    <Button
-                        text="Create an account"
-                        variant="tertiary"
-                        fullWidth
-                        onPress={goCreate}
-                        // accessibilityLabel="Create a new account"
-                    />
-
-                    <CustomText variant="text-body-md-r" style={styles.helperText}>
-                        New here? Creating an account takes less than a minute.
-                    </CustomText>
-                </View>
-            </View>
+            </ImageBackground>
         </SafeAreaView>
     );
 }
@@ -85,59 +90,46 @@ export default function Welcome({ navigation, onLoginPress, onCreateAccountPress
 const styles = StyleSheet.create({
     safe: {
         flex: 1,
-        backgroundColor: colors.white,
+        // backgroundColor: colors.white,
+        backgroundColor: 'transparent',
     },
     container: {
         flex: 1,
-        padding: spacing[24], // 24px as requested
-        justifyContent: 'space-between',
+        paddingTop: spacing[24], // 24px as requested
+        // justifyContent: 'space-between',
     },
     /* ---------- Background blobs ---------- */
-    bgDecor: {
-        ...StyleSheet.absoluteFillObject,
+    bg: {
+        flex: 1,
     },
-    blob: {
-        position: 'absolute',
-        width: 240,
-        height: 240,
-        borderRadius: 240,
-        opacity: 0.4,
-        filter: undefined as any, // keep RN happy if used on web
-    },
-    blobTopLeft: {
-        backgroundColor: colors.secondary20,
-        top: -80,
-        left: -80,
-    },
-    blobTopRight: {
-        backgroundColor: colors.tertiary20,
-        top: -60,
-        right: -60,
-    },
-    blobBottom: {
-        backgroundColor: colors.secondary05,
-        bottom: -100,
-        left: -40,
-        width: 300,
-        height: 300,
+    bgImage: {
+        // keep aspect, cover entire screen
+        resizeMode: 'cover',
     },
 
     /* ---------- Content ---------- */
     topBlock: {
+        flex: 1,
         alignItems: 'center',
         marginTop: spacing[24],
+        alignSelf: 'stretch',
+        gap: spacing[90],
     },
     logo: {
-        width: 140,
+        marginTop: spacing[56],
+        width: 180,
         // height: 96,
-        marginBottom: spacing[24],
+        // marginBottom: spacing[24],
     },
     heroCard: {
         backgroundColor: colors.white,
-        borderRadius: radius.r24,
+        borderTopLeftRadius: radius.r50,
+        borderTopRightRadius: radius.r50,
         paddingVertical: spacing[24],
-        paddingHorizontal: spacing[20],
+        paddingHorizontal: spacing[24],
         alignSelf: 'stretch',
+        flex: 1,                        // <— fill to bottom
+        justifyContent: 'space-between',
         ...shadow(1),
     },
     heroBadge: {
@@ -171,7 +163,7 @@ const styles = StyleSheet.create({
     illustration: {
         width: '100%',
         height: 200,
-        marginTop: spacing[16],
+        marginTop: spacing[24],
         borderRadius: radius.r16,
         backgroundColor: colors.secondary05,
     },
@@ -179,6 +171,7 @@ const styles = StyleSheet.create({
     ctaBlock: {
         alignSelf: 'stretch',
         marginBottom: spacing[32],
+        marginTop: spacing[32],
     },
     helperText: {
         marginTop: spacing[12],

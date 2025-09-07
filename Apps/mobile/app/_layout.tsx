@@ -40,7 +40,14 @@ export default function RootLayout() {
 
     return (
         <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack
+                screenOptions={{
+                    headerShown: false,
+                    statusBarStyle: 'light',
+                    statusBarTranslucent: true,
+                    statusBarBackgroundColor: 'transparent',
+                }}
+            />
         </View>
     );
 }
