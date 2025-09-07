@@ -188,6 +188,42 @@ export class DoctorController {
       data.updates,
     );
   }
+  // ==================== ASSISTANT MANAGEMENT ====================
+
+  // Remove Assistant (Doctor only)
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'remove_assistant' })
+  async removeAssistant(
+    @Payload()
+    data: {
+      doctorUserId: string;
+      assistantId: string;
+      workplaceId: string;
+      reason?: string;
+    },
+  ) {
+    return this.doctorService.removeAssistant(
+      data.doctorUserId,
+      data.assistantId,
+      data.workplaceId,
+      data.reason,
+    );
+  }
+
+  // Cancel Invite (Doctor only)
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'cancel_invite' })
+  async cancelInvite(
+    @Payload()
+    data: {
+      doctorUserId: string;
+      inviteId: string;
+    },
+  ) {
+    return this.doctorService.cancelInvite(data.doctorUserId, data.inviteId);
+  }
 
   @UseGuards(MicroserviceAuthGuard, RoleGuard)
   @RequireRoles(UserRole.DOCTOR)

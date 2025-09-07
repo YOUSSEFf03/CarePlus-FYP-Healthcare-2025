@@ -1105,4 +1105,63 @@ export class DoctorService {
       order: { start_time: 'ASC' },
     });
   }
+
+  // ==================== ASSISTANT EXTRA METHODS ====================
+
+  async getDoctorPendingInvites(
+    doctorUserId: string,
+  ): Promise<AssistantInvite[]> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    return this.assistantInviteRepo.find({
+      where: { doctorId: doctor.id, status: InviteStatus.PENDING },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getAssistantWorkplaces(assistantUserId: string): Promise<any[]> {
+    const assignments = await this.doctorWorkplaceAssistantRepo.find({
+      where: { assistantId: assistantUserId, status: 'active' },
+    });
+
+    const workplaces = [];
+    for (const assignment of assignments) {
+      const workplace = await this.workplaceRepo.findOne({
+        where: { id: assignment.doctorWorkplaceId, is_active: true },
+      });
+      if (workplace) {
+        workplace.addresses = await this.addressRepo.find({
+          where: { doctor_workplace_id: workplace.id, is_active: true },
+        });
+        workplaces.push(workplace);
+      }
+    }
+    return workplaces;
+  }
+
+  async leaveWorkplace(
+    assistantUserId: string,
+    workplaceId: string,
+    reason?: string,
+  ): Promise<{ message: string }> {
+    const assignment = await this.doctorWorkplaceAssistantRepo.findOne({
+      where: {
+        assistantId: assistantUserId,
+        doctorWorkplaceId: workplaceId,
+        status: 'active',
+      },
+    });
+
+    if (!assignment) {
+      throw this.rpcError(
+        'Not part of this workplace or already inactive',
+        404,
+      );
+    }
+
+    assignment.status = 'removed';
+    assignment.removal_reason = reason || 'Left by assistant';
+    await this.doctorWorkplaceAssistantRepo.save(assignment);
+
+    return { message: 'Successfully left workplace' };
+  }
 }
