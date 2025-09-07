@@ -358,6 +358,4 @@ export class AssistantController {
       data.assistantId,
       data.workplaceId,
       data.reason,
-    );
-  }
-}
+',
