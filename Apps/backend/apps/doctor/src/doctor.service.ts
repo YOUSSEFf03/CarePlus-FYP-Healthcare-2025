@@ -1158,10 +1158,89 @@ export class DoctorService {
       );
     }
 
+    // Remove 'removal_reason' assignment
     assignment.status = 'removed';
-    assignment.removal_reason = reason || 'Left by assistant';
     await this.doctorWorkplaceAssistantRepo.save(assignment);
 
-    return { message: 'Successfully left workplace' };
+    return {
+      message: `Successfully left workplace${reason ? `: ${reason}` : ''}`,
+    };
+  }
+
+  async removeAssistantFromWorkplace(
+    doctorUserId: string,
+    assistantId: string,
+    workplaceId: string,
+    reason?: string,
+  ) {
+    // verify doctor owns workplace
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const workplace = await this.validateDoctorWorkplace(
+      doctor.id,
+      workplaceId,
+    );
+    if (!workplace)
+      throw this.rpcError('Workplace not found or unauthorized', 403);
+
+    const assignment = await this.doctorWorkplaceAssistantRepo.findOne({
+      where: { doctorWorkplaceId: workplaceId, assistantId, status: 'active' },
+    });
+
+    if (!assignment)
+      throw this.rpcError('Assistant not active in this workplace', 404);
+
+    assignment.status = 'removed';
+    await this.doctorWorkplaceAssistantRepo.save(assignment);
+
+    return {
+      message: 'Assistant removed successfully',
+      reason: reason || 'Removed by doctor',
+    };
+  }
+
+  async cancelAssistantInvite(doctorUserId: string, inviteId: string) {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const invite = await this.assistantInviteRepo.findOne({
+      where: {
+        id: inviteId,
+        doctorId: doctor.id,
+        status: InviteStatus.PENDING,
+      },
+    });
+
+    if (!invite)
+      throw this.rpcError('Invite not found or already handled', 404);
+
+    invite.status = InviteStatus.REJECTED;
+    await this.assistantInviteRepo.save(invite);
+
+    return { message: 'Invite cancelled successfully' };
+  }
+
+  async cancelInvite(
+    doctorUserId: string,
+    inviteId: string,
+  ): Promise<{ message: string }> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const invite = await this.assistantInviteRepo.findOne({
+      where: {
+        id: inviteId,
+        doctorId: doctor.id,
+        status: InviteStatus.PENDING,
+      },
+    });
+
+    if (!invite) {
+      throw new RpcException({
+        status: 404,
+        message: 'Invite not found or already responded',
+      });
+    }
+
+    invite.status = InviteStatus.REJECTED;
+
+    await this.assistantInviteRepo.save(invite);
+
+    return { message: 'Invite cancelled successfully' };
   }
 }
