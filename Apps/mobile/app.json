@@ -12,6 +12,11 @@
       "backgroundColor": "#ffffff",
       "resizeMode": "contain"
     },
+    "androidStatusBar": {
+      "translucent": true,
+      "backgroundColor": "transparent",
+      "barStyle": "light-content"
+    },
     "ios": {
       "splash": {
         "backgroundColor": "#ffffff"
