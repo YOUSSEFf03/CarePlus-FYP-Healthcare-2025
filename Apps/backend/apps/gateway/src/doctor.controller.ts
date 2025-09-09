@@ -381,7 +381,7 @@ export class DoctorController {
     }
 
     return this.handleRequest(
-      { cmd: 'get_pending_invites' },
+      { cmd: 'get_doctor_pending_invites' }, // ✅ match new service method
       { token: req.token, doctorUserId: req.user.id },
       'Failed to get pending invites',
     );

@@ -188,26 +188,20 @@ export class DoctorController {
       data.updates,
     );
   }
+  // ==================== ASSISTANT MANAGEMENT ====================
 
+  // Cancel Invite (Doctor only)
   @UseGuards(MicroserviceAuthGuard, RoleGuard)
   @RequireRoles(UserRole.DOCTOR)
-  @MessagePattern({ cmd: 'invite_assistant' })
-  async inviteAssistant(
+  @MessagePattern({ cmd: 'cancel_invite' })
+  async cancelInvite(
     @Payload()
     data: {
-      token: string;
-      assistantEmail: string;
-      workplaceId: string;
-      message?: string;
+      doctorUserId: string;
+      inviteId: string;
     },
-    @CurrentUser() user: any,
   ) {
-    return this.doctorService.inviteAssistant(
-      user.id,
-      data.assistantEmail,
-      data.workplaceId,
-      data.message,
-    );
+    return this.doctorService.cancelInvite(data.doctorUserId, data.inviteId);
   }
 
   // 7. Assistant Responds to Invite
@@ -230,33 +224,68 @@ export class DoctorController {
     );
   }
 
-  // 8. Get My Invites (Assistant)
-  @UseGuards(MicroserviceAuthGuard, RoleGuard)
-  @RequireRoles(UserRole.ASSISTANT)
-  @MessagePattern({ cmd: 'get_my_invites' })
-  async getMyInvites(
-    @Payload() data: { token: string },
-    @CurrentUser() user: any,
-  ) {
-    return this.doctorService.getAssistantInvites(user.id);
-  }
-
-  // 9. Get My Assistants (Doctor)
-  @UseGuards(MicroserviceAuthGuard, RoleGuard)
-  @RequireRoles(UserRole.DOCTOR)
-  @MessagePattern({ cmd: 'get_my_assistants' })
-  async getMyAssistants(
-    @Payload() data: { token: string },
-    @CurrentUser() user: any,
-  ) {
-    return this.doctorService.getDoctorAssistants(user.id);
-  }
-
   // ==================== ERROR HANDLER ====================
 
   @MessagePattern()
   handleUnknown(@Payload() data: any) {
     console.warn('Received unknown message pattern:', data);
     return { error: 'Unknown command' };
+  }
+
+  // ==================== ASSISTANT MANAGEMENT ====================
+
+  // Doctor removes an assistant from workplace
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'remove_assistant' })
+  async removeAssistant(
+    @Payload()
+    data: {
+      assistantId: string;
+      workplaceId: string;
+      reason?: string;
+    },
+    @CurrentUser() user: any,
+  ) {
+    // Doctor removes assistant (new service method you should add if needed)
+    return this.doctorService.removeAssistantFromWorkplace(
+      user.id,
+      data.assistantId,
+      data.workplaceId,
+      data.reason,
+    );
+  }
+
+  // Doctor invites assistant
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'invite_assistant' })
+  async inviteAssistant(
+    @Payload()
+    data: { assistantEmail: string; workplaceId: string; message?: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.inviteAssistant(
+      user.id,
+      data.assistantEmail,
+      data.workplaceId,
+      data.message,
+    );
+  }
+
+  // Assistant gets their invites
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.ASSISTANT)
+  @MessagePattern({ cmd: 'get_my_invites' })
+  async getMyInvites(@CurrentUser() user: any) {
+    return this.doctorService.getAssistantInvites(user.id);
+  }
+
+  // Doctor gets all assistants across workplaces
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_my_assistants' })
+  async getMyAssistants(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorAssistants(user.id);
   }
 }

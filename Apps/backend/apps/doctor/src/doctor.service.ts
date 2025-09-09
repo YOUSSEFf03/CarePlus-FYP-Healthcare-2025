@@ -1105,4 +1105,142 @@ export class DoctorService {
       order: { start_time: 'ASC' },
     });
   }
+
+  // ==================== ASSISTANT EXTRA METHODS ====================
+
+  async getDoctorPendingInvites(
+    doctorUserId: string,
+  ): Promise<AssistantInvite[]> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    return this.assistantInviteRepo.find({
+      where: { doctorId: doctor.id, status: InviteStatus.PENDING },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async getAssistantWorkplaces(assistantUserId: string): Promise<any[]> {
+    const assignments = await this.doctorWorkplaceAssistantRepo.find({
+      where: { assistantId: assistantUserId, status: 'active' },
+    });
+
+    const workplaces = [];
+    for (const assignment of assignments) {
+      const workplace = await this.workplaceRepo.findOne({
+        where: { id: assignment.doctorWorkplaceId, is_active: true },
+      });
+      if (workplace) {
+        workplace.addresses = await this.addressRepo.find({
+          where: { doctor_workplace_id: workplace.id, is_active: true },
+        });
+        workplaces.push(workplace);
+      }
+    }
+    return workplaces;
+  }
+
+  async leaveWorkplace(
+    assistantUserId: string,
+    workplaceId: string,
+    reason?: string,
+  ): Promise<{ message: string }> {
+    const assignment = await this.doctorWorkplaceAssistantRepo.findOne({
+      where: {
+        assistantId: assistantUserId,
+        doctorWorkplaceId: workplaceId,
+        status: 'active',
+      },
+    });
+
+    if (!assignment) {
+      throw this.rpcError(
+        'Not part of this workplace or already inactive',
+        404,
+      );
+    }
+
+    // Remove 'removal_reason' assignment
+    assignment.status = 'removed';
+    await this.doctorWorkplaceAssistantRepo.save(assignment);
+
+    return {
+      message: `Successfully left workplace${reason ? `: ${reason}` : ''}`,
+    };
+  }
+
+  async removeAssistantFromWorkplace(
+    doctorUserId: string,
+    assistantId: string,
+    workplaceId: string,
+    reason?: string,
+  ) {
+    // verify doctor owns workplace
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const workplace = await this.validateDoctorWorkplace(
+      doctor.id,
+      workplaceId,
+    );
+    if (!workplace)
+      throw this.rpcError('Workplace not found or unauthorized', 403);
+
+    const assignment = await this.doctorWorkplaceAssistantRepo.findOne({
+      where: { doctorWorkplaceId: workplaceId, assistantId, status: 'active' },
+    });
+
+    if (!assignment)
+      throw this.rpcError('Assistant not active in this workplace', 404);
+
+    assignment.status = 'removed';
+    await this.doctorWorkplaceAssistantRepo.save(assignment);
+
+    return {
+      message: 'Assistant removed successfully',
+      reason: reason || 'Removed by doctor',
+    };
+  }
+
+  async cancelAssistantInvite(doctorUserId: string, inviteId: string) {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const invite = await this.assistantInviteRepo.findOne({
+      where: {
+        id: inviteId,
+        doctorId: doctor.id,
+        status: InviteStatus.PENDING,
+      },
+    });
+
+    if (!invite)
+      throw this.rpcError('Invite not found or already handled', 404);
+
+    invite.status = InviteStatus.REJECTED;
+    await this.assistantInviteRepo.save(invite);
+
+    return { message: 'Invite cancelled successfully' };
+  }
+
+  async cancelInvite(
+    doctorUserId: string,
+    inviteId: string,
+  ): Promise<{ message: string }> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+    const invite = await this.assistantInviteRepo.findOne({
+      where: {
+        id: inviteId,
+        doctorId: doctor.id,
+        status: InviteStatus.PENDING,
+      },
+    });
+
+    if (!invite) {
+      throw new RpcException({
+        status: 404,
+        message: 'Invite not found or already responded',
+      });
+    }
+
+    invite.status = InviteStatus.REJECTED;
+
+    await this.assistantInviteRepo.save(invite);
+
+    return { message: 'Invite cancelled successfully' };
+  }
 }
