@@ -185,7 +185,7 @@ export const spacing = {
     150: 150,
 };
 
-// Cross-platform shadows (approximate your CSS shadows)
+// Cross-platform shadows
 export const shadow = (level: 0 | 1 | 2 = 0) => {
     if (level === 0) {
         return Platform.select({

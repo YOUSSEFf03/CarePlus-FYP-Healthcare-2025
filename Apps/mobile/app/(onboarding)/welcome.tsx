@@ -130,7 +130,6 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         flex: 1,                        // <— fill to bottom
         justifyContent: 'space-between',
-        ...shadow(1),
     },
     heroBadge: {
         alignSelf: 'flex-start',
