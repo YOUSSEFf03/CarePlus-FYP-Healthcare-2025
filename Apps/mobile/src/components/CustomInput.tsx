@@ -54,13 +54,13 @@ export default function CustomInput({
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = !isTextarea && type === 'password';
 
-    const wrapperStyle = useMemo(
+    const wrapperStyle = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.inputWrap,
-            isTextarea && { alignItems: 'flex-start', minHeight: 110, paddingVertical: spacing[12] },
-            variant === 'error' && { borderColor: colors.error },
-            isDisabled && { backgroundColor: colors.neutral200 },
-            focused && variant === 'normal' && { borderColor: colors.primary },
+            isTextarea ? { alignItems: 'flex-start', minHeight: 100, paddingVertical: spacing[12] } : undefined,
+            variant === 'error' ? { borderColor: colors.error } : undefined,
+            isDisabled ? { backgroundColor: colors.neutral200 } : undefined,
+            (focused && variant === 'normal') ? { borderColor: colors.primary } : undefined,
             containerStyle,
         ],
         [isTextarea, variant, isDisabled, focused, containerStyle]

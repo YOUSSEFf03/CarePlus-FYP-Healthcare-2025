@@ -2,19 +2,47 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, Pressable, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Button from '@/components/Button';
 import CustomText from '@/components/CustomText';
 import CustomInput from '@/components/CustomInput';
 import { colors, fontFamily, fontSize, radius, shadow, spacing } from '@/styles/tokens';
 import { Ionicons } from '@expo/vector-icons';
+import type { RootStackParamList, AuthStackParamList } from '../../App';
+
+type RootNav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
-    const router = useRouter();
+    const navigation = useNavigation<RootNav>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [remember, setRemember] = useState(false);
+
+    const goBack = () => {
+        if (navigation.canGoBack()) navigation.goBack();
+        else navigation.navigate('OnboardingStack'); // fallback
+    };
+
+    const goForgot = () => {
+        // Needs AuthStackParamList to contain `ForgotPassword`
+        navigation.navigate('AuthStack', { screen: 'ForgotPassword' } as any);
+    };
+
+    const goPhoneLogin = () => {
+        // Needs AuthStackParamList to contain `LoginPhone`
+        navigation.navigate('AuthStack', { screen: 'LoginPhone' } as any);
+    };
+
+    const onLogin = () => {
+        // Go to the main app tabs after login
+        // If you have a Home tab: { screen: 'Home' }
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Tabs' as const /*, params: { screen: 'Home' } */ }],
+        });
+    };
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -30,7 +58,7 @@ export default function LoginScreen() {
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Go back"
-                        onPress={() => router.back()}
+                        onPress={goBack}
                         style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
                     >
                         {/* <CustomText variant="text-heading-H4" style={{ textAlign: 'center' }}>{'\u2039'}</CustomText> */}
@@ -69,7 +97,7 @@ export default function LoginScreen() {
                                 <CustomText variant="text-body-sm-r" style={styles.rememberText}>Remember me</CustomText>
                             </Pressable>
 
-                            <Pressable onPress={() => router.push('/(auth)/forgot-password')}>
+                            <Pressable onPress={goForgot}>
                                 <CustomText variant="text-body-sm-m" style={styles.link}>Forgot Password?</CustomText>
                             </Pressable>
                         </View>
@@ -77,7 +105,7 @@ export default function LoginScreen() {
 
                     {/* Login CTA */}
                     <View style={{ height: spacing[8] }} />
-                    <Button text="Login" variant="primary" fullWidth onPress={() => router.push('/(app)/home')} />
+                    <Button text="Login" variant="primary" fullWidth onPress={onLogin} />
 
                     {/* Divider */}
                     <View style={styles.dividerRow}>
@@ -94,7 +122,7 @@ export default function LoginScreen() {
                         iconLeft={
                             <Ionicons name="call-outline" size={24} color={colors.primary} />
                         }
-                        onPress={() => router.push('/(auth)/login-phone')}
+                        onPress={goPhoneLogin}
                     />
                 </View>
             </ImageBackground>

@@ -55,7 +55,6 @@
     "typeorm": "^0.3.26"
   },
   "overrides": {
-    "@types/react": "19.1.12",
-    "@types/react-dom": "19.1.5"
+    "@types/react": "19.0.10"
   }
 }
