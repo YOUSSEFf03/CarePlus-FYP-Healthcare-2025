@@ -7,17 +7,23 @@ import 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { SignupDraftProvider } from './src/context/SignupDraftContext';
+import { UserProvider } from "./src/store/UserContext";
 
 SplashScreen.preventAutoHideAsync();
 
-// ====== import your existing screens from the expo-router folders ======
 import Login from './app/(auth)/login';
-// import Signup from './app/(auth)/signup';
+import Signup from './app/(auth)/signup';
+import SignUpDetailsScreen from 'app/(auth)/signUpDetailsScreen';
+import SignUpReviewScreen from 'app/(auth)/signUpReview';
 
 import Welcome from './app/(onboarding)/welcome';
 import Onboarding from './app/(onboarding)/onboarding';
 
-// import Home from '../app/(tabs)/index';
+import Home from './app/(tabs)/home';
+import TriageScreen1 from 'app/(tabs)/triageScreen';
 // If you have more tab screens later, import them too, e.g.
 // import Appointments from '../app/(tabs)/appointments';
 // import Settings from '../app/(tabs)/settings';
@@ -26,13 +32,30 @@ import Onboarding from './app/(onboarding)/onboarding';
 export type RootStackParamList = {
     OnboardingStack: undefined;
     AuthStack: NavigatorScreenParams<AuthStackParamList>;
-    Tabs: undefined;
+    Tabs: NavigatorScreenParams<TabsParamList>;
     // ModalExample?: { id: string }; // add if you have modals
+};
+
+export type SignupDraft = {
+    fullName: string;
+    phone: string;
+    email: string;
+    dob?: string;
+    gender: 'male' | 'female';
+    history?: string;
 };
 
 export type AuthStackParamList = {
     Login: undefined;
-    // Signup: undefined;
+    Signup: undefined;
+    SignUpDetails:
+    | {
+        fullName?: string;
+        phone?: string;
+        email?: string;
+    }
+    | undefined;
+    SignUpReview: { draft: SignupDraft };   // <— new
 };
 
 export type OnboardingStackParamList = {
@@ -41,7 +64,8 @@ export type OnboardingStackParamList = {
 };
 
 export type TabsParamList = {
-    // Home: undefined;
+    Home: undefined;
+    Triage: undefined;
     // Appointments: undefined;
     // Settings: undefined;
 };
@@ -62,6 +86,9 @@ function AuthNavigator() {
     return (
         <AuthStack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
             <AuthStack.Screen name="Login" component={Login} />
+            <AuthStack.Screen name="Signup" component={Signup} />
+            <AuthStack.Screen name="SignUpDetails" component={SignUpDetailsScreen} />
+            <AuthStack.Screen name="SignUpReview" component={SignUpReviewScreen} />
         </AuthStack.Navigator>
     );
 }
@@ -75,13 +102,14 @@ function OnboardingNavigator() {
     );
 }
 
-// function TabsNavigator() {
-//     return (
-//         <Tab.Navigator id={undefined} screenOptions={{ headerShown: false }}>
-//             {/* tabs */}
-//         </Tab.Navigator>
-//     );
-// }
+function TabsNavigator() {
+    return (
+        <Tab.Navigator id={undefined} screenOptions={{ headerShown: false }}>
+            <Tab.Screen name="Home" component={Home} />
+            <Tab.Screen name="Triage" component={TriageScreen1} />
+        </Tab.Navigator>
+    );
+}
 
 export default function App() {
     const [fontsLoaded] = useFonts({
@@ -104,20 +132,28 @@ export default function App() {
     if (!fontsLoaded) return null;
 
     return (
-        <SafeAreaProvider>
-            <NavigationContainer>
-                <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                    <RootStack.Navigator
-                        id={undefined}
-                        initialRouteName="AuthStack"
-                        screenOptions={{ headerShown: false }}
-                    >
-                        <RootStack.Screen name="OnboardingStack" component={OnboardingNavigator} />
-                        <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-                        {/* <RootStack.Screen name="Tabs" component={TabsNavigator} /> */}
-                    </RootStack.Navigator>
-                </View>
-            </NavigationContainer>
-        </SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <BottomSheetModalProvider>
+                <SafeAreaProvider>
+                    <UserProvider>
+                        <SignupDraftProvider>
+                            <NavigationContainer>
+                                <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                                    <RootStack.Navigator
+                                        id={undefined}
+                                        initialRouteName="AuthStack"
+                                        screenOptions={{ headerShown: false }}
+                                    >
+                                        <RootStack.Screen name="OnboardingStack" component={OnboardingNavigator} />
+                                        <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+                                        <RootStack.Screen name="Tabs" component={TabsNavigator} />
+                                    </RootStack.Navigator>
+                                </View>
+                            </NavigationContainer>
+                        </SignupDraftProvider>
+                    </UserProvider>
+                </SafeAreaProvider>
+            </BottomSheetModalProvider>
+        </GestureHandlerRootView>
     );
 }

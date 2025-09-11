@@ -26,7 +26,7 @@ export default function Welcome({ onLoginPress, onCreateAccountPress }: WelcomeP
 
     const goCreate = () => {
         if (onCreateAccountPress) return onCreateAccountPress();
-        // navigation.navigate('AuthStack', { screen: 'Signup' });
+        navigation.navigate('AuthStack', { screen: 'Signup' });
     };
 
     return (

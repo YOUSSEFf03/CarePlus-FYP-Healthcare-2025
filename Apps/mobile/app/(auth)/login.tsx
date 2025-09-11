@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Pressable, ImageBackground } from 'react-native';
+import { View, StyleSheet, TextInput, Pressable, ImageBackground, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import CustomInput from '@/components/CustomInput';
 import { colors, fontFamily, fontSize, radius, shadow, spacing } from '@/styles/tokens';
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList, AuthStackParamList } from '../../App';
+import { useUser } from '@/store/UserContext';
 
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -19,6 +20,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [remember, setRemember] = useState(false);
+    const { setUser } = useUser();
 
     const goBack = () => {
         if (navigation.canGoBack()) navigation.goBack();
@@ -36,18 +38,33 @@ export default function LoginScreen() {
     };
 
     const onLogin = () => {
-        // Go to the main app tabs after login
-        // If you have a Home tab: { screen: 'Home' }
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Tabs' as const /*, params: { screen: 'Home' } */ }],
-        });
+        if (email === "patient@demo.com" && password === "patient123") {
+            // set demo patient profile
+            setUser({
+                id: "demo-patient-001",
+                name: "Demo Patient",
+                age: 29,
+                sex: "female",
+                phone: "+96170000000"
+            });
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Tabs', params: { screen: 'Home' } }],
+            });
+        } else {
+            Alert.alert("Login failed", "Invalid email or password");
+        }
+    };
+
+    const goSignUp = () => {
+        navigation.navigate('AuthStack', { screen: 'Signup' } as any);
     };
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
             <ImageBackground
-                source={require('../../assets/images/Login.png')}
+                source={require('../../assets/images/login-bg.png')}
                 style={styles.bg}
                 imageStyle={styles.bgImage}
             >
@@ -124,6 +141,18 @@ export default function LoginScreen() {
                         }
                         onPress={goPhoneLogin}
                     />
+
+                    {/* NEW: Sign up prompt */}
+                    <View style={styles.signupRow}>
+                        <CustomText variant="text-body-sm-r" style={styles.signupText}>
+                            Don’t have an account?
+                        </CustomText>
+                        <Pressable onPress={goSignUp} accessibilityRole="button" accessibilityLabel="Create an account">
+                            <CustomText variant="text-body-sm-m" style={styles.signupLink}>
+                                Create one
+                            </CustomText>
+                        </Pressable>
+                    </View>
                 </View>
             </ImageBackground>
         </SafeAreaView>
@@ -159,9 +188,9 @@ const styles = StyleSheet.create({
         borderRadius: radius.r100,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.neutral200,
-        borderWidth: 1,
-        borderColor: colors.neutral200,
+        backgroundColor: colors.neutral201,
+        // borderWidth: 1,
+        // borderColor: colors.neutral200,
     },
     container: {
         flex: 1,
@@ -253,5 +282,19 @@ const styles = StyleSheet.create({
     },
     dividerText: {
         color: colors.neutral700,
+    },
+    signupRow: {
+        marginTop: spacing[16],
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: spacing[6],
+    },
+    signupText: {
+        color: colors.neutral800,
+    },
+    signupLink: {
+        color: colors.secondary70,
+        textDecorationLine: 'underline',
     },
 });

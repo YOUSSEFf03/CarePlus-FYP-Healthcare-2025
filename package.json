@@ -17,7 +17,8 @@
     "start:mobile": "npm start --workspace=Apps/mobile",
     "android:mobile": "npm run android --workspace=Apps/mobile",
     "ios:mobile": "npm run ios --workspace=Apps/mobile",
-    "web:mobile": "npm run web --workspace=Apps/mobile"
+    "web:mobile": "npm run web --workspace=Apps/mobile",
+    "start:ai-triage": "npm start --workspace=Apps/ai-triage"
   },
   "keywords": [],
   "packageManager": "npm@10.8.2",
@@ -28,7 +29,8 @@
     "Apps/web",
     "Apps/backend/apps/*",
     "Apps/mobile",
-    "Apps/whatsapp-bot"
+    "Apps/whatsapp-bot",
+    "Apps/ai-triage"
   ],
   "devDependencies": {
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",

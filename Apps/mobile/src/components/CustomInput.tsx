@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
         borderColor: colors.neutral400,
         borderRadius: radius.r8,
         paddingHorizontal: spacing[12],
-        paddingVertical: spacing[6],
+        paddingVertical: spacing[2],
         backgroundColor: colors.white,
         flexDirection: 'row',
         alignItems: 'center',
@@ -153,6 +153,6 @@ const styles = StyleSheet.create({
     iconLeft: { marginRight: spacing[8] },
     iconRight: { marginLeft: spacing[8] },
     messageRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
-    messageIcon: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+    messageIcon: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center', marginTop: -2 },
     messageText: { color: colors.neutral500 },
 });

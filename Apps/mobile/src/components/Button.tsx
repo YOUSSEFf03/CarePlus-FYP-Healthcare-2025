@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
+        shadowColor: 'transparent',
     },
     md: {
         paddingVertical: spacing[8],
