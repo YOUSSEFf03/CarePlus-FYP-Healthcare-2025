@@ -8,6 +8,7 @@ import { DoctorService } from './doctor.service';
 import { Doctor } from './doctor.entity';
 import { Appointment } from './appointment.entity';
 import { DoctorReview } from './doctor-review.entity';
+import { DoctorAnalytics } from './doctor-analytics.entity';
 
 // Import auth guards
 import { MicroserviceAuthGuard } from './guards/microservice-auth.guard';
@@ -17,7 +18,6 @@ import { DoctorOwnershipGuard } from './guards/doctor-ownership.guard';
 import { AssistantInvite } from './assistant-invite.entity';
 import { DoctorWorkplace } from './doctor-workplace.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
-
 import { Address } from './address.entity';
 import { AppointmentSlot } from './appointment-slot.entity';
 
@@ -33,7 +33,17 @@ import { AppointmentSlot } from './appointment-slot.entity';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
       database: process.env.DB_NAME || 'doctor_service',
-      entities: [Doctor, Appointment, DoctorReview],
+      entities: [
+        Doctor,
+        Appointment,
+        DoctorReview,
+        DoctorAnalytics,
+        DoctorWorkplace,
+        DoctorWorkplaceAssistant,
+        Address,
+        AppointmentSlot,
+        AssistantInvite,
+      ],
       synchronize: true, // Set to false in production
       logging: process.env.NODE_ENV === 'development',
     }),
@@ -47,6 +57,7 @@ import { AppointmentSlot } from './appointment-slot.entity';
       Address,
       AppointmentSlot,
       AssistantInvite,
+      DoctorAnalytics,
     ]),
 
     // RabbitMQ clients
@@ -81,9 +92,6 @@ import { AppointmentSlot } from './appointment-slot.entity';
     MicroserviceAuthGuard,
     RoleGuard,
     DoctorOwnershipGuard,
-    AssistantInvite,
-    DoctorWorkplaceAssistant,
-    DoctorWorkplace,
   ],
 })
 export class DoctorModule {}

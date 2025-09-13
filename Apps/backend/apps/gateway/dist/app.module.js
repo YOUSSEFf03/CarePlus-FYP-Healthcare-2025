@@ -14,7 +14,6 @@ const auth_controller_1 = require("./auth.controller");
 const doctor_controller_1 = require("./doctor.controller");
 const auth_middleware_1 = require("./middleware/auth.middleware");
 const notification_controller_1 = require("./notification.controller");
-const common_2 = require("@nestjs/common");
 const assistant_controller_1 = require("./assistant.controller");
 const AuthServiceClient = microservices_1.ClientsModule.register([
     {
@@ -59,7 +58,7 @@ let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(auth_middleware_1.AuthMiddleware)
-            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', 'doctors', { path: 'doctors/:id/reviews', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/available-slots', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/stats', method: common_2.RequestMethod.GET }, { path: 'doctors/:id', method: common_2.RequestMethod.GET })
+            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant')
             .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController, assistant_controller_1.AssistantController);
     }
 };

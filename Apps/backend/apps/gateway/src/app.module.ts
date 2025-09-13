@@ -76,7 +76,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(AuthMiddleware)
       .exclude(
-        // Exclude public routes from auth middleware
+        // Only exclude auth routes that should be public
         'auth/login',
         'auth/register',
         'auth/refresh-token',
@@ -85,11 +85,6 @@ export class AppModule implements NestModule {
         'auth/forgot-password',
         'auth/reset-password',
         'auth/register/assistant',
-        'doctors',
-        { path: 'doctors/:id/reviews', method: RequestMethod.GET },
-        { path: 'doctors/:id/available-slots', method: RequestMethod.GET },
-        { path: 'doctors/:id/stats', method: RequestMethod.GET },
-        { path: 'doctors/:id', method: RequestMethod.GET },
       )
       .forRoutes(
         AuthController,
