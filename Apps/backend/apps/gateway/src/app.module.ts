@@ -85,6 +85,13 @@ export class AppModule implements NestModule {
         'auth/forgot-password',
         'auth/reset-password',
         'auth/register/assistant',
+        // Public doctor routes
+        { path: 'doctors', method: RequestMethod.GET },
+        { path: 'doctors/stats', method: RequestMethod.GET },
+        { path: 'doctors/:id', method: RequestMethod.GET },
+        { path: 'doctors/:id/reviews', method: RequestMethod.GET },
+        { path: 'doctors/:id/available-slots', method: RequestMethod.GET },
+        { path: 'doctors/:id/stats', method: RequestMethod.GET },
       )
       .forRoutes(
         AuthController,

@@ -246,6 +246,35 @@ export class DoctorController {
     );
   }
 
+  @Get('appointments')
+  async getAppointments(
+    @Req() req: AuthenticatedRequest,
+    @Query('status') status?: string,
+    @Query('date_from') date_from?: string,
+    @Query('date_to') date_to?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    // Check if user is authenticated and has doctor role
+    if (!req.user || req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_appointments_by_doctor' },
+      { token: req.token, status, date_from, date_to, page, limit },
+      'Failed to get doctor appointments',
+    );
+  }
+
   @Get('appointments/me')
   async getMyAppointments(
     @Req() req: AuthenticatedRequest,

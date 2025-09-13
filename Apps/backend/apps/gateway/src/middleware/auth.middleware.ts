@@ -24,39 +24,6 @@ export class AuthMiddleware implements NestMiddleware {
   async use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     console.log('=== AUTH MIDDLEWARE CALLED ===', req.path, req.method);
 
-    // Check if this is a public route that doesn't need authentication
-    const publicRoutes = [
-      { path: '/doctors', method: 'GET' }, // GET /doctors (list all doctors)
-      { path: '/doctors/stats', method: 'GET' }, // GET /doctors/stats (general stats)
-    ];
-
-    const isPublicRoute = publicRoutes.some(
-      (route) => req.path === route.path && req.method === route.method,
-    );
-
-    // Also check for parameterized public routes
-    const publicRoutePatterns = [
-      { pattern: /^\/doctors\/[^\/]+\/reviews$/, method: 'GET' },
-      { pattern: /^\/doctors\/[^\/]+\/available-slots$/, method: 'GET' },
-      { pattern: /^\/doctors\/[^\/]+\/stats$/, method: 'GET' },
-      // Only match UUID-like patterns for doctor IDs (not words like 'test-middleware' or 'workplaces')
-      {
-        pattern:
-          /^\/doctors\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-        method: 'GET',
-      },
-    ];
-
-    const isPublicPattern = publicRoutePatterns.some(
-      (route) => route.pattern.test(req.path) && req.method === route.method,
-    );
-
-    if (isPublicRoute || isPublicPattern) {
-      console.log('Public route detected, skipping authentication:', req.path);
-      next();
-      return;
-    }
-
     try {
       console.log('Auth middleware started for:', req.path);
       const authHeader = req.headers.authorization;
