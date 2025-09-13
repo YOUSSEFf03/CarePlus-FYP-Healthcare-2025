@@ -2,30 +2,31 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, ImageBackground } from 'react-native';
 import Button from '../../src/components/Button';
 import CustomText from '../../src/components/CustomText';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, fontFamily, fontSize, spacing, radius, shadow } from '../../src/styles/tokens';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { RootStackParamList } from '../../App';
 
 interface WelcomeProps {
     onLoginPress?: () => void;
     onCreateAccountPress?: () => void;
-    navigation?: { navigate: (route: string) => void };
 }
 
-export default function Welcome({ navigation, onLoginPress, onCreateAccountPress }: WelcomeProps) {
-    const router = useRouter();
+type RootNav = NativeStackNavigationProp<RootStackParamList>;
+
+export default function Welcome({ onLoginPress, onCreateAccountPress }: WelcomeProps) {
+    const navigation = useNavigation<RootNav>();
 
     const goLogin = () => {
         if (onLoginPress) return onLoginPress();
-        router.push('/(auth)/login');
-        navigation?.navigate?.('Login');
+        navigation.navigate('AuthStack', { screen: 'Login' });
     };
 
     const goCreate = () => {
         if (onCreateAccountPress) return onCreateAccountPress();
-        router.push('/(auth)/signup');
-        navigation?.navigate?.('SignUp');
+        navigation.navigate('AuthStack', { screen: 'Signup' });
     };
 
     return (
@@ -35,7 +36,7 @@ export default function Welcome({ navigation, onLoginPress, onCreateAccountPress
                 style={styles.bg}
                 imageStyle={styles.bgImage}
             >
-                <StatusBar style="dark" translucent backgroundColor="transparent" />
+                <StatusBar style="light" translucent backgroundColor="transparent" />
                 <View style={styles.container}>
                     <View style={styles.topBlock}>
                         {/* Brand mark / illustration (swap with your asset when ready) */}
@@ -130,7 +131,6 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         flex: 1,                        // <— fill to bottom
         justifyContent: 'space-between',
-        ...shadow(1),
     },
     heroBadge: {
         alignSelf: 'flex-start',

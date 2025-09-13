@@ -6,6 +6,7 @@ Apps/**/node_modules
 
 # Build outputs
 Apps/backend/apps/**/dist
+Apps/ai-triage/dist
 
 # Logs
 npm-debug.log*

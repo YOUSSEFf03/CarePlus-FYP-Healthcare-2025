@@ -10,11 +10,13 @@ import {
     StatusBar,
     Animated,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Dimensions } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { OnboardingStackParamList } from '../../App';
 
 type Slide = { key: string; image: any };
 const SLIDES: Slide[] = [
@@ -27,7 +29,8 @@ const SLIDE_DURATION = 4000;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 export default function Onboarding() {
-    const router = useRouter();
+    const navigation =
+        useNavigation<NativeStackNavigationProp<OnboardingStackParamList, 'Onboarding'>>();
     const listRef = useRef<FlatList<Slide>>(null);
     const { width } = useWindowDimensions();     // still handy for progress bar width
     const insets = useSafeAreaInsets();
@@ -65,14 +68,15 @@ export default function Onboarding() {
         if (index < SLIDES.length - 1) {
             listRef.current?.scrollToIndex({ index: index + 1, animated: true });
         } else {
-            router.replace('/(onboarding)/welcome');
+            // 👇 navigate within the same Onboarding stack
+            navigation.replace('Welcome');
         }
-    }, [index, router, stopProgress]);
+    }, [index, navigation, stopProgress]);
 
     const skip = useCallback(() => {
         stopProgress();
-        router.replace('/(onboarding)/welcome');
-    }, [router, stopProgress]);
+        navigation.replace('Welcome');
+    }, [navigation, stopProgress]);
 
     useEffect(() => {
         startProgress();
