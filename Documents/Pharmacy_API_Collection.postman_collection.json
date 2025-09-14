@@ -1,0 +1,296 @@
+{
+  "info": {
+    "name": "Pharmacy API Collection",
+    "description": "Complete collection of Pharmacy microservice APIs for FYP Healthcare 2025",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public APIs",
+      "item": [
+        {
+          "name": "Get Top Pharmacies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacy?page=1&limit=10&sortBy=rating&sortOrder=DESC",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"},
+                {"key": "sortBy", "value": "rating"},
+                {"key": "sortOrder", "value": "DESC"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Pharmacies and Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/search?query=aspirin&category=medicine&minPrice=10&maxPrice=50",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "search"],
+              "query": [
+                {"key": "query", "value": "aspirin"},
+                {"key": "category", "value": "medicine"},
+                {"key": "minPrice", "value": "10"},
+                {"key": "maxPrice", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Non-Prescription Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/products?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "products"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/categories",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Pharmacy by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/1",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Protected APIs",
+      "item": [
+        {
+          "name": "Get Current Orders Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/orders/current-count",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "orders", "current-count"]
+            }
+          }
+        },
+        {
+          "name": "Get Patient Prescriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/prescriptions?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "prescriptions"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search by Prescription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prescriptionId\": 1,\n  \"page\": 1,\n  \"limit\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pharmacy/search/prescription",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "search", "prescription"]
+            }
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pharmacy_branch_id\": 1,\n  \"medicine_id\": 1,\n  \"quantity_reserved\": 2,\n  \"prescription_id\": 1,\n  \"pickup_deadline\": \"2024-01-15\",\n  \"notes\": \"Please prepare for pickup\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pharmacy/reservations",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pharmacy_branch_id\": 1,\n  \"items\": [\n    {\n      \"item_id\": 1,\n      \"quantity\": 2,\n      \"instructions\": \"Handle with care\"\n    },\n    {\n      \"item_id\": 2,\n      \"quantity\": 1\n    }\n  ],\n  \"delivery_method\": \"delivery\",\n  \"address_id\": 1,\n  \"payment_method\": \"credit_card\",\n  \"notes\": \"Please deliver in the morning\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pharmacy/orders",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Get My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/orders/my-orders?status=pending&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "orders", "my-orders"],
+              "query": [
+                {"key": "status", "value": "pending"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pharmacy/orders/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "orders", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Reservation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pharmacy/reservations/1/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["pharmacy", "reservations", "1", "cancel"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
