@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SignupDraftProvider } from './src/context/SignupDraftContext';
 import { UserProvider } from "./src/store/UserContext";
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,7 +66,7 @@ export type OnboardingStackParamList = {
 
 export type TabsParamList = {
     Home: undefined;
-    Triage: undefined;
+    VitaAI: undefined;
     // Appointments: undefined;
     // Settings: undefined;
 };
@@ -104,9 +105,41 @@ function OnboardingNavigator() {
 
 function TabsNavigator() {
     return (
-        <Tab.Navigator id={undefined} screenOptions={{ headerShown: false }}>
-            <Tab.Screen name="Home" component={Home} />
-            <Tab.Screen name="Triage" component={TriageScreen1} />
+        <Tab.Navigator id={undefined}
+            screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName: keyof typeof Ionicons.glyphMap;
+
+                    switch (route.name) {
+                        case 'Home':
+                            iconName = focused ? 'home' : 'home-outline';
+                            break;
+                        case 'VitaAI':
+                            iconName = focused ? 'sparkles' : 'sparkles-outline';
+                            break;
+                        default:
+                            iconName = 'ellipse';
+                    }
+
+                    return <Ionicons name={iconName} size={size} color={color} />;
+                },
+                tabBarActiveTintColor: '#050f2a',
+                tabBarInactiveTintColor: '#94a3b8',
+                tabBarStyle: { height: 100, paddingTop: 6, paddingBottom: 24 },
+                tabBarLabelStyle: { fontFamily: 'Poppins-Medium', fontSize: 12 },
+            })}
+        >
+            <Tab.Screen
+                name="Home"
+                component={Home}
+                options={{ title: 'Home' }}
+            />
+            <Tab.Screen
+                name="VitaAI"
+                component={TriageScreen1}
+                options={{ title: 'Vita AI' }}
+            />
         </Tab.Navigator>
     );
 }

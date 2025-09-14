@@ -1,0 +1,349 @@
+{"age": 19, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "low", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 25, "sex": "female", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 25, "sex": "female", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 25, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 25, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 25, "sex": "female", "symptoms": ["fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 25, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 25, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 28, "sex": "female", "symptoms": ["cough", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 28, "sex": "female", "symptoms": ["cough", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 28, "sex": "male", "symptoms": ["difficulty_breathing", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "male", "symptoms": ["low", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "negative", "normal"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 29, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "fever", "negative", "normal"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "fever", "negative", "normal"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "negative"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fever", "negative", "normal"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "fever", "negative", "normal"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fever", "low", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 30, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 30, "sex": "female", "symptoms": ["fever", "normal", "positive"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 31, "sex": "male", "symptoms": ["difficulty_breathing", "low", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 31, "sex": "male", "symptoms": ["difficulty_breathing", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 31, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 31, "sex": "female", "symptoms": ["fever", "normal", "positive"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 32, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fever", "low", "negative", "normal"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "fatigue", "low", "negative", "normal"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "high", "negative"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["cough", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "low", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fever", "high", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fever", "high", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "high", "positive"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fever", "high", "positive"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "low", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "low", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 35, "sex": "male", "symptoms": ["fever", "high", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 35, "sex": "female", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["cough", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["low", "negative", "normal"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "low", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["cough", "fever", "high", "positive"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 38, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 39, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fever", "high", "negative"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "fever", "low", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "high", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "fatigue", "high", "normal", "positive"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["fever", "high", "normal", "positive"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 40, "sex": "female", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "dermatology", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 40, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["cough", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["difficulty_breathing", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["difficulty_breathing", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "negative"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["fatigue", "low", "negative", "normal"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["fatigue", "fever", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "low", "negative", "normal"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 42, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 42, "sex": "female", "symptoms": ["fatigue", "fever", "high", "low", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 43, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["low", "negative", "normal"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["low", "negative", "normal"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "fatigue", "high", "normal", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 45, "sex": "male", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 48, "sex": "female", "symptoms": ["high", "low", "negative"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 48, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 48, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "fatigue", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "low", "negative", "normal"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "high", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "high", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "high", "negative", "normal"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 50, "sex": "female", "symptoms": ["cough", "fatigue", "high", "normal", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 52, "sex": "male", "symptoms": ["cough", "fever", "low", "negative", "normal"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 52, "sex": "male", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 52, "sex": "male", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["fatigue", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "low", "negative", "normal"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["cough", "fatigue", "high", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "low", "negative", "normal"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "low", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "fever", "low", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "fever", "high", "positive"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "low", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["fatigue", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "fever", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "female", "symptoms": ["cough", "fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["cough", "low", "normal", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 55, "sex": "male", "symptoms": ["cough", "low", "normal", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 56, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 57, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fever", "high", "negative", "normal"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "negative", "normal"], "label_specialty": "orthopedics", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fever", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "pulmonology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fatigue", "low", "normal", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fatigue", "low", "normal", "positive"], "label_specialty": "gastroenterology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["high", "positive"], "label_specialty": "cardiology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "male", "symptoms": ["cough", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 60, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "infectious_disease", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "high", "negative", "normal"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["cough", "fatigue", "fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "fever", "high", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "fever", "high", "low", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "high", "negative"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "urology", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["difficulty_breathing", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "normal", "positive"], "label_specialty": "endocrinology", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "male", "symptoms": ["fatigue", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["cough", "fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 65, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "difficulty_breathing", "fatigue", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["fever", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "fever", "high", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "fatigue", "negative", "normal"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "fever", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "neurology", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "male", "symptoms": ["cough", "high", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["cough", "fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 70, "sex": "female", "symptoms": ["fatigue", "normal", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 80, "sex": "female", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 80, "sex": "female", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 85, "sex": "male", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 85, "sex": "male", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 90, "sex": "female", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
+{"age": 90, "sex": "female", "symptoms": ["fatigue", "fever", "high", "positive"], "label_specialty": "gp", "source": "patient_profile"}
