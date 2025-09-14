@@ -1,0 +1,350 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Body,
+  Param,
+  Query,
+  Inject,
+  HttpException,
+  HttpStatus,
+  Req,
+} from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
+import { AuthenticatedRequest } from './middleware/auth.middleware';
+
+@Controller('pharmacy')
+export class PharmacyController {
+  constructor(
+    @Inject('PHARMACY_SERVICE_CLIENT')
+    private readonly pharmacyServiceClient: ClientProxy,
+  ) {}
+
+  async handleRequest(pattern: any, body: any, fallbackMsg: string) {
+    try {
+      const result = await lastValueFrom(
+        this.pharmacyServiceClient.send(pattern, body),
+      );
+      return {
+        success: true,
+        data: result,
+        message: 'Operation successful',
+      };
+    } catch (err) {
+      console.error('Pharmacy Microservice Error:', err);
+
+      let status = err?.status || HttpStatus.BAD_REQUEST;
+      if (typeof status !== 'number' || isNaN(status)) {
+        status = HttpStatus.BAD_REQUEST;
+      }
+      const message = err?.response?.message || err?.message || fallbackMsg;
+      throw new HttpException(
+        {
+          success: false,
+          status,
+          message,
+          error: this.getErrorName(status),
+        },
+        status,
+      );
+    }
+  }
+
+  private getErrorName(status: number): string {
+    switch (status) {
+      case HttpStatus.BAD_REQUEST:
+        return 'Bad Request';
+      case HttpStatus.UNAUTHORIZED:
+        return 'Unauthorized';
+      case HttpStatus.FORBIDDEN:
+        return 'Forbidden';
+      case HttpStatus.NOT_FOUND:
+        return 'Not Found';
+      case HttpStatus.CONFLICT:
+        return 'Conflict';
+      default:
+        return 'Internal Server Error';
+    }
+  }
+
+  // ==================== PUBLIC ROUTES ====================
+
+  @Get()
+  async getPharmacies(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sortBy') sortBy?: 'rating' | 'total_sales' | 'name',
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+  ) {
+    return this.handleRequest(
+      { cmd: 'get_pharmacies' },
+      { page, limit, sortBy, sortOrder },
+      'Failed to get pharmacies',
+    );
+  }
+
+  @Get('search')
+  async searchPharmaciesAndProducts(
+    @Query('query') query?: string,
+    @Query('category') category?: string,
+    @Query('minPrice') minPrice?: number,
+    @Query('maxPrice') maxPrice?: number,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.handleRequest(
+      { cmd: 'search_pharmacies_and_products' },
+      { query, category, minPrice, maxPrice, page, limit },
+      'Failed to search pharmacies and products',
+    );
+  }
+
+  @Get('products')
+  async getNonPrescriptionProducts(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.handleRequest(
+      { cmd: 'get_non_prescription_products' },
+      { page, limit },
+      'Failed to get non-prescription products',
+    );
+  }
+
+  @Get('categories')
+  async getCategories() {
+    return this.handleRequest(
+      { cmd: 'get_categories' },
+      {},
+      'Failed to get categories',
+    );
+  }
+
+  @Get(':id')
+  async getPharmacyById(@Param('id') id: string) {
+    return this.handleRequest(
+      { cmd: 'get_pharmacy_by_id' },
+      { pharmacyId: parseInt(id) },
+      'Failed to get pharmacy',
+    );
+  }
+
+  // ==================== PROTECTED ROUTES ====================
+
+  @Get('orders/current-count')
+  async getCurrentOrdersCount(@Req() req: AuthenticatedRequest) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_current_orders_count' },
+      { patientId: req.user.id },
+      'Failed to get current orders count',
+    );
+  }
+
+  @Get('prescriptions')
+  async getPrescriptions(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sortBy') sortBy?: 'date_issued',
+    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_patient_prescriptions' },
+      { patientId: req.user.id, page, limit, sortBy, sortOrder },
+      'Failed to get prescriptions',
+    );
+  }
+
+  @Post('search/prescription')
+  async searchByPrescription(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { prescriptionId: number; page?: number; limit?: number },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'search_by_prescription' },
+      { patientId: req.user.id, ...body },
+      'Failed to search by prescription',
+    );
+  }
+
+  @Post('reservations')
+  async createReservation(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      pharmacy_branch_id: number;
+      medicine_id: number;
+      quantity_reserved: number;
+      prescription_id?: number;
+      pickup_deadline?: Date;
+      notes?: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_reservation' },
+      { patientId: req.user.id, ...body },
+      'Failed to create reservation',
+    );
+  }
+
+  @Post('orders')
+  async createOrder(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      pharmacy_branch_id: number;
+      items: Array<{
+        item_id: number;
+        quantity: number;
+        instructions?: string;
+      }>;
+      delivery_method: 'pickup' | 'delivery';
+      address_id?: number;
+      payment_method: string;
+      notes?: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_order' },
+      { patientId: req.user.id, ...body },
+      'Failed to create order',
+    );
+  }
+
+  @Get('orders/my-orders')
+  async getMyOrders(
+    @Req() req: AuthenticatedRequest,
+    @Query('status') status?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_patient_orders' },
+      { patientId: req.user.id, status, page, limit },
+      'Failed to get orders',
+    );
+  }
+
+  @Put('orders/:orderId/status')
+  async updateOrderStatus(
+    @Req() req: AuthenticatedRequest,
+    @Param('orderId') orderId: string,
+    @Body() body: { status: string },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_order_status' },
+      { orderId: parseInt(orderId), status: body.status },
+      'Failed to update order status',
+    );
+  }
+
+  @Put('reservations/:reservationId/cancel')
+  async cancelReservation(
+    @Req() req: AuthenticatedRequest,
+    @Param('reservationId') reservationId: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'cancel_reservation' },
+      { reservationId: parseInt(reservationId), patientId: req.user.id },
+      'Failed to cancel reservation',
+    );
+  }
+}
