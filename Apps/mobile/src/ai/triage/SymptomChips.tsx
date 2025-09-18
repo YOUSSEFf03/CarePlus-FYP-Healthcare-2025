@@ -7,12 +7,22 @@ import {
 import CustomText from "@/components/CustomText";
 import Button from "@/components/Button";
 import { colors, spacing, radius, shadow } from "@/styles/tokens";
-import { SYMPTOMS } from "../../../../ai-triage/src/ontology";
+// import { SYMPTOMS } from "../../../../ai-triage/src/ontology";
+import { fetchSymptomVocab, SymptomOption } from "./apiClient";
 import { triageAPI } from "./apiClient";
 import type { SymptomInput, TriageResponse } from "../../../../ai-triage/src/types";
 import { useUser } from "../../store/UserContext";
 
 type PatientCtx = { age: number; sex: "male" | "female" | "unknown" };
+
+const FALLBACK: SymptomOption[] = [
+    { id: "headache", label: "Headache" },
+    { id: "skin_rash", label: "Skin rash" },
+    { id: "chest_pain", label: "Chest pain" },
+    { id: "shortness_of_breath", label: "Shortness of breath" },
+    { id: "burning_micturition", label: "Burning urination" },
+    { id: "dizziness", label: "Dizziness" },
+];
 
 type Message =
     | { id: string; role: "user"; text: string }
@@ -109,18 +119,30 @@ export default function TriageScreen({ onBook }: Props) {
     ]);
     const listRef = useRef<FlatList>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [catalog, setCatalog] = useState<SymptomOption[]>(FALLBACK);
 
     // input & chips tray
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<SymptomInput[]>([]);
     const [focused, setFocused] = useState(false);
 
+    useEffect(() => {
+        (async () => {
+            try {
+                const data = await fetchSymptomVocab();
+                setCatalog(data);
+            } catch {
+                // keep FALLBACK
+            }
+        })();
+    }, []);
+
     // suggestions (top-12 or filtered)
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
-        if (!q) return SYMPTOMS.slice(0, 12);
-        return SYMPTOMS.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 12);
-    }, [query]);
+        if (!q) return catalog.slice(0, 24); // show more by default
+        return catalog.filter(s => s.label.toLowerCase().includes(q)).slice(0, 24);
+    }, [query, catalog]);
 
     function toggle(sym: { id: string; label: string }) {
         setSelected((prev) => {

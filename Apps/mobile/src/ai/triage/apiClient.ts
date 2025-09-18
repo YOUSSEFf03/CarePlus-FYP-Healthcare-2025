@@ -26,3 +26,11 @@ export async function triageAPI(payload: TriageRequest): Promise<TriageResponse>
         return localTriage(payload);
     }
 }
+
+export type SymptomOption = { id: string; label: string };
+
+export async function fetchSymptomVocab(): Promise<SymptomOption[]> {
+    const res = await fetch(`${AI_BASE}/triage/vocab`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+}
