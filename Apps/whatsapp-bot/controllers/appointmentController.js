@@ -12,7 +12,7 @@ class AppointmentController {
     }
 
     // Validation: Check if patient already has an active appointment
-    const appointments = await DatabaseService.getPatientAppointments(patient.patient_id);
+    const appointments = await DatabaseService.getPatientAppointments(patient.id);
     const activeAppointments = appointments.filter(app => app.status === 'booked');
     if (activeAppointments.length > 0) {
       await TwilioService.sendMessage(sender,
@@ -26,7 +26,7 @@ class AppointmentController {
     return {
       step: 'appointment_select_region',
       data: {
-        patientId: patient.patient_id,
+        patientId: patient.id,
         firstName: patient.name.split(' ')[0],
         lastName: patient.name.split(' ').slice(1).join(' ')
       }
@@ -135,19 +135,12 @@ class AppointmentController {
     );
     
     const doctor = doctors.find(d => 
-      d.name.toLowerCase().includes(doctorName.toLowerCase().replace('dr.', '').trim())
+      d.name && d.name.toLowerCase().includes(doctorName.toLowerCase().replace('dr.', '').trim())
     );
 
     if (doctor) {
-      // Fetch clinics for this doctor
-      // In a real implementation, you would fetch clinics from the database
-      const clinics = [
-        { workplace_id: 1, name: "City Heart Center", type: "clinic", region_id: 1, doctor_id: 1 },
-        { workplace_id: 2, name: "Pediatric Care Clinic", type: "clinic", region_id: 1, doctor_id: 2 },
-        { workplace_id: 3, name: "Westside Orthopedics", type: "hospital", region_id: 2, doctor_id: 3 }
-      ];
-      const doctorClinics = clinics.filter(c => c.doctor_id === doctor.doctor_id);
-      const clinicList = doctorClinics.map(c => `• ${c.name}`).join('\n');
+      // Use the workplace data from the doctor query
+      const clinicList = doctor.workplace_name ? `• ${doctor.workplace_name}` : '• No clinic available';
       await TwilioService.sendMessage(sender,
         `🏥 Clinics for Dr. ${doctor.name}:\n\n` +
         clinicList + "\n\n" +
@@ -157,7 +150,7 @@ class AppointmentController {
       return {
         ...state,
         step: 'appointment_select_clinic',
-        data: { ...state.data, doctorId: doctor.doctor_id }
+        data: { ...state.data, doctorId: doctor.id, workplaceId: doctor.id }
       };
     } else {
       await TwilioService.sendMessage(sender, "❌ Doctor not found. Please try again:");
@@ -166,20 +159,11 @@ class AppointmentController {
   }
 
   static async handleClinicSelection(sender, clinicName, state) {
-    // In a real implementation, you would fetch clinics from the database
-    const clinics = [
-      { workplace_id: 1, name: "City Heart Center", type: "clinic", region_id: 1, doctor_id: 1 },
-      { workplace_id: 2, name: "Pediatric Care Clinic", type: "clinic", region_id: 1, doctor_id: 2 },
-      { workplace_id: 3, name: "Westside Orthopedics", type: "hospital", region_id: 2, doctor_id: 3 }
-    ];
-    const doctorClinics = clinics.filter(c =>
-      c.doctor_id === state.data.doctorId
-    );
-    const clinic = doctorClinics.find(c =>
-      c.name.toLowerCase().includes(clinicName.toLowerCase())
-    );
-
-    if (clinic) {
+    // Get the doctor's workplace information
+    const doctor = await DatabaseService.getDoctorById(state.data.doctorId);
+    
+    if (doctor && doctor.workplace_name && 
+        doctor.workplace_name.toLowerCase().includes(clinicName.toLowerCase())) {
       await TwilioService.sendMessage(sender,
         "📅 Please enter your preferred date (DD/MM format, e.g. 15/07):"
       );
@@ -187,7 +171,7 @@ class AppointmentController {
       return {
         ...state,
         step: 'appointment_select_date',
-        data: { ...state.data, workplaceId: clinic.workplace_id }
+        data: { ...state.data, workplaceId: doctor.id }
       };
     } else {
       await TwilioService.sendMessage(sender, "❌ Clinic not found. Please try again:");
@@ -229,7 +213,7 @@ class AppointmentController {
     }
 
     const slotList = slots.slice(0, 6).map(s =>
-      `• ${formatDate(s.start_time, "HH:mm")}`
+      `• ${s.start_time.substring(0, 5)}`
     ).join('\n');
 
     await TwilioService.sendMessage(sender,
@@ -254,17 +238,18 @@ class AppointmentController {
     }
 
     const [hours, minutes] = timeInput.split(':').map(Number);
-    const selectedSlot = state.data.slots.find(slot => 
-      slot.start_time.getHours() === hours &&
-      slot.start_time.getMinutes() === (minutes || 0)
-    );
+    const selectedSlot = state.data.slots.find(slot => {
+      const slotTime = slot.start_time.substring(0, 5); // Get "HH:mm" format
+      const inputTime = `${hours.toString().padStart(2, '0')}:${(minutes || 0).toString().padStart(2, '0')}`;
+      return slotTime === inputTime;
+    });
 
     if (selectedSlot) {
       try {
         const appointment = await DatabaseService.createAppointment({
-          patient_id: state.data.patientId,
-          doctor_workplace_id: state.data.workplaceId,
-          slot_id: selectedSlot.slot_id,
+          patientId: state.data.patientId,
+          doctorId: state.data.doctorId,
+          appointment_date: new Date(`${selectedSlot.slot_date}T${selectedSlot.start_time}`),
           notes: `Booked via WhatsApp by ${state.data.firstName} ${state.data.lastName}`
         });
 
@@ -278,7 +263,7 @@ class AppointmentController {
           `✅ Appointment Booked for ${state.data.firstName} ${state.data.lastName}!\n\n` +
           `Doctor: Dr. ${doctor.name}\n` +
           `Specialization: ${doctor.specialization}\n` +
-          `Date: ${formatDate(selectedSlot.start_time, "EEEE, dd/MM/yyyy 'at' HH:mm")}\n\n` +
+          `Date: ${formatDate(new Date(`${selectedSlot.slot_date}T${selectedSlot.start_time}`), "EEEE, dd/MM HH:mm")}\n\n` +
           "You'll receive a reminder before your appointment."
         );
         
@@ -306,7 +291,7 @@ class AppointmentController {
       return;
     }
 
-    const appointments = await DatabaseService.getPatientAppointments(patient.patient_id);
+    const appointments = await DatabaseService.getPatientAppointments(patient.id);
     
     if (appointments.length === 0) {
       await TwilioService.sendMessage(sender, "You don't have any active appointments.");
@@ -314,7 +299,7 @@ class AppointmentController {
     }
 
     const appointmentList = appointments.map(app => 
-      `• Dr. ${app.doctor_name} - ${formatDate(app.start_time, "EEE, dd/MM 'at' HH:mm")} (${app.workplace_name})`
+      `• Dr. ${app.specialization} - ${app.appointment_date} (${app.workplace_name})`
     ).join('\n');
 
     await TwilioService.sendMessage(sender,
@@ -332,7 +317,7 @@ static async showAppointmentsForDeletion(sender) {
     return { step: null, data: {} };
   }
 
-  const appointments = await DatabaseService.getPatientAppointments(patient.patient_id);
+  const appointments = await DatabaseService.getPatientAppointments(patient.id);
 
   if (appointments.length === 0) {
     await TwilioService.sendMessage(sender, "❌ You don't have any active appointments to delete.");
@@ -341,7 +326,7 @@ static async showAppointmentsForDeletion(sender) {
 
   // Show appointments with index numbers
   const appointmentList = appointments.map((app, idx) => 
-    `${idx + 1}. [ID: ${app.appointment_id}] Dr. ${app.doctor_name} - ${formatDate(app.start_time, "EEE, dd/MM 'at' HH:mm")}`
+    `${idx + 1}. [ID: ${app.id}] Dr. ${app.specialization} - ${app.appointment_date}`
   ).join('\n');
 
   await TwilioService.sendMessage(sender,
@@ -351,7 +336,7 @@ static async showAppointmentsForDeletion(sender) {
 
   return {
     step: 'delete_appointment',
-    data: { patientId: patient.patient_id, appointments: appointments }
+    data: { patientId: patient.id, appointments: appointments }
   };
 }
 
@@ -373,7 +358,7 @@ static async handleAppointmentDeletion(sender, input, state) {
 
   // Check if the entered ID exists in the user's appointments
   const appointment = state.data.appointments.find(app => 
-    app.appointment_id === appointmentId
+    app.id === appointmentId
   );
 
   if (!appointment) {
@@ -384,12 +369,12 @@ static async handleAppointmentDeletion(sender, input, state) {
   }
 
   try {
-    await DatabaseService.cancelAppointment(appointment.appointment_id);
+    await DatabaseService.cancelAppointment(appointment.id);
     // In a real implementation, you would mark the slot as available again
     // await DatabaseService.releaseSlot(appointment.slot_id);
 
     await TwilioService.sendMessage(sender,
-      `✅ Appointment with Dr. ${appointment.doctor_name} on ${formatDate(appointment.start_time, "EEE, dd/MM 'at' HH:mm")} has been cancelled.`
+      `✅ Appointment with Dr. ${appointment.specialization} on ${appointment.appointment_date} has been cancelled.`
     );
     return { step: null, data: {} }; // Clear the state
   } catch (error) {

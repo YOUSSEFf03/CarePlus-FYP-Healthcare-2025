@@ -18,7 +18,7 @@ const createUserAndPatient = async (userData, patientData) => {
   const user = await UserQueries.createUser(userData);
   const patient = await PatientQueries.createPatient({
     ...patientData,
-    user_id: user.user_id
+    userId: user.id
   });
   
   return { user, patient };
@@ -45,7 +45,7 @@ const getPatientAppointments = async (patientId) => {
 };
 
 const cancelAppointment = async (appointmentId) => {
-  return await AppointmentQueries.updateAppointmentStatus(appointmentId, 'cancelled');
+  return await AppointmentQueries.updateAppointmentStatus(appointmentId, 'CANCELLED');
 };
 
 const getDoctorById = async (doctorId) => {

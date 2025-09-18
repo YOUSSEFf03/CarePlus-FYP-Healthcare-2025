@@ -1,48 +1,102 @@
-const db = require('../connections');
+const { doctorDb } = require('../connections');
+const { authDb } = require('../connections');
 
 const DoctorQueries = {
   getAllDoctors: async () => {
     const query = `
-      SELECT d.*, r.name as region_name
+      SELECT d.*, w.workplace_name, w.workplace_type
       FROM doctors d
-      JOIN regions r ON d.region_id = r.region_id
-      WHERE d.verification_status = 'verified'
+      LEFT JOIN doctor_workplaces w ON d.id = w."doctorId"
+      WHERE d.verification_status = 'approved'
     `;
-    const result = await db.query(query);
-    return result.rows;
+    const result = await doctorDb.query(query);
+    
+    // Get user names for each doctor
+    const doctorsWithNames = await Promise.all(
+      result.rows.map(async (doctor) => {
+        const userQuery = 'SELECT name FROM users WHERE id = $1';
+        const userResult = await authDb.query(userQuery, [doctor.userId]);
+        return {
+          ...doctor,
+          name: userResult.rows[0]?.name || 'Unknown Doctor'
+        };
+      })
+    );
+    
+    return doctorsWithNames;
   },
 
   getDoctorsByRegion: async (regionId) => {
+    // Since your doctor schema doesn't have region_id, we'll return all doctors for now
+    // You may need to add region support to your doctor schema
     const query = `
-      SELECT d.*, r.name as region_name
+      SELECT d.*, w.workplace_name, w.workplace_type
       FROM doctors d
-      JOIN regions r ON d.region_id = r.region_id
-      WHERE d.region_id = $1 AND d.verification_status = 'verified'
+      LEFT JOIN doctor_workplaces w ON d.id = w."doctorId"
+      WHERE d.verification_status = 'approved'
     `;
-    const result = await db.query(query, [regionId]);
-    return result.rows;
+    const result = await doctorDb.query(query);
+    
+    // Get user names for each doctor
+    const doctorsWithNames = await Promise.all(
+      result.rows.map(async (doctor) => {
+        const userQuery = 'SELECT name FROM users WHERE id = $1';
+        const userResult = await authDb.query(userQuery, [doctor.userId]);
+        return {
+          ...doctor,
+          name: userResult.rows[0]?.name || 'Unknown Doctor'
+        };
+      })
+    );
+    
+    return doctorsWithNames;
   },
 
   getDoctorsBySpecialization: async (specialization, regionId) => {
     const query = `
-      SELECT d.*, r.name as region_name
+      SELECT d.*, w.workplace_name, w.workplace_type
       FROM doctors d
-      JOIN regions r ON d.region_id = r.region_id
-      WHERE d.specialization = $1 AND d.region_id = $2 AND d.verification_status = 'verified'
+      LEFT JOIN doctor_workplaces w ON d.id = w."doctorId"
+      WHERE d.specialization = $1 AND d.verification_status = 'approved'
     `;
-    const result = await db.query(query, [specialization, regionId]);
-    return result.rows;
+    const result = await doctorDb.query(query, [specialization]);
+    
+    // Get user names for each doctor
+    const doctorsWithNames = await Promise.all(
+      result.rows.map(async (doctor) => {
+        const userQuery = 'SELECT name FROM users WHERE id = $1';
+        const userResult = await authDb.query(userQuery, [doctor.userId]);
+        return {
+          ...doctor,
+          name: userResult.rows[0]?.name || 'Unknown Doctor'
+        };
+      })
+    );
+    
+    return doctorsWithNames;
   },
 
   getDoctorById: async (doctorId) => {
     const query = `
-      SELECT d.*, r.name as region_name
+      SELECT d.*, w.workplace_name, w.workplace_type
       FROM doctors d
-      JOIN regions r ON d.region_id = r.region_id
-      WHERE d.doctor_id = $1
+      LEFT JOIN doctor_workplaces w ON d.id = w."doctorId"
+      WHERE d.id = $1
     `;
-    const result = await db.query(query, [doctorId]);
-    return result.rows[0];
+    const result = await doctorDb.query(query, [doctorId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    const doctor = result.rows[0];
+    const userQuery = 'SELECT name FROM users WHERE id = $1';
+    const userResult = await authDb.query(userQuery, [doctor.userId]);
+    
+    return {
+      ...doctor,
+      name: userResult.rows[0]?.name || 'Unknown Doctor'
+    };
   }
 };
 

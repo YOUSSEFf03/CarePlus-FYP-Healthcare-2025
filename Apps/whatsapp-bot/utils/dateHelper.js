@@ -1,6 +1,19 @@
 const { format, addDays, parse, isWithinInterval } = require('date-fns');
 
 const formatDate = (date, formatString = 'dd/MM/yyyy') => {
+  // Handle both Date objects and time strings
+  if (typeof date === 'string') {
+    // If it's a time string like "09:00:00", format it as time
+    if (date.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      return date.substring(0, 5); // Return "09:00" format
+    }
+    // If it's a date string, parse it first
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      return date; // Return original string if can't parse
+    }
+    return format(parsedDate, formatString);
+  }
   return format(date, formatString);
 };
 
