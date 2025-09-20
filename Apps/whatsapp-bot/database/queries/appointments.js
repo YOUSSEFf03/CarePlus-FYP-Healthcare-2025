@@ -4,11 +4,11 @@ const AppointmentQueries = {
   createAppointment: async (appointmentData) => {
     const { patientId, doctorId, appointment_date, appointment_time, notes = '' } = appointmentData;
     const query = `
-      INSERT INTO appointments ("patientId", "doctorId", appointment_date, notes, status)
-      VALUES ($1, $2, $3, $4, 'booked')
+      INSERT INTO appointments ("patientId", "doctorId", appointment_date, appointment_time, notes, status)
+      VALUES ($1, $2, $3, $4, $5, 'CONFIRMED')
       RETURNING *
     `;
-    const values = [patientId, doctorId, appointment_date, notes];
+    const values = [patientId, doctorId, appointment_date, appointment_time, notes];
     const result = await doctorDb.query(query, values);
     return result.rows[0];
   },

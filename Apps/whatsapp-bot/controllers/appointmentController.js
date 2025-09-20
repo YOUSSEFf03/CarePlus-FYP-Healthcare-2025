@@ -13,7 +13,7 @@ class AppointmentController {
 
     // Validation: Check if patient already has an active appointment
     const appointments = await DatabaseService.getPatientAppointments(patient.id);
-    const activeAppointments = appointments.filter(app => app.status === 'booked');
+    const activeAppointments = appointments.filter(app => app.status === 'CONFIRMED');
     if (activeAppointments.length > 0) {
       await TwilioService.sendMessage(sender,
         "❌ You already have an active appointment. Please cancel your existing appointment before booking a new one."
@@ -200,7 +200,7 @@ class AppointmentController {
       ? state.data.appointments.filter(app =>
           app.doctor_id === state.data.doctorId &&
           new Date(app.start_time).toDateString() === date.toDateString() &&
-          app.status === 'booked'
+          app.status === 'CONFIRMED'
         )
       : [];
 
@@ -250,6 +250,7 @@ class AppointmentController {
           patientId: state.data.patientId,
           doctorId: state.data.doctorId,
           appointment_date: new Date(`${selectedSlot.slot_date}T${selectedSlot.start_time}`),
+          appointment_time: selectedSlot.start_time.substring(0, 5),
           notes: `Booked via WhatsApp by ${state.data.firstName} ${state.data.lastName}`
         });
 
