@@ -97,6 +97,22 @@ const DoctorQueries = {
       ...doctor,
       name: userResult.rows[0]?.name || 'Unknown Doctor'
     };
+  },
+
+  getWorkplaceIdByDoctorId: async (doctorId) => {
+    const query = `
+      SELECT w.id as workplace_id
+      FROM doctor_workplaces w
+      WHERE w."doctorId" = $1
+      LIMIT 1
+    `;
+    const result = await doctorDb.query(query, [doctorId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    return result.rows[0].workplace_id;
   }
 };
 

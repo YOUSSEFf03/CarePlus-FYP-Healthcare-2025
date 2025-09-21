@@ -36,6 +36,10 @@ const getAvailableSlots = async (doctorId, date) => {
   return await SlotQueries.getAvailableSlots(doctorId, date);
 };
 
+const getAvailableSlotsExcludingBooked = async (doctorId, date, patientId = null) => {
+  return await SlotQueries.getAvailableSlotsExcludingBooked(doctorId, date, patientId);
+};
+
 const createAppointment = async (appointmentData) => {
   return await AppointmentQueries.createAppointment(appointmentData);
 };
@@ -52,6 +56,10 @@ const getDoctorById = async (doctorId) => {
   return await DoctorQueries.getDoctorById(doctorId);
 };
 
+const getWorkplaceIdByDoctorId = async (doctorId) => {
+  return await DoctorQueries.getWorkplaceIdByDoctorId(doctorId);
+};
+
 module.exports = {
   userExists,
   getPatientByPhone,
@@ -59,8 +67,10 @@ module.exports = {
   getDoctorsByRegion,
   getDoctorsBySpecialization,
   getAvailableSlots,
+  getAvailableSlotsExcludingBooked,
   createAppointment,
   getPatientAppointments,
   cancelAppointment,
-  getDoctorById 
+  getDoctorById,
+  getWorkplaceIdByDoctorId
 };

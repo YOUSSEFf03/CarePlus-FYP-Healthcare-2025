@@ -34,8 +34,8 @@ const AppointmentQueries = {
       FROM appointments a
       JOIN doctors d ON a."doctorId" = d.id::text
       JOIN doctor_workplaces w ON w."doctorId"::text = d.id::text
-      WHERE a."patientId" = $1 AND a.status = 'CONFIRMED'  -- CHANGED: 'booked' to 'CONFIRMED'
-      ORDER BY a.appointment_date ASC
+      WHERE a."patientId" = $1 AND a.status = 'CONFIRMED'
+      ORDER BY a.appointment_date ASC, a.appointment_time ASC
     `;
     const result = await doctorDb.query(query, [patientId]);
     return result.rows;
