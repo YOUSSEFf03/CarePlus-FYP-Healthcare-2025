@@ -99,6 +99,8 @@ export default function DoctorDashboard() {
     const [timeframe, setTimeframe] = useState("7d");
     const [selectedDate, setSelectedDate] = useState<ValuePiece>(new Date());
 
+    const showSessionModal = false;
+
     const statsData = [
         { id: 1, title: "Total Patients", value: 124, change: 8, Icon: PatientIcon },
         { id: 2, title: "Appointments", value: 76, change: -3, Icon: AppointmentIcon },
@@ -282,6 +284,48 @@ export default function DoctorDashboard() {
                     </ul>
                 </div>
             </div>
+
+
+            {showSessionModal && (
+                <div className="session-overlay">
+                    <div className="session-modal">
+                        <div className="session-modal__icon">
+                            {/* clock icon */}
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                <circle cx="12" cy="12" r="9" stroke="var(--primary-color)" strokeWidth="1.5" />
+                                <path d="M12 7v5l3 2" stroke="var(--primary-color)" strokeWidth="1.5" strokeLinecap="round" />
+                            </svg>
+                        </div>
+
+                        <div className="session-modal__content">
+                            <CustomText as="h3" variant="text-heading-H4" className="session-modal__title">
+                                Session expired
+                            </CustomText>
+
+                            <CustomText as="p" variant="text-body-md-r" className="session-modal__subtitle">
+                                For your security, your session ended after <strong>30 minutes</strong> of inactivity.
+                            </CustomText>
+
+                            <Button
+                                text="Logout"
+                                variant="danger"
+                                iconLeft={
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        <polyline points="16,17 21,12 16,7" />
+                                        <line x1="21" y1="12" x2="9" y2="12" />
+                                    </svg>
+                                }
+                                // DESIGN-ONLY: replace with your actual logout logic / route
+                                onClick={() => {
+                                    // e.g., auth.logout(); or navigate("/login");
+                                    console.log("Force logout clicked");
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

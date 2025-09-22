@@ -253,9 +253,9 @@ export default function TriageScreen({ onBook }: Props) {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.neutral202 }}>
             {/* Header with AI name (top-left) */}
-            <View style={{ paddingHorizontal: spacing[16], paddingTop: spacing[12], paddingBottom: spacing[8] }}>
+            <View style={{ paddingHorizontal: spacing[16], paddingTop: spacing[36], paddingBottom: spacing[8] }}>
                 <CustomText variant="text-heading-H3" style={{ color: colors.primary }}>
-                    FYP Health AI
+                    Vita AI
                 </CustomText>
                 <CustomText variant="text-body-sm-r" style={{ color: colors.neutral700 }}>
                     Find the right specialist fast
@@ -370,7 +370,7 @@ export default function TriageScreen({ onBook }: Props) {
                                 Clear
                             </CustomText>
                         </TouchableOpacity>
-                        <CustomText variant="text-body-xs-r" style={{ color: colors.neutral700 }}>
+                        <CustomText variant="text-body-xs-r" style={{ color: colors.neutral700, marginTop: spacing[4] }}>
                             Not a diagnosis. Seek urgent care for severe symptoms.
                         </CustomText>
                     </View>

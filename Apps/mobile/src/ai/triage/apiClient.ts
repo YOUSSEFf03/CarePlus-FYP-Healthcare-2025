@@ -4,7 +4,9 @@ import type { TriageRequest, TriageResponse } from "../../../../ai-triage/src/ty
 
 // Adjust for Android emulator
 const DEFAULT_DEV_URL =
-    Platform.OS === "android" ? "http://192.168.50.189:4015" : "http://localhost:4015";
+    Platform.OS === "android" ? "http://192.168.43.94:4015" : "http://localhost:4015";
+    // 192.168.43.94:4015 androidAP (usually last line)
+    // http://192.168.50.189:4015 home
 
 const AI_BASE =
     // Prefer env if you have Expo or your RN env setup
