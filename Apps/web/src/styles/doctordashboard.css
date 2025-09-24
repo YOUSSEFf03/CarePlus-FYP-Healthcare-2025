@@ -471,3 +471,29 @@
     width: 100%;
     justify-content: center;
 }
+
+.ai-banner {
+    padding: var(--padding-16);
+    background-image: url('../assets/images/bg\ 6.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    margin-bottom: 24px;
+    border-radius: var(--radius-12);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--gap-32);
+    justify-content: space-between;
+}
+
+.ai-texts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-8);
+    width: 70%;
+}
+
+/* .ai-banner .btn {
+    padding: 8px 16px;
+    font-size: var(--fs-15);
+} */
