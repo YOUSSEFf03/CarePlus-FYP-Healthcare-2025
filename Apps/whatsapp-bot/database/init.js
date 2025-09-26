@@ -1,46 +1,58 @@
-const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
 
-// Use only environment variables
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-});
+// IMPORTANT: Per requirement, do not create new databases or tables automatically.
+// This script now only validates connectivity to referenced databases if explicitly requested.
+
+const { getPool } = require('./connections');
 
 async function initializeDatabase() {
   let client;
   try {
-    client = await pool.connect();
-    console.log(`✅ Connected to PostgreSQL database: ${process.env.DB_NAME}`);
+    if (process.env.ALLOW_SCHEMA_MIGRATIONS === 'true') {
+      // Optional, controlled by env flag, defaults to disabled
+      const defaultPool = getPool();
+      client = await defaultPool.connect();
+      console.log(`✅ Connected to PostgreSQL database: ${process.env.DB_NAME || 'default'}`);
 
-    // Run schema
-    const schemaPath = path.join(__dirname, "schema.sql");
-    const schemaSQL = fs.readFileSync(schemaPath, "utf8");
-    await client.query(schemaSQL);
-    console.log("✅ Schema created successfully");
+      const schemaPath = path.join(__dirname, "schema.sql");
+      const seedPath = path.join(__dirname, "seed.sql");
 
-    // Run seed (if exists)
-    const seedPath = path.join(__dirname, "seed.sql");
-    if (fs.existsSync(seedPath)) {
-      const seedSQL = fs.readFileSync(seedPath, "utf8");
-      await client.query(seedSQL);
-      console.log("✅ Seed data inserted successfully");
+      if (fs.existsSync(schemaPath)) {
+        const schemaSQL = fs.readFileSync(schemaPath, "utf8");
+        await client.query(schemaSQL);
+        console.log("✅ Schema created successfully (ALLOW_SCHEMA_MIGRATIONS)");
+      } else {
+        console.log("ℹ️ schema.sql not found; skipping.");
+      }
+
+      if (fs.existsSync(seedPath)) {
+        const seedSQL = fs.readFileSync(seedPath, "utf8");
+        await client.query(seedSQL);
+        console.log("✅ Seed data inserted successfully");
+      }
     } else {
-      console.log("ℹ️ No seed.sql file found, skipping seed step.");
+      // Connectivity checks only
+      const pools = [
+        { name: 'default', pool: getPool() },
+        { name: 'auth', pool: getPool('auth') },
+        { name: 'doctor', pool: getPool('doctor') },
+      ];
+      for (const { name, pool } of pools) {
+        client = await pool.connect();
+        const { rows } = await client.query('SELECT NOW() AS now');
+        console.log(`✅ Connectivity OK for ${name} DB at ${rows[0].now}`);
+        client.release();
+        client = null;
+      }
     }
-
-    console.log("🎉 Database initialization completed!");
+    console.log("🎉 Database check completed!");
   } catch (error) {
     console.error("❌ Error initializing database:", error);
     process.exit(1);
   } finally {
     if (client) client.release();
-    await pool.end();
   }
 }
 

@@ -8,6 +8,6 @@ async function bootstrap() {
     credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000);
-  console.log('Gatewaye is running...');
+  console.log('Gateway is running...');
 }
 bootstrap();

@@ -223,4 +223,57 @@ export class AssistantController {
       'Failed to cancel invite',
     );
   }
+
+  // ==================== ADDITIONAL ASSISTANT ROUTES ====================
+
+  @Get('my-workplaces')
+  async getMyWorkplaces(@Req() req: AuthenticatedRequest) {
+    if (req.user.role !== 'assistant') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Assistant access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_assistant_workplaces' },
+      { token: req.token, assistantUserId: req.user.id },
+      'Failed to get assistant workplaces',
+    );
+  }
+
+  @Delete('leave-workplace/:workplaceId')
+  async leaveWorkplace(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body() body: { reason?: string },
+  ) {
+    if (req.user.role !== 'assistant') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Assistant access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'leave_workplace' },
+      {
+        token: req.token,
+        assistantUserId: req.user.id,
+        workplaceId,
+        reason: body.reason,
+      },
+      'Failed to leave workplace',
+    );
+  }
 }

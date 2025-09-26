@@ -4,7 +4,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Repository, Not, Between } from 'typeorm'; // Add Between
+import { Appointment } from './appointment.entity'; // Add this import
+import { DoctorReview } from './doctor-review.entity'; // Add this import
+import { DoctorWorkplace } from './doctor-workplace.entity'; // Add this import
 
 export enum VerificationStatus {
   PENDING = 'pending',

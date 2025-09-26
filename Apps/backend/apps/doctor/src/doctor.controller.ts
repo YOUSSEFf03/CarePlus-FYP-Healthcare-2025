@@ -288,4 +288,174 @@ export class DoctorController {
   async getMyAssistants(@CurrentUser() user: any) {
     return this.doctorService.getDoctorAssistants(user.id);
   }
+
+  // ==================== DOCTOR PENDING INVITES ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_doctor_pending_invites' })
+  async getDoctorPendingInvites(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorPendingInvites(user.id);
+  }
+
+  // ==================== ANALYTICS MESSAGE PATTERNS ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @DoctorOnly()
+  @MessagePattern({ cmd: 'get_weekly_analytics' })
+  async getWeeklyAnalytics(
+    @Payload() data: { userId: string },
+    @CurrentUser() user: any,
+  ) {
+    const doctor = await this.doctorService.getDoctorByUserId(
+      data.userId || user.id,
+    );
+    return this.doctorService.getDoctorWeeklyStats(doctor.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @DoctorOnly()
+  @MessagePattern({ cmd: 'get_monthly_analytics' })
+  async getMonthlyAnalytics(
+    @Payload() data: { userId: string },
+    @CurrentUser() user: any,
+  ) {
+    const doctor = await this.doctorService.getDoctorByUserId(
+      data.userId || user.id,
+    );
+    return this.doctorService.getDoctorMonthlyStats(doctor.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @DoctorOnly()
+  @MessagePattern({ cmd: 'get_todays_schedule' })
+  async getTodaysSchedule(
+    @Payload() data: { userId: string },
+    @CurrentUser() user: any,
+  ) {
+    const doctor = await this.doctorService.getDoctorByUserId(
+      data.userId || user.id,
+    );
+    return this.doctorService.getTodaysSchedule(doctor.id);
+  }
+
+  // ==================== APPOINTMENT STATISTICS ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @DoctorOnly()
+  @MessagePattern({ cmd: 'get_appointment_statistics' })
+  async getAppointmentStatistics(
+    @Payload() data: { userId: string },
+    @CurrentUser() user: any,
+  ) {
+    const doctor = await this.doctorService.getDoctorByUserId(
+      data.userId || user.id,
+    );
+    return this.doctorService.getAppointmentStatistics(doctor.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @DoctorOnly()
+  @MessagePattern({ cmd: 'get_appointment_statistics_by_date_range' })
+  async getAppointmentStatisticsByDateRange(
+    @Payload()
+    data: {
+      userId: string;
+      startDate: string;
+      endDate: string;
+    },
+    @CurrentUser() user: any,
+  ) {
+    const doctor = await this.doctorService.getDoctorByUserId(
+      data.userId || user.id,
+    );
+    return this.doctorService.getAppointmentStatisticsByDateRange(
+      doctor.id,
+      data.startDate,
+      data.endDate,
+    );
+  }
+
+  // Admin-only route for system-wide statistics
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @AdminOnly()
+  @MessagePattern({ cmd: 'get_system_appointment_statistics' })
+  async getSystemAppointmentStatistics() {
+    return this.doctorService.getAppointmentStatistics();
+  }
+
+  // ==================== WORKPLACE MANAGEMENT ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'create_workplace' })
+  async createWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.createWorkplace(user.id, data.workplaceData);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_doctor_workplaces' })
+  async getDoctorWorkplaces(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorWorkplaces(user.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'update_workplace' })
+  async updateWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.updateWorkplace(
+      user.id,
+      data.workplaceId,
+      data.updates,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'delete_workplace' })
+  async deleteWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.deleteWorkplace(user.id, data.workplaceId);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'create_appointment_slots' })
+  async createAppointmentSlots(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.createAppointmentSlots(
+      user.id,
+      data.workplaceId,
+      data.slotsData,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_workplace_appointment_slots' })
+  async getWorkplaceAppointmentSlots(@Payload() data: any) {
+    return this.doctorService.getWorkplaceAppointmentSlots(
+      data.workplaceId,
+      data.date,
+    );
+  }
+
+  // ==================== ADDITIONAL ASSISTANT ROUTES ====================
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.ASSISTANT)
+  @MessagePattern({ cmd: 'get_assistant_workplaces' })
+  async getAssistantWorkplaces(@CurrentUser() user: any) {
+    return this.doctorService.getAssistantWorkplaces(user.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.ASSISTANT)
+  @MessagePattern({ cmd: 'leave_workplace' })
+  async leaveWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.leaveWorkplace(
+      user.id,
+      data.workplaceId,
+      data.reason,
+    );
+  }
 }

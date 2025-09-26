@@ -7,6 +7,7 @@ import { AuthMiddleware } from './middleware/auth.middleware';
 import { NotificationController } from './notification.controller';
 import { RequestMethod } from '@nestjs/common';
 import { AssistantController } from './assistant.controller';
+import { PharmacyController } from './pharmacy.controller';
 
 const AuthServiceClient = ClientsModule.register([
   {
@@ -50,6 +51,20 @@ const NotificationServiceClient = ClientsModule.register([
   },
 ]);
 
+const PharmacyServiceClient = ClientsModule.register([
+  {
+    name: 'PHARMACY_SERVICE_CLIENT',
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+      queue: 'pharmacy_queue',
+      queueOptions: {
+        durable: false,
+      },
+    },
+  },
+]);
+
 @Module({
   imports: [
     // Global configuration
@@ -62,12 +77,14 @@ const NotificationServiceClient = ClientsModule.register([
     AuthServiceClient,
     DoctorServiceClient,
     NotificationServiceClient,
+    PharmacyServiceClient,
   ],
   controllers: [
     AuthController,
     DoctorController,
     NotificationController,
     AssistantController,
+    PharmacyController,
   ],
   providers: [AuthMiddleware],
 })
@@ -76,7 +93,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(AuthMiddleware)
       .exclude(
-        // Exclude public routes from auth middleware
+        // Only exclude auth routes that should be public
         'auth/login',
         'auth/register',
         'auth/refresh-token',
@@ -85,17 +102,26 @@ export class AppModule implements NestModule {
         'auth/forgot-password',
         'auth/reset-password',
         'auth/register/assistant',
-        'doctors',
+        // Public doctor routes
+        { path: 'doctors', method: RequestMethod.GET },
+        { path: 'doctors/stats', method: RequestMethod.GET },
+        { path: 'doctors/:id', method: RequestMethod.GET },
         { path: 'doctors/:id/reviews', method: RequestMethod.GET },
         { path: 'doctors/:id/available-slots', method: RequestMethod.GET },
         { path: 'doctors/:id/stats', method: RequestMethod.GET },
-        { path: 'doctors/:id', method: RequestMethod.GET },
+        // Public pharmacy routes
+        { path: 'pharmacy', method: RequestMethod.GET },
+        { path: 'pharmacy/search', method: RequestMethod.GET },
+        { path: 'pharmacy/products', method: RequestMethod.GET },
+        { path: 'pharmacy/categories', method: RequestMethod.GET },
+        { path: 'pharmacy/:id', method: RequestMethod.GET },
       )
       .forRoutes(
         AuthController,
         DoctorController,
         NotificationController,
         AssistantController,
+        PharmacyController,
       );
   }
 }

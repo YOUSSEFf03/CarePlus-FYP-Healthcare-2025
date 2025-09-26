@@ -6,7 +6,7 @@ module.exports = {
   },
 
   APPOINTMENT_STATUS: {
-    BOOKED: 'booked',
+    BOOKED: 'CONFIRMED',
     CONFIRMED: 'confirmed',
     COMPLETED: 'completed',
     CANCELLED: 'cancelled',

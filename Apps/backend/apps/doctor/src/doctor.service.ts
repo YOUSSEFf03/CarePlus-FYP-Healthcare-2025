@@ -1,7 +1,6 @@
 // src/doctor.service.ts - FIXED VERSION
 import { Injectable, Inject, Delete } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
@@ -20,6 +19,9 @@ import { DoctorWorkplace, WorkplaceType } from './doctor-workplace.entity';
 import { Address } from './address.entity';
 import { AppointmentSlot } from './appointment-slot.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
+import { DoctorAnalytics } from './doctor-analytics.entity'; // Add this import
+import { Repository, Not, Between } from 'typeorm'; // Ensure Between is imported
+
 // Define interfaces for type safety
 interface UserInfo {
   id: string;
@@ -38,6 +40,8 @@ export class DoctorService {
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(DoctorReview)
     private readonly reviewRepo: Repository<DoctorReview>,
+    @InjectRepository(DoctorAnalytics)
+    private readonly analyticsRepo: Repository<DoctorAnalytics>, // Fixed syntax
     @InjectRepository(DoctorWorkplaceAssistant)
     private readonly doctorWorkplaceAssistantRepo: Repository<DoctorWorkplaceAssistant>,
     @InjectRepository(DoctorWorkplace)
@@ -82,6 +86,11 @@ export class DoctorService {
   }
 
   async getDoctorByUserId(userId: string): Promise<Doctor> {
+    // Basic validation - check if userId looks like a UUID
+    if (!userId || typeof userId !== 'string' || userId.length < 10) {
+      throw this.rpcError('Invalid user ID format.', 400);
+    }
+
     const doctor = await this.doctorRepo.findOne({ where: { userId } });
     if (!doctor) {
       throw this.rpcError('Doctor not found', 404);
@@ -90,6 +99,16 @@ export class DoctorService {
   }
 
   async getDoctorById(id: string): Promise<Doctor> {
+    // Validate that id is a valid UUID (more flexible regex)
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      throw this.rpcError(
+        'Invalid doctor ID format. Must be a valid UUID.',
+        400,
+      );
+    }
+
     const doctor = await this.doctorRepo.findOne({ where: { id } });
     if (!doctor) {
       throw this.rpcError('Doctor not found', 404);
@@ -1242,5 +1261,256 @@ export class DoctorService {
     await this.assistantInviteRepo.save(invite);
 
     return { message: 'Invite cancelled successfully' };
+  }
+  async getDoctorWeeklyStats(doctorId: string): Promise<any> {
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return this.getDoctorStatsByDateRange(
+      doctorId,
+      startOfWeek,
+      endOfWeek,
+      'weekly',
+    );
+  }
+
+  async getDoctorMonthlyStats(doctorId: string): Promise<any> {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const endOfMonth = new Date(startOfMonth);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0);
+    endOfMonth.setHours(23, 59, 59, 999);
+
+    return this.getDoctorStatsByDateRange(
+      doctorId,
+      startOfMonth,
+      endOfMonth,
+      'monthly',
+    );
+  }
+
+  private async getDoctorStatsByDateRange(
+    doctorId: string,
+    startDate: Date,
+    endDate: Date,
+    periodType: 'weekly' | 'monthly',
+  ): Promise<any> {
+    // Use QueryBuilder instead of Between to avoid import issues
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+
+    // Get total appointments using QueryBuilder
+    const totalAppointments = await this.appointmentRepo
+      .createQueryBuilder('appointment')
+      .where('appointment.doctorId = :doctorId', { doctorId })
+      .andWhere(
+        'appointment.appointment_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: startDateStr,
+          endDate: endDateStr,
+        },
+      )
+      .getCount();
+
+    // Get completed appointments
+    const completedAppointments = await this.appointmentRepo
+      .createQueryBuilder('appointment')
+      .where('appointment.doctorId = :doctorId', { doctorId })
+      .andWhere(
+        'appointment.appointment_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: startDateStr,
+          endDate: endDateStr,
+        },
+      )
+      .andWhere('appointment.status = :completed', {
+        completed: AppointmentStatus.COMPLETED,
+      })
+      .getCount();
+
+    // Get new patients
+    const newPatientsResult = await this.appointmentRepo
+      .createQueryBuilder('appointment')
+      .select('COUNT(DISTINCT appointment.patientId)', 'count')
+      .where('appointment.doctorId = :doctorId', { doctorId })
+      .andWhere(
+        'appointment.appointment_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: startDateStr,
+          endDate: endDateStr,
+        },
+      )
+      .andWhere('appointment.status != :cancelled', {
+        cancelled: AppointmentStatus.CANCELLED,
+      })
+      .getRawOne();
+
+    const newPatients = parseInt(newPatientsResult?.count) || 0;
+
+    // Calculate revenue
+    const revenueResult = await this.appointmentRepo
+      .createQueryBuilder('appointment')
+      .select('SUM(appointment.consultation_fee)', 'total')
+      .where('appointment.doctorId = :doctorId', { doctorId })
+      .andWhere(
+        'appointment.appointment_date BETWEEN :startDate AND :endDate',
+        {
+          startDate: startDateStr,
+          endDate: endDateStr,
+        },
+      )
+      .andWhere('appointment.status = :completed', {
+        completed: AppointmentStatus.COMPLETED,
+      })
+      .getRawOne();
+
+    const totalRevenue = parseFloat(revenueResult?.total) || 0;
+
+    // Get doctor info for rating
+    const doctor = await this.getDoctorById(doctorId);
+
+    return {
+      period: periodType,
+      total_appointments: totalAppointments,
+      completed_appointments: completedAppointments,
+      new_patients: newPatients,
+      total_revenue: totalRevenue,
+      rating: doctor.rating,
+      total_reviews: doctor.total_reviews,
+    };
+  }
+
+  async getTodaysSchedule(doctorId: string): Promise<any> {
+    const today = new Date().toISOString().split('T')[0];
+
+    const appointments = await this.appointmentRepo.find({
+      where: {
+        doctorId: doctorId,
+        appointment_date: today,
+      },
+    });
+
+    const total = appointments.length;
+    const confirmed = appointments.filter(
+      (a) => a.status === AppointmentStatus.CONFIRMED,
+    ).length;
+    const pending = appointments.filter(
+      (a) => a.status === AppointmentStatus.PENDING,
+    ).length;
+    const checkedIn = 0; // You'll need to implement check-in functionality
+
+    return {
+      total,
+      confirmed,
+      pending,
+      checked_in: checkedIn,
+      appointments,
+    };
+  }
+
+  // ==================== APPOINTMENT STATISTICS ====================
+
+  async getAppointmentStatistics(doctorId?: string): Promise<{
+    scheduled_appointments: number;
+    requested_appointments: number;
+    completed_appointments: number;
+    cancelled_appointments: number;
+    total_appointments: number;
+  }> {
+    const whereCondition = doctorId ? { doctorId } : {};
+
+    // Get all appointments for the doctor (or all appointments if no doctorId provided)
+    const appointments = await this.appointmentRepo.find({
+      where: whereCondition,
+    });
+
+    const scheduled = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.CONFIRMED,
+    ).length;
+
+    const requested = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.PENDING,
+    ).length;
+
+    const completed = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.COMPLETED,
+    ).length;
+
+    const cancelled = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.CANCELLED,
+    ).length;
+
+    const total = appointments.length;
+
+    return {
+      scheduled_appointments: scheduled,
+      requested_appointments: requested,
+      completed_appointments: completed,
+      cancelled_appointments: cancelled,
+      total_appointments: total,
+    };
+  }
+
+  async getAppointmentStatisticsByDateRange(
+    doctorId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<{
+    scheduled_appointments: number;
+    requested_appointments: number;
+    completed_appointments: number;
+    cancelled_appointments: number;
+    total_appointments: number;
+    date_range: {
+      start_date: string;
+      end_date: string;
+    };
+  }> {
+    const appointments = await this.appointmentRepo
+      .createQueryBuilder('appointment')
+      .where('appointment.doctorId = :doctorId', { doctorId })
+      .andWhere(
+        'appointment.appointment_date BETWEEN :startDate AND :endDate',
+        { startDate, endDate },
+      )
+      .getMany();
+
+    const scheduled = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.CONFIRMED,
+    ).length;
+
+    const requested = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.PENDING,
+    ).length;
+
+    const completed = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.COMPLETED,
+    ).length;
+
+    const cancelled = appointments.filter(
+      (apt) => apt.status === AppointmentStatus.CANCELLED,
+    ).length;
+
+    const total = appointments.length;
+
+    return {
+      scheduled_appointments: scheduled,
+      requested_appointments: requested,
+      completed_appointments: completed,
+      cancelled_appointments: cancelled,
+      total_appointments: total,
+      date_range: {
+        start_date: startDate,
+        end_date: endDate,
+      },
+    };
   }
 }

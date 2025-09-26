@@ -54,13 +54,13 @@ export default function CustomInput({
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = !isTextarea && type === 'password';
 
-    const wrapperStyle = useMemo(
+    const wrapperStyle = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.inputWrap,
-            isTextarea && { alignItems: 'flex-start', minHeight: 110, paddingVertical: spacing[12] },
-            variant === 'error' && { borderColor: colors.error },
-            isDisabled && { backgroundColor: colors.neutral200 },
-            focused && variant === 'normal' && { borderColor: colors.primary },
+            isTextarea ? { alignItems: 'flex-start', minHeight: 100, paddingVertical: spacing[12] } : undefined,
+            variant === 'error' ? { borderColor: colors.error } : undefined,
+            isDisabled ? { backgroundColor: colors.neutral200 } : undefined,
+            (focused && variant === 'normal') ? { borderColor: colors.primary } : undefined,
             containerStyle,
         ],
         [isTextarea, variant, isDisabled, focused, containerStyle]
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
         borderColor: colors.neutral400,
         borderRadius: radius.r8,
         paddingHorizontal: spacing[12],
-        paddingVertical: spacing[6],
+        paddingVertical: spacing[2],
         backgroundColor: colors.white,
         flexDirection: 'row',
         alignItems: 'center',
@@ -153,6 +153,6 @@ const styles = StyleSheet.create({
     iconLeft: { marginRight: spacing[8] },
     iconRight: { marginLeft: spacing[8] },
     messageRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[4] },
-    messageIcon: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+    messageIcon: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center', marginTop: -2 },
     messageText: { color: colors.neutral500 },
 });

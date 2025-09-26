@@ -16,6 +16,7 @@ const auth_middleware_1 = require("./middleware/auth.middleware");
 const notification_controller_1 = require("./notification.controller");
 const common_2 = require("@nestjs/common");
 const assistant_controller_1 = require("./assistant.controller");
+const pharmacy_controller_1 = require("./pharmacy.controller");
 const AuthServiceClient = microservices_1.ClientsModule.register([
     {
         name: 'AUTH_SERVICE_CLIENT',
@@ -55,12 +56,25 @@ const NotificationServiceClient = microservices_1.ClientsModule.register([
         },
     },
 ]);
+const PharmacyServiceClient = microservices_1.ClientsModule.register([
+    {
+        name: 'PHARMACY_SERVICE_CLIENT',
+        transport: microservices_1.Transport.RMQ,
+        options: {
+            urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+            queue: 'pharmacy_queue',
+            queueOptions: {
+                durable: false,
+            },
+        },
+    },
+]);
 let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(auth_middleware_1.AuthMiddleware)
-            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', 'doctors', { path: 'doctors/:id/reviews', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/available-slots', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/stats', method: common_2.RequestMethod.GET }, { path: 'doctors/:id', method: common_2.RequestMethod.GET })
-            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController, assistant_controller_1.AssistantController);
+            .exclude('auth/login', 'auth/register', 'auth/refresh-token', 'auth/verify-otp', 'auth/resend-otp', 'auth/forgot-password', 'auth/reset-password', 'auth/register/assistant', { path: 'doctors', method: common_2.RequestMethod.GET }, { path: 'doctors/stats', method: common_2.RequestMethod.GET }, { path: 'doctors/:id', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/reviews', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/available-slots', method: common_2.RequestMethod.GET }, { path: 'doctors/:id/stats', method: common_2.RequestMethod.GET }, { path: 'pharmacy', method: common_2.RequestMethod.GET }, { path: 'pharmacy/search', method: common_2.RequestMethod.GET }, { path: 'pharmacy/products', method: common_2.RequestMethod.GET }, { path: 'pharmacy/categories', method: common_2.RequestMethod.GET }, { path: 'pharmacy/:id', method: common_2.RequestMethod.GET })
+            .forRoutes(auth_controller_1.AuthController, doctor_controller_1.DoctorController, notification_controller_1.NotificationController, assistant_controller_1.AssistantController, pharmacy_controller_1.PharmacyController);
     }
 };
 exports.AppModule = AppModule;
@@ -74,12 +88,14 @@ exports.AppModule = AppModule = __decorate([
             AuthServiceClient,
             DoctorServiceClient,
             NotificationServiceClient,
+            PharmacyServiceClient,
         ],
         controllers: [
             auth_controller_1.AuthController,
             doctor_controller_1.DoctorController,
             notification_controller_1.NotificationController,
             assistant_controller_1.AssistantController,
+            pharmacy_controller_1.PharmacyController,
         ],
         providers: [auth_middleware_1.AuthMiddleware],
     })
