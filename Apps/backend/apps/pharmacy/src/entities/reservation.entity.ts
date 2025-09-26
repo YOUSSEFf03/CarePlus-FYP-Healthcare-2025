@@ -42,3 +42,5 @@ export class Reservation {
   @JoinColumn({ name: 'medicine_id' })
   medicine: Medicine;
 }
+
+

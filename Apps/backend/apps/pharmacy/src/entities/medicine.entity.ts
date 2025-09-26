@@ -29,3 +29,5 @@ export class Medicine {
   @OneToMany(() => Reservation, reservation => reservation.medicine)
   reservations: Reservation[];
 }
+
+

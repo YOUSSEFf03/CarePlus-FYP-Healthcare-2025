@@ -36,3 +36,5 @@ export class PharmacyBranchStock {
   @JoinColumn({ name: 'item_id' })
   item: Item;
 }
+
+

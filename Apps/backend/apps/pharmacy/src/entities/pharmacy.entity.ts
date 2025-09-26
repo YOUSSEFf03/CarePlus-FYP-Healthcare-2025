@@ -23,3 +23,5 @@ export class Pharmacy {
   @OneToMany(() => PharmacyBranch, branch => branch.pharmacy)
   branches: PharmacyBranch[];
 }
+
+
