@@ -78,3 +78,5 @@ This service integrates with:
 - **Auth Service**: For user authentication and prescription data
 - **Doctor Service**: For prescription information
 - **Notification Service**: For order and reservation notifications
+
+

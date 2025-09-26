@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import '../styles/login.css';
 import CustomInput from '../components/Inputs/CustomInput';
@@ -21,6 +20,7 @@ const DEMO_DOCTOR = {
     email: 'doctor@demo.com',
     password: 'doctor123',
     name: 'John Doe',
+    specialty: 'Cardiology',
 };
 
 const DEMO_ASSISTANT = {
@@ -82,8 +82,9 @@ export default function Login() {
             localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
             localStorage.setItem('userName', DEMO_DOCTOR.name);
             localStorage.setItem('userRole', role);
+            localStorage.setItem('userSpecialty', DEMO_DOCTOR.specialty);
 
-            login({ name: DEMO_DOCTOR.name, role });        // from your AuthContext
+            login({ name: DEMO_DOCTOR.name, role, specialty: DEMO_DOCTOR.specialty });        // from your AuthContext
             navigate('/doctor');
             setLoading(false);
             return;
@@ -104,14 +105,17 @@ export default function Login() {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/auth/login', {
-                email,
-                password,
+            const resp = await fetch('http://localhost:3000/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
 
-            console.log('Login API response:', response.data);
+            console.log('Login API response:', data);
 
-            const token = response.data?.data?.access_token || response.data?.access_token;
+            const token = data?.data?.access_token || data?.access_token;
             if (!token) throw new Error('No access token received');
 
             const decoded: JwtPayload = decodeJwt(token);
@@ -158,7 +162,7 @@ export default function Login() {
             setCurrentSlide((prev) => (prev + 1) % slides.length);
         }, 5000); // 5 seconds
         return () => clearInterval(interval);
-    }, []);
+    }, [slides.length]);
 
     return (
         <div className="login-page">

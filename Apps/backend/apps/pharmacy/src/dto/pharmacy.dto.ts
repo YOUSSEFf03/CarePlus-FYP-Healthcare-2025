@@ -54,3 +54,5 @@ export class GetPrescriptionsDto {
   sortBy?: 'date_issued' = 'date_issued';
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
 }
+
+

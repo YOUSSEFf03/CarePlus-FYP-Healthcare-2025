@@ -5,6 +5,7 @@ type Role = 'doctor' | 'assistant' | 'pharmacy';
 interface AuthUser {
     name: string;
     role: Role;
+    specialty?: string;
 }
 
 interface AuthContextType {

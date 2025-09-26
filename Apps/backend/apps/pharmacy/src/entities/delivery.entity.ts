@@ -39,3 +39,5 @@ export class Delivery {
   @JoinColumn({ name: 'address_id' })
   address: Address;
 }
+
+

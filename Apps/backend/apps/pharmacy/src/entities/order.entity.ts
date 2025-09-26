@@ -45,3 +45,5 @@ export class Order {
   @OneToMany(() => Delivery, delivery => delivery.order)
   deliveries: Delivery[];
 }
+
+

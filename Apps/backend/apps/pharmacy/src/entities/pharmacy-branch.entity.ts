@@ -41,3 +41,5 @@ export class PharmacyBranch {
   @OneToMany(() => Order, order => order.pharmacy_branch)
   orders: Order[];
 }
+
+
