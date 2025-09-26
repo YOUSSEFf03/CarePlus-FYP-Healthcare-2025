@@ -28,6 +28,9 @@ import PharmacyPrescriptions from '../pages/pharmacy/PharmacyPrescriptions';
 import PharmacyCustomers from "../pages/pharmacy/PharmacyCustomers";
 import PharmacyProfilePage from '../pages/pharmacy/PharmacyProfile';
 import PharmacyAddProduct from "../pages/pharmacy/PharmacyAddProduct";
+import AssistantDoctors from '../pages/assistant/AssistantDoctors';
+import AssistantInvitations from '../pages/assistant/AssistantInvitations';
+import AssistantWorkplaces from '../pages/assistant/AssistantWorkplaces';
 
 export default function AppRoutes() {
     return (
@@ -77,7 +80,11 @@ export default function AppRoutes() {
                 element={<ProtectedRoute allowedRoles={['assistant']} />}
             >
                 <Route element={<AssistantLayout />}>
-                    <Route index element={<AssistantDashboard />} />
+                    <Route index element={<Navigate to="dashboard" />} />
+                    <Route path='dashboard' element={<AssistantDashboard />} />
+                    <Route path="doctors" element={<AssistantDoctors />} />
+                    <Route path="invitations" element={<AssistantInvitations />} />
+                    <Route path="workplaces" element={<AssistantWorkplaces />} />
                     {/* <Route path="patients" element={<DoctorPatients />} /> */}
                 </Route>
             </Route>

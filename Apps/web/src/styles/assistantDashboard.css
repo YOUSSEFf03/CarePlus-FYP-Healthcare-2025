@@ -139,3 +139,176 @@
     background-color: #f9f9f9;
     border-radius: 12px;
 }
+
+/* panel container */
+.pending-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 24px;
+    /* overflow: hidden; */
+}
+
+.pending-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.pending-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* card */
+.pending-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #ffffff, #fafafa);
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); */
+    transition: all 0.2s ease;
+}
+
+/* .pending-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    border-color: #d1d5db;
+} */
+
+/* left part (avatar + main info) */
+.pending-card-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pending-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    /* background: linear-gradient(135deg, #f59e0b, #f97316); */
+    background-color: var(--secondary-20);
+    color: var(--secondary-70);
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15); */
+}
+
+.pending-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* header (patient + status pill) */
+.pending-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* meta info row */
+.pending-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.pending-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* status pill */
+.pending-status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.pending-status--pending {
+    background: var(--warning-05);
+    /* background: #fff7ed; */
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+/* actions */
+.pending-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-reject {
+    /* border: 1px solid var(--error-color) !important; */
+    /* border: 1px solid #fecaca !important; */
+    /* color: #b91c1c !important; */
+    color: var(--error-color) !important;
+    border: none;
+    /* background: #fef2f2 !important; */
+    /* background-color: var(--error-05); */
+    border-radius: 8px !important;
+    /* padding: 6px 14px !important; */
+    font-weight: 500;
+    transition: background 0.2s ease;
+    background: none;
+}
+
+.btn-reject:hover {
+    /* background: #fee2e2 !important; */
+    text-decoration: underline;
+    background: none;
+}
+
+.btn-accept {
+    /* background: linear-gradient(135deg, #059669, #10b981) !important; */
+    color: white !important;
+    background-color: var(--success-color) !important;
+    border-radius: 8px !important;
+    padding: 6px 16px !important;
+    font-weight: 500;
+    /* box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); */
+    transition: all 0.2s ease;
+}
+
+.btn-accept:hover {
+    /* background: linear-gradient(135deg, #047857, #059669) !important; */
+    background-color: var(--success-70) !important;
+    /* transform: translateY(-1px); */
+}
+
+/* empty state */
+.pending-empty {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px dashed #d1d5db;
+}
+
+.pending-empty p {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}

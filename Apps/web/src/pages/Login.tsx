@@ -23,6 +23,12 @@ const DEMO_DOCTOR = {
     name: 'John Doe',
 };
 
+const DEMO_ASSISTANT = {
+    email: 'assistant@demo.com',
+    password: 'assistant123',
+    name: 'Alice Smith',
+};
+
 type Role = 'doctor' | 'assistant' | 'pharmacy';
 
 type JwtPayload = {
@@ -79,6 +85,20 @@ export default function Login() {
 
             login({ name: DEMO_DOCTOR.name, role });        // from your AuthContext
             navigate('/doctor');
+            setLoading(false);
+            return;
+        } else if (
+            email.trim().toLowerCase() === DEMO_ASSISTANT.email &&
+            password === DEMO_ASSISTANT.password
+        ) {
+            // set whatever your app expects
+            const role: Role = 'assistant';
+            localStorage.setItem('token', 'demo-token');
+            localStorage.setItem('userName', DEMO_ASSISTANT.name);
+            localStorage.setItem('userRole', role);
+
+            login({ name: DEMO_ASSISTANT.name, role });
+            navigate('/assistant');
             setLoading(false);
             return;
         }
