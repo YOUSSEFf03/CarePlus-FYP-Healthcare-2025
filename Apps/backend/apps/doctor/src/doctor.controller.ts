@@ -34,7 +34,18 @@ export class DoctorController {
   // This route is called by auth service when user registers as doctor
   @MessagePattern('create_doctor')
   async createDoctor(@Payload() data: CreateDoctorDto) {
-    return this.doctorService.createDoctor(data);
+    console.log(
+      '📨 Doctor controller: Received create_doctor message with data:',
+      data,
+    );
+    try {
+      const result = await this.doctorService.createDoctor(data);
+      console.log('✅ Doctor controller: Successfully created doctor:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Doctor controller: Error creating doctor:', error);
+      throw error;
+    }
   }
 
   // Public route to get all verified doctors (for patient booking)

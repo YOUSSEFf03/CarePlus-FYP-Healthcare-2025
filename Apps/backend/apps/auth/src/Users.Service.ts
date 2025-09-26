@@ -5,10 +5,11 @@ import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
 import { Pharmacy } from './pharmacy.entity';
+import { Assistant } from './assistant.entity';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,9 @@ export class UsersService {
 
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
+
+    @InjectRepository(Assistant) // ← NEW: Inject Assistant repository
+    private readonly assistantRepo: Repository<Assistant>,
 
     private readonly jwtService: JwtService,
 
@@ -97,9 +101,20 @@ export class UsersService {
       if (data.role === UserRole.PATIENT) {
         await this.createPatientProfile(savedUser, data);
       } else if (data.role === UserRole.DOCTOR) {
-        await this.createDoctorProfile(savedUser, data);
+        try {
+          await this.createDoctorProfile(savedUser, data);
+        } catch (doctorError) {
+          console.error(
+            '⚠️ Doctor profile creation failed, but user was created:',
+            doctorError.message,
+          );
+          // Don't fail the entire registration if doctor service is unavailable
+          // The user can complete their doctor profile later
+        }
       } else if (data.role === UserRole.PHARMACY) {
         await this.createPharmacyProfile(savedUser, data);
+      } else if (data.role === UserRole.ASSISTANT) {
+        await this.createAssistantProfile(savedUser, data);
       }
 
       return savedUser;
@@ -204,6 +219,15 @@ export class UsersService {
   }
 
   private async createDoctorProfile(user: User, data: any): Promise<void> {
+    console.log('🏥 Creating doctor profile for user:', user.id);
+    console.log('📋 Doctor data received:', {
+      specialization: data.specialization,
+      license_number: data.license_number,
+      has_idCard: !!data.dr_idCard_url,
+      has_biography: !!data.biography,
+      has_license: !!data.medical_license_url,
+    });
+
     if (
       !data.specialization ||
       !data.license_number ||
@@ -211,8 +235,15 @@ export class UsersService {
       !data.biography ||
       !data.medical_license_url
     ) {
+      const missingFields = [];
+      if (!data.specialization) missingFields.push('specialization');
+      if (!data.license_number) missingFields.push('license_number');
+      if (!data.dr_idCard_url) missingFields.push('dr_idCard_url');
+      if (!data.biography) missingFields.push('biography');
+      if (!data.medical_license_url) missingFields.push('medical_license_url');
+
       throw this.rpcError(
-        'Missing required doctor details: specialization, license_number, dr_idCard_url, biography, and medical_license_url are required',
+        `Missing required doctor details: ${missingFields.join(', ')} are required`,
       );
     }
 
@@ -228,12 +259,43 @@ export class UsersService {
         verification_status: data.verification_status || 'pending',
       };
 
-      // Use emit instead of send for fire-and-forget
-      this.doctorClient.emit('create_doctor', doctorData);
-      console.log('Doctor profile creation sent to doctor service');
+      console.log('📤 Sending doctor data to doctor service:', doctorData);
+
+      // Use send() instead of emit() to wait for response with timeout
+      const result = await firstValueFrom(
+        this.doctorClient.send('create_doctor', doctorData).pipe(
+          timeout(10000), // 10 second timeout
+        ),
+      );
+      console.log('✅ Doctor profile created successfully:', result);
     } catch (error) {
-      console.error('Error sending doctor data to microservice:', error);
-      throw this.rpcError('Failed to create doctor profile');
+      console.error('❌ Error creating doctor profile:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        stack: error.stack,
+      });
+
+      // Check if it's a timeout error
+      if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+        throw this.rpcError(
+          'Doctor service is not responding. Please try again later.',
+          503,
+        );
+      }
+
+      // Check if it's a connection error
+      if (
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('connection')
+      ) {
+        throw this.rpcError(
+          'Doctor service is unavailable. Please try again later.',
+          503,
+        );
+      }
+
+      throw this.rpcError(`Failed to create doctor profile: ${error.message}`);
     }
   }
 
@@ -254,6 +316,37 @@ export class UsersService {
     } catch (error) {
       console.error('Error creating pharmacy profile:', error);
       throw this.rpcError('Failed to create pharmacy profile');
+    }
+  }
+
+  private async createAssistantProfile(user: User, data: any): Promise<void> {
+    console.log('👥 Creating assistant profile for user:', user.id);
+    console.log('📋 Assistant data received:', {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+    });
+
+    try {
+      const assistant = this.assistantRepo.create({
+        user: user,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        status: 'pending', // Default status for new assistants
+      });
+
+      const savedAssistant = await this.assistantRepo.save(assistant);
+      console.log('✅ Assistant profile created successfully:', savedAssistant);
+    } catch (error) {
+      console.error('❌ Error creating assistant profile:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw this.rpcError(
+        `Failed to create assistant profile: ${error.message}`,
+      );
     }
   }
 

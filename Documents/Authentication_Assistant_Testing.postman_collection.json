@@ -1,0 +1,907 @@
+{
+  "info": {
+    "name": "Healthcare System - Authentication & Assistant Testing",
+    "description": "Complete Postman collection for testing the fixed authentication system and enhanced assistant invite functionality",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assistant_access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assistant_refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "doctor_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assistant_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "workplace_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invite_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register Doctor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.access_token) {",
+                  "        pm.collectionVariables.set('access_token', response.access_token);",
+                  "        pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "        console.log('✅ Doctor registered successfully');",
+                  "        console.log('Access Token:', response.access_token);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Doctor registration failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"email\": \"dr.john.smith@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"doctor\",\n  \"phone\": \"+1234567890\",\n  \"specialization\": \"Cardiology\",\n  \"license_number\": \"DOC123456\",\n  \"dr_idCard_url\": \"https://example.com/idcard.jpg\",\n  \"biography\": \"Experienced cardiologist with 10 years of practice in cardiovascular diseases and interventional procedures.\",\n  \"medical_license_url\": \"https://example.com/license.pdf\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Test doctor registration with all required fields. This should create both user and doctor profile."
+          }
+        },
+        {
+          "name": "Register Assistant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.access_token) {",
+                  "        pm.collectionVariables.set('assistant_access_token', response.access_token);",
+                  "        pm.collectionVariables.set('assistant_refresh_token', response.refresh_token);",
+                  "        console.log('✅ Assistant registered successfully');",
+                  "        console.log('Assistant Access Token:', response.access_token);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Assistant registration failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Assistant\",\n  \"email\": \"jane.assistant@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"assistant\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Test assistant registration. This should create both user and assistant profile."
+          }
+        },
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Patient\",\n  \"email\": \"john.patient@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"patient\",\n  \"phone\": \"+1234567890\",\n  \"date_of_birth\": \"1990-01-15\",\n  \"gender\": \"male\",\n  \"medical_history\": \"No significant medical history\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Test patient registration for comparison."
+          }
+        },
+        {
+          "name": "Login Doctor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refresh_token);",
+                  "    console.log('✅ Doctor login successful');",
+                  "} else {",
+                  "    console.log('❌ Doctor login failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dr.john.smith@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as doctor to get access token."
+          }
+        },
+        {
+          "name": "Login Assistant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('assistant_access_token', response.access_token);",
+                  "    pm.collectionVariables.set('assistant_refresh_token', response.refresh_token);",
+                  "    console.log('✅ Assistant login successful');",
+                  "} else {",
+                  "    console.log('❌ Assistant login failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jane.assistant@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as assistant to get access token."
+          }
+        }
+      ],
+      "description": "Authentication endpoints for testing user registration and login"
+    },
+    {
+      "name": "👨‍⚕️ Doctor Management",
+      "item": [
+        {
+          "name": "Get Doctor Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/profile",
+              "host": ["{{base_url}}"],
+              "path": ["doctors", "profile"]
+            },
+            "description": "Get current doctor's profile information."
+          }
+        },
+        {
+          "name": "Create Workplace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('workplace_id', response.data.id);",
+                  "        console.log('✅ Workplace created successfully:', response.data.id);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Workplace creation failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workplace_name\": \"City Medical Center\",\n  \"workplace_type\": \"hospital\",\n  \"address\": {\n    \"street\": \"123 Medical Street\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"zipCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"phone\": \"+1-555-0123\",\n  \"email\": \"info@citymedical.com\",\n  \"website\": \"https://citymedical.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/doctors/workplace",
+              "host": ["{{base_url}}"],
+              "path": ["doctors", "workplace"]
+            },
+            "description": "Create a workplace for the doctor to invite assistants to."
+          }
+        },
+        {
+          "name": "Get My Workplaces",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/workplaces",
+              "host": ["{{base_url}}"],
+              "path": ["doctors", "workplaces"]
+            },
+            "description": "Get all workplaces for the current doctor."
+          }
+        }
+      ],
+      "description": "Doctor management endpoints"
+    },
+    {
+      "name": "👥 Assistant Invite System",
+      "item": [
+        {
+          "name": "Invite Assistant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('invite_id', response.data.id);",
+                  "        console.log('✅ Assistant invited successfully:', response.data.id);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Assistant invitation failed:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assistantEmail\": \"jane.assistant@example.com\",\n  \"workplaceId\": \"{{workplace_id}}\",\n  \"message\": \"Welcome to our medical team! We would love to have you join us as an assistant.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/doctors/invite-assistant",
+              "host": ["{{base_url}}"],
+              "path": ["doctors", "invite-assistant"]
+            },
+            "description": "Doctor invites an assistant to their workplace."
+          }
+        },
+        {
+          "name": "Get My Invites (Assistant)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Invites retrieved successfully');",
+                  "    console.log('Number of invites:', response.data ? response.data.length : 0);",
+                  "    if (response.data && response.data.length > 0) {",
+                  "        const firstInvite = response.data[0];",
+                  "        pm.collectionVariables.set('invite_id', firstInvite.id);",
+                  "        console.log('First invite ID:', firstInvite.id);",
+                  "        console.log('Doctor:', firstInvite.doctor.name);",
+                  "        console.log('Workplace:', firstInvite.workplace.name);",
+                  "        console.log('Status:', firstInvite.status);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Failed to get invites:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{assistant_access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/assistants/my-invites",
+              "host": ["{{base_url}}"],
+              "path": ["assistants", "my-invites"]
+            },
+            "description": "Assistant gets all their invites with detailed information."
+          }
+        },
+        {
+          "name": "Accept Invite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Invite accepted successfully');",
+                  "    console.log('Response:', response.data.message);",
+                  "} else {",
+                  "    console.log('❌ Failed to accept invite:', pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{assistant_access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inviteId\": \"{{invite_id}}\",\n  \"response\": \"accept\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/assistants/respond-to-invite",
+              "host": ["{{base_url}}"],
+              "path": ["assistants", "respond-to-invite"]
+            },
+            "description": "Assistant accepts an invite from a doctor."
+          }
+        },
+        {
+          "name": "Reject Invite",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{assistant_access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inviteId\": \"{{invite_id}}\",\n  \"response\": \"reject\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/assistants/respond-to-invite",
+              "host": ["{{base_url}}"],
+              "path": ["assistants", "respond-to-invite"]
+            },
+            "description": "Assistant rejects an invite from a doctor."
+          }
+        },
+        {
+          "name": "Get My Assistants (Doctor)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors/my-assistants",
+              "host": ["{{base_url}}"],
+              "path": ["doctors", "my-assistants"]
+            },
+            "description": "Doctor gets all their assistants across workplaces."
+          }
+        }
+      ],
+      "description": "Complete assistant invite system testing"
+    },
+    {
+      "name": "🧪 Test Scenarios",
+      "item": [
+        {
+          "name": "Complete Flow Test",
+          "item": [
+            {
+              "name": "1. Register Doctor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Dr. Test Smith\",\n  \"email\": \"dr.test@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"doctor\",\n  \"phone\": \"+1234567890\",\n  \"specialization\": \"General Medicine\",\n  \"license_number\": \"TEST123456\",\n  \"dr_idCard_url\": \"https://example.com/test-idcard.jpg\",\n  \"biography\": \"Test doctor for automated testing\",\n  \"medical_license_url\": \"https://example.com/test-license.pdf\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "2. Register Assistant",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test Assistant\",\n  \"email\": \"test.assistant@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"assistant\",\n  \"phone\": \"+1234567890\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "3. Login Doctor",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"dr.test@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "4. Create Workplace",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"workplace_name\": \"Test Medical Center\",\n  \"workplace_type\": \"clinic\",\n  \"address\": {\n    \"street\": \"456 Test Street\",\n    \"city\": \"Test City\",\n    \"state\": \"TS\",\n    \"zipCode\": \"12345\",\n    \"country\": \"USA\"\n  },\n  \"phone\": \"+1-555-TEST\",\n  \"email\": \"test@testmedical.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/doctors/workplace",
+                  "host": ["{{base_url}}"],
+                  "path": ["doctors", "workplace"]
+                }
+              }
+            },
+            {
+              "name": "5. Invite Assistant",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assistantEmail\": \"test.assistant@example.com\",\n  \"workplaceId\": \"{{workplace_id}}\",\n  \"message\": \"Welcome to our test medical team!\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/doctors/invite-assistant",
+                  "host": ["{{base_url}}"],
+                  "path": ["doctors", "invite-assistant"]
+                }
+              }
+            },
+            {
+              "name": "6. Login Assistant",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"test.assistant@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "7. Get Invites",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/assistants/my-invites",
+                  "host": ["{{base_url}}"],
+                  "path": ["assistants", "my-invites"]
+                }
+              }
+            },
+            {
+              "name": "8. Accept Invite",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"inviteId\": \"{{invite_id}}\",\n  \"response\": \"accept\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/assistants/respond-to-invite",
+                  "host": ["{{base_url}}"],
+                  "path": ["assistants", "respond-to-invite"]
+                }
+              }
+            }
+          ],
+          "description": "Complete end-to-end test scenario"
+        },
+        {
+          "name": "Error Handling Tests",
+          "item": [
+            {
+              "name": "Invalid Doctor Registration",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Dr. Invalid\",\n  \"email\": \"invalid-email\",\n  \"password\": \"123\",\n  \"role\": \"doctor\",\n  \"phone\": \"+1234567890\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register"]
+                },
+                "description": "Test validation errors for doctor registration"
+              }
+            },
+            {
+              "name": "Duplicate Email Registration",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Dr. Duplicate\",\n  \"email\": \"dr.john.smith@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"doctor\",\n  \"phone\": \"+1234567890\",\n  \"specialization\": \"Cardiology\",\n  \"license_number\": \"DOC123456\",\n  \"dr_idCard_url\": \"https://example.com/idcard.jpg\",\n  \"biography\": \"Duplicate doctor\",\n  \"medical_license_url\": \"https://example.com/license.pdf\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register"]
+                },
+                "description": "Test duplicate email registration error"
+              }
+            },
+            {
+              "name": "Invalid Invite Response",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"inviteId\": \"invalid-invite-id\",\n  \"response\": \"accept\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/assistants/respond-to-invite",
+                  "host": ["{{base_url}}"],
+                  "path": ["assistants", "respond-to-invite"]
+                },
+                "description": "Test invalid invite ID error"
+              }
+            }
+          ],
+          "description": "Error handling and validation tests"
+        }
+      ],
+      "description": "Comprehensive test scenarios"
+    },
+    {
+      "name": "📊 Monitoring & Debugging",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the service is running"
+          }
+        },
+        {
+          "name": "Get All Doctors (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/doctors?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["doctors"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all verified doctors (public endpoint)"
+          }
+        }
+      ],
+      "description": "Monitoring and debugging endpoints"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default base URL if not set",
+          "if (!pm.collectionVariables.get('base_url')) {",
+          "    pm.collectionVariables.set('base_url', 'http://localhost:3000');",
+          "}",
+          "",
+          "// Log request details",
+          "console.log('🚀 Making request to:', pm.request.url.toString());",
+          "console.log('📋 Method:', pm.request.method);",
+          "if (pm.request.body && pm.request.body.raw) {",
+          "    console.log('📝 Request body:', pm.request.body.raw);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Log response details",
+          "console.log('📊 Response Status:', pm.response.code);",
+          "console.log('⏱️ Response Time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Check for common errors",
+          "if (pm.response.code >= 400) {",
+          "    console.log('❌ Error Response:', pm.response.text());",
+          "} else {",
+          "    console.log('✅ Success Response');",
+          "}",
+          "",
+          "// Log response body for debugging",
+          "if (pm.response.text()) {",
+          "    try {",
+          "        const responseJson = pm.response.json();",
+          "        console.log('📄 Response Data:', JSON.stringify(responseJson, null, 2));",
+          "    } catch (e) {",
+          "        console.log('📄 Response Text:', pm.response.text());",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ]
+}

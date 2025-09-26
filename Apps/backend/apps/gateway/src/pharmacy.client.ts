@@ -14,3 +14,4 @@ export const PharmacyServiceClient: ClientProxy = ClientProxyFactory.create({
     },
   },
 });
+

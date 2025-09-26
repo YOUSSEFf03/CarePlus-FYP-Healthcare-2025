@@ -8,7 +8,6 @@ import { DoctorService } from './doctor.service';
 import { Doctor } from './doctor.entity';
 import { Appointment } from './appointment.entity';
 import { DoctorReview } from './doctor-review.entity';
-import { DoctorAnalytics } from './doctor-analytics.entity';
 
 // Import auth guards
 import { MicroserviceAuthGuard } from './guards/microservice-auth.guard';
@@ -37,7 +36,6 @@ import { AppointmentSlot } from './appointment-slot.entity';
         Doctor,
         Appointment,
         DoctorReview,
-        DoctorAnalytics,
         DoctorWorkplace,
         DoctorWorkplaceAssistant,
         Address,
@@ -57,7 +55,6 @@ import { AppointmentSlot } from './appointment-slot.entity';
       Address,
       AppointmentSlot,
       AssistantInvite,
-      DoctorAnalytics,
     ]),
 
     // RabbitMQ clients

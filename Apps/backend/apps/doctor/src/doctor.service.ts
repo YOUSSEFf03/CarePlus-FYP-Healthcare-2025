@@ -19,7 +19,6 @@ import { DoctorWorkplace, WorkplaceType } from './doctor-workplace.entity';
 import { Address } from './address.entity';
 import { AppointmentSlot } from './appointment-slot.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
-import { DoctorAnalytics } from './doctor-analytics.entity'; // Add this import
 import { Repository, Not, Between } from 'typeorm'; // Ensure Between is imported
 
 // Define interfaces for type safety
@@ -40,8 +39,6 @@ export class DoctorService {
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(DoctorReview)
     private readonly reviewRepo: Repository<DoctorReview>,
-    @InjectRepository(DoctorAnalytics)
-    private readonly analyticsRepo: Repository<DoctorAnalytics>, // Fixed syntax
     @InjectRepository(DoctorWorkplaceAssistant)
     private readonly doctorWorkplaceAssistantRepo: Repository<DoctorWorkplaceAssistant>,
     @InjectRepository(DoctorWorkplace)
@@ -64,11 +61,14 @@ export class DoctorService {
 
   // ==================== DOCTOR MANAGEMENT ====================
   async createDoctor(data: CreateDoctorDto): Promise<Doctor> {
+    console.log('🏥 Doctor service: Creating doctor with data:', data);
+
     const existing = await this.doctorRepo.findOne({
       where: [{ userId: data.userId }, { license_number: data.license_number }],
     });
 
     if (existing) {
+      console.log('❌ Doctor already exists:', existing);
       throw this.rpcError(
         'Doctor already exists or license number already in use',
         409,
@@ -82,7 +82,11 @@ export class DoctorService {
         VerificationStatus.PENDING,
     });
 
-    return await this.doctorRepo.save(doctor);
+    console.log('📝 Created doctor entity:', doctor);
+    const savedDoctor = await this.doctorRepo.save(doctor);
+    console.log('✅ Doctor saved successfully:', savedDoctor);
+
+    return savedDoctor;
   }
 
   async getDoctorByUserId(userId: string): Promise<Doctor> {
@@ -663,21 +667,37 @@ export class DoctorService {
     inviteId: string,
     response: 'accept' | 'reject',
   ): Promise<{ message: string }> {
+    console.log(
+      `📨 Assistant ${assistantUserId} responding to invite ${inviteId} with: ${response}`,
+    );
+
     try {
-      // Get invite
+      // Get invite with relations
       const invite = await this.assistantInviteRepo.findOne({
         where: { id: inviteId, assistantId: assistantUserId },
+        relations: ['doctor', 'workplace'],
       });
 
       if (!invite) {
+        console.log('❌ Invite not found for assistant');
         throw this.rpcError('Invite not found', 404);
       }
 
+      console.log('📋 Invite details:', {
+        id: invite.id,
+        status: invite.status,
+        expires_at: invite.expires_at,
+        doctorId: invite.doctorId,
+        workplaceId: invite.workplaceId,
+      });
+
       if (invite.status !== InviteStatus.PENDING) {
+        console.log('❌ Invite already responded to');
         throw this.rpcError('Invite already responded to', 400);
       }
 
-      if (invite.expires_at < new Date()) {
+      if (invite.expires_at && invite.expires_at < new Date()) {
+        console.log('❌ Invite has expired');
         invite.status = InviteStatus.EXPIRED;
         await this.assistantInviteRepo.save(invite);
         throw this.rpcError('Invite has expired', 400);
@@ -688,33 +708,106 @@ export class DoctorService {
         response === 'accept' ? InviteStatus.ACCEPTED : InviteStatus.REJECTED;
       await this.assistantInviteRepo.save(invite);
 
+      console.log(`✅ Invite ${response}ed successfully`);
+
       if (response === 'accept') {
         // Add assistant to workplace
         await this.addAssistantToWorkplace(invite);
 
         // Send acceptance notification to doctor
-        await this.sendInviteResponseNotification(invite, 'accepted');
+        try {
+          await this.sendInviteResponseNotification(invite, 'accepted');
+        } catch (notificationError) {
+          console.error(
+            'Failed to send acceptance notification:',
+            notificationError,
+          );
+          // Don't throw error, continue with success response
+        }
 
-        return { message: 'Invite accepted successfully' };
+        return {
+          message: 'Invite accepted successfully',
+        };
       } else {
         // Send rejection notification to doctor
-        await this.sendInviteResponseNotification(invite, 'rejected');
+        try {
+          await this.sendInviteResponseNotification(invite, 'rejected');
+        } catch (notificationError) {
+          console.error(
+            'Failed to send rejection notification:',
+            notificationError,
+          );
+          // Don't throw error, continue with success response
+        }
 
-        return { message: 'Invite rejected' };
+        return {
+          message: 'Invite rejected',
+        };
       }
     } catch (error) {
-      console.error('Error responding to invite:', error);
+      console.error('❌ Error responding to invite:', error);
       throw error;
     }
   }
 
-  async getAssistantInvites(
-    assistantUserId: string,
-  ): Promise<AssistantInvite[]> {
-    return this.assistantInviteRepo.find({
-      where: { assistantId: assistantUserId },
-      order: { created_at: 'DESC' },
-    });
+  async getAssistantInvites(assistantUserId: string): Promise<any[]> {
+    console.log('📨 Getting invites for assistant:', assistantUserId);
+
+    try {
+      const invites = await this.assistantInviteRepo.find({
+        where: { assistantId: assistantUserId },
+        relations: ['doctor', 'workplace'],
+        order: { created_at: 'DESC' },
+      });
+
+      // Enhance invites with additional information
+      const enhancedInvites = [];
+      for (const invite of invites) {
+        // Get doctor user details from auth service
+        const doctorUser = (await firstValueFrom(
+          this.authClient.send(
+            { cmd: 'get_user_by_id' },
+            { userId: invite.doctor.userId },
+          ),
+        )) as UserInfo;
+
+        // Check if invite is expired
+        const isExpired = invite.expires_at && invite.expires_at < new Date();
+        if (isExpired && invite.status === InviteStatus.PENDING) {
+          invite.status = InviteStatus.EXPIRED;
+          await this.assistantInviteRepo.save(invite);
+        }
+
+        enhancedInvites.push({
+          id: invite.id,
+          status: invite.status,
+          message: invite.message,
+          expires_at: invite.expires_at,
+          created_at: invite.created_at,
+          updated_at: invite.updated_at,
+          isExpired: isExpired,
+          doctor: {
+            id: invite.doctor.id,
+            name: doctorUser.name,
+            email: doctorUser.email,
+            specialization: invite.doctor.specialization,
+            verification_status: invite.doctor.verification_status,
+          },
+          workplace: {
+            id: invite.workplace.id,
+            name: invite.workplace.workplace_name,
+            type: invite.workplace.workplace_type,
+            addresses: invite.workplace.addresses,
+          },
+        });
+      }
+
+      console.log(`✅ Found ${enhancedInvites.length} invites for assistant`);
+      return enhancedInvites;
+    } catch (error) {
+      console.error('❌ Error getting assistant invites:', error);
+      throw this.rpcError('Failed to get assistant invites');
+    }
   }
 
   async getDoctorAssistants(doctorUserId: string): Promise<any[]> {

@@ -27,6 +27,10 @@ const AuthServiceClient = microservices_1.ClientsModule.register([
             queueOptions: {
                 durable: false,
             },
+            socketOptions: {
+                heartbeatIntervalInSeconds: 60,
+                reconnectTimeInSeconds: 5,
+            },
         },
     },
 ]);
@@ -39,6 +43,10 @@ const DoctorServiceClient = microservices_1.ClientsModule.register([
             queue: 'doctor_queue',
             queueOptions: {
                 durable: false,
+            },
+            socketOptions: {
+                heartbeatIntervalInSeconds: 60,
+                reconnectTimeInSeconds: 5,
             },
         },
     },
@@ -53,6 +61,10 @@ const NotificationServiceClient = microservices_1.ClientsModule.register([
             queueOptions: {
                 durable: false,
             },
+            socketOptions: {
+                heartbeatIntervalInSeconds: 60,
+                reconnectTimeInSeconds: 5,
+            },
         },
     },
 ]);
@@ -65,6 +77,10 @@ const PharmacyServiceClient = microservices_1.ClientsModule.register([
             queue: 'pharmacy_queue',
             queueOptions: {
                 durable: false,
+            },
+            socketOptions: {
+                heartbeatIntervalInSeconds: 60,
+                reconnectTimeInSeconds: 5,
             },
         },
     },

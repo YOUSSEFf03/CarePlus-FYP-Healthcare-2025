@@ -25,7 +25,7 @@ export class RegisterUserDto {
 
   @IsNotEmpty()
   @IsEnum(UserRole, {
-    message: 'Role must be one of: patient, doctor, pharmacy, admin',
+    message: 'Role must be one of: patient, doctor, pharmacy, assistant, admin',
   })
   role: UserRole;
 

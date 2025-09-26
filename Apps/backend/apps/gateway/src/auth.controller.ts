@@ -10,7 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, timeout } from 'rxjs';
 import { AuthenticatedRequest } from './middleware/auth.middleware';
 
 @Controller('auth')
@@ -60,7 +60,11 @@ export class AuthController {
     fallbackMsg: string,
   ) {
     try {
-      const result = await lastValueFrom(client.send(pattern, body));
+      const result = await lastValueFrom(
+        client.send(pattern, body).pipe(
+          timeout(15000), // 15 second timeout
+        ),
+      );
       return {
         success: true,
         data: result,
@@ -73,6 +77,20 @@ export class AuthController {
       if (typeof status !== 'number' || isNaN(status)) {
         status = HttpStatus.BAD_REQUEST;
       }
+
+      // Handle timeout errors
+      if (err.name === 'TimeoutError' || err.message.includes('timeout')) {
+        status = HttpStatus.GATEWAY_TIMEOUT;
+      }
+
+      // Handle connection errors
+      if (
+        err.message.includes('ECONNREFUSED') ||
+        err.message.includes('connection')
+      ) {
+        status = HttpStatus.SERVICE_UNAVAILABLE;
+      }
+
       const message = err?.response?.message || err?.message || fallbackMsg;
       throw new HttpException(
         {
@@ -98,6 +116,10 @@ export class AuthController {
         return 'Not Found';
       case HttpStatus.CONFLICT:
         return 'Conflict';
+      case HttpStatus.GATEWAY_TIMEOUT:
+        return 'Gateway Timeout';
+      case HttpStatus.SERVICE_UNAVAILABLE:
+        return 'Service Unavailable';
       default:
         return 'Internal Server Error';
     }

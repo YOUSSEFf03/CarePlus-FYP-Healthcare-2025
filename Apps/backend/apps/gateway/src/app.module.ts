@@ -19,6 +19,10 @@ const AuthServiceClient = ClientsModule.register([
       queueOptions: {
         durable: false,
       },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
+      },
     },
   },
 ]);
@@ -32,6 +36,10 @@ const DoctorServiceClient = ClientsModule.register([
       queue: 'doctor_queue',
       queueOptions: {
         durable: false,
+      },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
       },
     },
   },
@@ -47,6 +55,10 @@ const NotificationServiceClient = ClientsModule.register([
       queueOptions: {
         durable: false,
       },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
+      },
     },
   },
 ]);
@@ -60,6 +72,10 @@ const PharmacyServiceClient = ClientsModule.register([
       queue: 'pharmacy_queue',
       queueOptions: {
         durable: false,
+      },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
       },
     },
   },
