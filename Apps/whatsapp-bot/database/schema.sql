@@ -76,7 +76,7 @@ CREATE TABLE appointments (
     doctor_workplace_id INTEGER REFERENCES doctor_workplaces(workplace_id),
     slot_id INTEGER REFERENCES appointment_slots(slot_id),
     appointment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(50) DEFAULT 'booked',
+    status VARCHAR(50) DEFAULT 'CONFIRMED',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

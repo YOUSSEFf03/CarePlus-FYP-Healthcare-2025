@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { z } from "zod";
-import { triage } from "./engine";
+import { getSymptomVocab, prettySymptom } from "./ml";
+import { triage, getSymptomChips } from "./engine";
 
 const app = Fastify({ logger: true });
 
@@ -15,7 +16,7 @@ app.addHook("onRequest", async (req, reply) => {
 const Schema = z.object({
     context: z.object({
         age: z.number().int().min(0).max(120),
-        sex: z.enum(["male", "female"])
+        sex: z.enum(["male", "female", "unknown"])
     }),
     symptoms: z.array(z.object({
         id: z.string(),
@@ -36,3 +37,10 @@ app.get("/healthz", async () => ({ ok: true }));
 
 const PORT = Number(process.env.PORT || 4015);
 app.listen({ port: PORT, host: "0.0.0.0" });
+
+// app.get("/triage/vocab", async () => {
+//     const vocab = getSymptomVocab();
+//     return vocab.map(id => ({ id, label: prettySymptom(id) }));
+// });
+
+app.get("/triage/vocab", async () => getSymptomChips());

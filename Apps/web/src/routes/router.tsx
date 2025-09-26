@@ -28,6 +28,7 @@ import PharmacyPrescriptions from '../pages/pharmacy/PharmacyPrescriptions';
 import PharmacyCustomers from "../pages/pharmacy/PharmacyCustomers";
 import PharmacyProfilePage from '../pages/pharmacy/PharmacyProfile';
 import PharmacyAddProduct from "../pages/pharmacy/PharmacyAddProduct";
+import BreastCancerPage from './views/BreastCancerPage';
 
 export default function AppRoutes() {
     return (
@@ -61,6 +62,7 @@ export default function AppRoutes() {
                     <Route index element={<Navigate to="dashboard" />} />
                     <Route path="/doctor/profile" element={<DoctorProfilePage />} />
                     <Route path='dashboard' element={<DoctorDashboard />} />
+                    <Route path='breast-cancer' element={<BreastCancerPage />} />
                     <Route path="patients" element={<DoctorPatients />} />
                     <Route path="patients/:id" element={<PatientFullChart />} />
                     <Route path="calendar" element={<DoctorCalendar />} />

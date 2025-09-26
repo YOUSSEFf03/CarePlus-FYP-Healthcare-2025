@@ -4,7 +4,9 @@ import type { TriageRequest, TriageResponse } from "../../../../ai-triage/src/ty
 
 // Adjust for Android emulator
 const DEFAULT_DEV_URL =
-    Platform.OS === "android" ? "http://192.168.50.189:4015" : "http://localhost:4015";
+    Platform.OS === "android" ? "http://192.168.43.94:4015" : "http://localhost:4015";
+    // 192.168.43.94:4015 androidAP (usually last line)
+    // http://192.168.50.189:4015 home
 
 const AI_BASE =
     // Prefer env if you have Expo or your RN env setup
@@ -25,4 +27,12 @@ export async function triageAPI(payload: TriageRequest): Promise<TriageResponse>
         // Fallback: on-device engine
         return localTriage(payload);
     }
+}
+
+export type SymptomOption = { id: string; label: string };
+
+export async function fetchSymptomVocab(): Promise<SymptomOption[]> {
+    const res = await fetch(`${AI_BASE}/triage/vocab`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
 }

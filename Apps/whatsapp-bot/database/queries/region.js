@@ -1,28 +1,28 @@
-const db = require('../connections');
+const { doctorDb } = require('../connections');
 
 const RegionQueries = {
   getAllRegions: async () => {
     const query = 'SELECT * FROM regions ORDER BY name';
-    const result = await db.query(query);
+    const result = await doctorDb.query(query);
     return result.rows;
   },
 
   getRegionById: async (regionId) => {
     const query = 'SELECT * FROM regions WHERE region_id = $1';
-    const result = await db.query(query, [regionId]);
+    const result = await doctorDb.query(query, [regionId]);
     return result.rows[0];
   },
 
   getRegionByName: async (regionName) => {
     const query = 'SELECT * FROM regions WHERE LOWER(name) = LOWER($1)';
-    const result = await db.query(query, [regionName]);
+    const result = await doctorDb.query(query, [regionName]);
     return result.rows[0];
   },
 
   createRegion: async (regionData) => {
     const { name } = regionData;
     const query = 'INSERT INTO regions (name) VALUES ($1) RETURNING *';
-    const result = await db.query(query, [name]);
+    const result = await doctorDb.query(query, [name]);
     return result.rows[0];
   },
 
@@ -40,13 +40,13 @@ const RegionQueries = {
       RETURNING *
     `;
     
-    const result = await db.query(query, values);
+    const result = await doctorDb.query(query, values);
     return result.rows[0];
   },
 
   deleteRegion: async (regionId) => {
     const query = 'DELETE FROM regions WHERE region_id = $1 RETURNING *';
-    const result = await db.query(query, [regionId]);
+    const result = await doctorDb.query(query, [regionId]);
     return result.rows[0];
   }
 };

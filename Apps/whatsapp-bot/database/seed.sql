@@ -83,8 +83,8 @@ INSERT INTO appointment_slots (slot_id, doctor_id, workplace_id, date, start_tim
 
 -- Insert sample appointments
 INSERT INTO appointments (appointment_id, patient_id, doctor_workplace_id, slot_id, status, notes) VALUES
-(1, 1, 1, 1, 'booked', 'Routine heart checkup'),
-(2, 2, 2, 5, 'booked', 'Child vaccination'),
+(1, 1, 1, 1, 'CONFIRMED', 'Routine heart checkup'),
+(2, 2, 2, 5, 'CONFIRMED', 'Child vaccination'),
 (3, 3, 3, 8, 'completed', 'Knee pain consultation');
 
 -- Mark the booked slots as unavailable

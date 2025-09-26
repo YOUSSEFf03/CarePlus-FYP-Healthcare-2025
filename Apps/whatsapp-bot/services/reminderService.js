@@ -22,7 +22,7 @@ class ReminderService {
       let sentCount = 0;
       
       for (const appointment of appointments) {
-        if (appointment.status === 'booked') {
+        if (appointment.status === 'CONFIRMED') {
           const message = 
             `🔔 Appointment Reminder\n\n` +
             `You have an appointment tomorrow with Dr. ${appointment.doctor_name}\n` +
