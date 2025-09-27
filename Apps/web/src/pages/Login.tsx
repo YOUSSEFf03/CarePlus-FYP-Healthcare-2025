@@ -65,11 +65,15 @@ export default function Login() {
         ) {
             // set whatever your app expects
             const role: Role = 'pharmacy';
-            localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
-            localStorage.setItem('userName', DEMO_PHARMACY.name);
-            localStorage.setItem('userRole', role);
+            const fakeUser = {
+                sub: "demo-pharmacy-id",          // fake ID
+                email: DEMO_PHARMACY.email,
+                name: DEMO_PHARMACY.name,
+                role,
+            };
 
-            login({ name: DEMO_PHARMACY.name, role });        // from your AuthContext
+            localStorage.setItem('token', 'demo-token');
+            login(fakeUser);
             navigate('/pharmacy');
             setLoading(false);
             return;
@@ -79,12 +83,15 @@ export default function Login() {
         ) {
             // set whatever your app expects
             const role: Role = 'doctor';
-            localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
-            localStorage.setItem('userName', DEMO_DOCTOR.name);
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userSpecialty', DEMO_DOCTOR.specialty);
-
-            login({ name: DEMO_DOCTOR.name, role, specialty: DEMO_DOCTOR.specialty });        // from your AuthContext
+            const fakeUser = {
+                sub: "demo-doctor-id",            // fake ID
+                email: DEMO_DOCTOR.email,
+                name: DEMO_DOCTOR.name,
+                role,
+                specialty: DEMO_DOCTOR.specialty,
+            };
+            localStorage.setItem('token', 'demo-token');
+            login(fakeUser);
             navigate('/doctor');
             setLoading(false);
             return;
@@ -94,11 +101,15 @@ export default function Login() {
         ) {
             // set whatever your app expects
             const role: Role = 'assistant';
-            localStorage.setItem('token', 'demo-token');
-            localStorage.setItem('userName', DEMO_ASSISTANT.name);
-            localStorage.setItem('userRole', role);
+            const fakeUser = {
+                sub: "demo-assistant-id",       // fake ID, only needed for demo
+                name: DEMO_ASSISTANT.name,
+                email: DEMO_ASSISTANT.email,
+                role,
+            };
 
-            login({ name: DEMO_ASSISTANT.name, role });
+            localStorage.setItem('token', 'demo-token');
+            login(fakeUser);
             navigate('/assistant');
             setLoading(false);
             return;
@@ -123,7 +134,12 @@ export default function Login() {
             localStorage.setItem('token', token);
             localStorage.setItem('userName', decoded.name);
             localStorage.setItem('userRole', decoded.role);
-            login({ name: decoded.name, role: decoded.role });
+            login({
+                sub: decoded.sub,
+                email: decoded.email,
+                name: decoded.name,
+                role: decoded.role,
+            });
             navigate(`/${decoded.role}`);
         } catch (err: any) {
             console.error('Login error:', err);
@@ -233,11 +249,11 @@ export default function Login() {
                     <CustomText variant='text-body-lg-r' as={'p'}>Login to access your dashboard and start your journey!</CustomText>
                 </div>
                 <form className="login-form" onSubmit={handleSubmit}>
-                    {error && (
+                    {/* {error && (
                         <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
                             {error}
                         </div>
-                    )}
+                    )} */}
                     <div className="">
                         <CustomInput
                             label="Email"

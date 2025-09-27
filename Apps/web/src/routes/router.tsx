@@ -32,6 +32,9 @@ import AssistantDoctors from '../pages/assistant/AssistantDoctors';
 import AssistantInvitations from '../pages/assistant/AssistantInvitations';
 import AssistantWorkplaces from '../pages/assistant/AssistantWorkplaces';
 import BreastCancerPage from './views/BreastCancerPage';
+import WorkplaceManagementPage from '../pages/assistant/WorkplaceManagementPage';
+import AssistantSignup from '../pages/AssistantSignup';
+import PharmacySignup from '../pages/PharmacySignup';
 
 export default function AppRoutes() {
     return (
@@ -46,8 +49,8 @@ export default function AppRoutes() {
 
                 {/* Signups by role */}
                 <Route path="/register/doctor" element={<DoctorSignup />} />
-                {/* <Route path="/register/pharmacy" element={<PharmacySignup />} />
-                <Route path="/register/assistant" element={<AssistantSignup />} /> */}
+                <Route path="/register/pharmacy" element={<PharmacySignup />} />
+                <Route path="/register/assistant" element={<AssistantSignup />} />
 
                 {/* Common auth flows */}
                 {/* <Route path="/verify-otp" element={<VerifyOtp />} />
@@ -87,6 +90,7 @@ export default function AppRoutes() {
                     <Route path="doctors" element={<AssistantDoctors />} />
                     <Route path="invitations" element={<AssistantInvitations />} />
                     <Route path="workplaces" element={<AssistantWorkplaces />} />
+                    <Route path="workplaces/:slug" element={<WorkplaceManagementPage />} />
                     {/* <Route path="patients" element={<DoctorPatients />} /> */}
                 </Route>
             </Route>

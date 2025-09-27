@@ -4,7 +4,7 @@
     margin: 0 auto;
     padding: 24px;
     color: var(--black);
-    font-family: var(--ff-open-sans);
+    font-family: var(--ff-poppins);
     background: var(--neutral-100);
 }
 
@@ -118,6 +118,7 @@
 }
 
 .ds-check-title {
+    font-family: var(--poppins);
     margin: 0 0 8px;
     font-size: var(--fs-16);
     font-weight: var(--fw-600);
@@ -132,17 +133,21 @@
 
 .ds-checklist-col li {
     position: relative;
+    font-family: var(--poppins);
     padding-left: 22px;
     margin: 6px 0;
     font-size: var(--fs-14);
     color: var(--neutral-900);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .ds-checklist-col li::before {
     content: '✓';
     position: absolute;
     left: 0;
-    top: 0;
+    top: 10;
     line-height: 1;
     color: var(--success-50);
     font-weight: var(--fw-700);

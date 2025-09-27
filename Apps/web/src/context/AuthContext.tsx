@@ -3,7 +3,9 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 type Role = 'doctor' | 'assistant' | 'pharmacy';
 
 interface AuthUser {
+    sub: string;
     name: string;
+    email: string;
     role: Role;
     specialty?: string;
 }
@@ -26,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // const [user, setUser] = useState<{ role: Role } | null>(null);
     const [user, setUser] = useState<AuthUser | null>(() => {
         const stored = localStorage.getItem('user');
-        return stored ? JSON.parse(stored) : null;
+        return stored ? JSON.parse(stored) as AuthUser : null;
     });
 
     const login = (user: AuthUser) => {

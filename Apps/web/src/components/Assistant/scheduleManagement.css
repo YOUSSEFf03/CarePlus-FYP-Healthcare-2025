@@ -1,0 +1,63 @@
+.schedule-tab {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-24);
+    padding-top: 16px;
+}
+
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--gap-24);
+}
+
+.day-card {
+    background-color: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-12);
+    box-shadow: var(--shadow-light);
+    padding: var(--padding-16);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-16);
+}
+
+.day-header {
+    font-weight: var(--fw-600);
+    font-size: var(--fs-18);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--neutral-200);
+    padding-bottom: 6px;
+}
+
+.slots-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-8);
+}
+
+.slot-box {
+    padding: 6px 12px;
+    font-size: var(--fs-14);
+    border-radius: var(--radius-8);
+    font-weight: var(--fw-500);
+    transition: background 0.2s ease;
+}
+
+.slot-box.available {
+    background-color: var(--success-10);
+    color: var(--success-80);
+    border: 1px solid var(--success-30);
+}
+
+.slot-box.taken {
+    background-color: var(--error-05);
+    color: var(--error-70);
+    border: 1px solid var(--error-20);
+}
+
+.no-slots {
+    font-size: var(--fs-14);
+    color: var(--neutral-600);
+    padding: 8px 0;
+}

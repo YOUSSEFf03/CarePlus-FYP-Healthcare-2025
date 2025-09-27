@@ -32,13 +32,13 @@
 
 .chevron {
     /* font-size: var(--fs-20); */
-    margin-bottom: -4px;
+    margin-bottom: -2px;
     transition: transform var(--transition-200);
 }
 
 .chevron.open {
     transform: rotate(180deg);
-    margin-bottom: 4px;
+    margin-bottom: 0px;
 }
 
 .assistant-workplace-cards {
@@ -99,4 +99,93 @@
     align-items: center;
     gap: var(--gap-6);
     color: var(--neutral-900);
+}
+
+
+
+/* =========================
+=========================
+========================= */
+
+.tab-header {
+    display: flex;
+    gap: 12px;
+    border-bottom: 1px solid var(--neutral-200);
+    padding: var(--padding-8-24);
+    background-color: var(--neutral-100);
+}
+
+.tab-button {
+    padding: var(--padding-10-24);
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-weight: var(--fw-500);
+    color: var(--primary-30);
+    border-bottom: 3px solid transparent;
+    transition: var(--transition-200);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.tab-content {
+    padding: var(--padding-12-24);
+    background-color: var(--white);
+}
+
+/* --- OVERVIEW --- */
+.overview-content {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.overview-image {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: var(--radius-12);
+    box-shadow: var(--shadow-light);
+}
+
+.overview-details p {
+    margin-bottom: 8px;
+    font-size: var(--fs-15);
+}
+
+/* --- CALENDAR --- */
+.calendar-wrapper {
+    margin-top: 20px;
+    max-width: 600px;
+    box-shadow: var(--shadow-light);
+    border-radius: var(--radius-12);
+    overflow: hidden;
+}
+
+/* --- APPOINTMENTS --- */
+.appointment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.appointment-card {
+    background-color: var(--neutral-201);
+    padding: var(--padding-12-24);
+    border-radius: var(--radius-12);
+    box-shadow: var(--shadow-light);
+}
+
+.appointment-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+}
+
+.no-action {
+    color: var(--neutral-600);
 }

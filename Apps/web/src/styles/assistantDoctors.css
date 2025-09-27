@@ -49,13 +49,13 @@
     gap: 2px;
 }
 
-.workplace-hint {
+.assistant-workplace-hint {
     color: var(--neutral-700);
     font-size: var(--fs-14);
     margin-top: 2px;
 }
 
-.workplaces-list {
+.assistant-workplaces-list {
     list-style: none;
     padding: 0;
     display: flex;
@@ -63,7 +63,7 @@
     gap: var(--gap-12);
 }
 
-.workplace-btn {
+.assistant-workplace-btn {
     width: 100%;
     text-align: center;
     font-weight: var(--fw-500);
@@ -75,7 +75,7 @@
     transition: background-color var(--transition-200);
 }
 
-.workplace-btn:hover {
+.assistant-workplace-btn:hover {
     background-color: var(--secondary-20);
 }
 

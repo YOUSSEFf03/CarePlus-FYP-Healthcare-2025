@@ -90,8 +90,8 @@ export default function AssistantInvitations() {
 
                         {selectedInvite.status === "pending" && (
                             <div className="invite-actions">
-                                <Button onClick={() => handleResponse("accept")}>Accept</Button>
-                                <Button variant="secondary" onClick={() => handleResponse("reject")}>Reject</Button>
+                                <Button text="Accept" onClick={() => handleResponse("accept")}></Button>
+                                <Button text="Reject" variant="secondary" onClick={() => handleResponse("reject")}></Button>
                             </div>
                         )}
                     </>

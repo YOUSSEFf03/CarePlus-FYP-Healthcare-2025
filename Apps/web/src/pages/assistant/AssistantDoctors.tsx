@@ -71,19 +71,19 @@ function DoctorCard({ doctor }: { doctor: Doctor }) {
                     <CustomText as="h3" variant="text-heading-H4">
                         {doctor.name}
                     </CustomText>
-                    <CustomText as="p" variant="text-body-Small" className="workplace-hint">
+                    <CustomText as="p" variant="text-body-Small" className="assistant-workplace-hint">
                         Workplaces you manage under this doctor:
                     </CustomText>
                 </div>
             </div>
 
-            <ul className="workplaces-list">
+            <ul className="assistant-workplaces-list">
                 {doctor.workplaces.map((wp) => (
                     <li key={wp.id}>
                         <Button
                             variant="secondary"
                             onClick={() => handleManageWorkplace(doctor.id, wp.id)}
-                            className="workplace-btn"
+                            className="assistant-workplace-btn"
                             text={`${wp.name}`}
                             iconRight={
                                 <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -210,26 +210,41 @@ export default function DoctorSignup() {
         setError(null);
         setLoading(true);
         setUploading(true);
+
         try {
-            const payload = { ...form };
+            let payload: DoctorSignupPayload = {
+                ...form,
+                role: "doctor",
+                verification_status: "pending",
+                biography: form.biography || "—", // ✅ always send a string
+            };
 
             if (licenseFile) {
-                payload.medical_license_url = await uploadToSupabase(licenseFile, 'license');
-            }
-            if (idCardFile) {
-                payload.dr_idCard_url = await uploadToSupabase(idCardFile, 'id'); // <- 'id' not 'idCard'
+                const licenseUrl = await uploadToSupabase(licenseFile, "license");
+                payload.medical_license_url = licenseUrl;
             }
 
+            if (idCardFile) {
+                const idUrl = await uploadToSupabase(idCardFile, "id");
+                payload.dr_idCard_url = idUrl;
+            }
+
+            console.log("Submitting payload:", JSON.stringify(payload, null, 2));
             const res = await fetch(`${API_BASE}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
+
             const data = await res.json();
-            if (!res.ok || data?.success === false) throw new Error(data?.message || 'Registration failed');
-            navigate('/register/success', { replace: true });
+            if (!res.ok || data?.success === false || data?.status === "error") {
+                throw new Error(data?.message || "Registration failed");
+            }
+
+            navigate("/register/verify-otp", { replace: true });
         } catch (e: any) {
-            setError(e.message ?? 'Something went wrong');
+            console.error("Register error:", e);
+            setError(e.message ?? "Something went wrong");
         } finally {
             setUploading(false);
             setLoading(false);
@@ -346,9 +361,15 @@ export default function DoctorSignup() {
                                     searchPlaceholder="Search specialization"
                                     options={SPECIALIZATIONS}
                                     value={form.specialization}
-                                    onChange={(val) => {
-                                        setForm(f => ({ ...f, specialization: val }));
-                                        setErrors(e => ({ ...e, specialization: val ? '' : 'Specialization is required.' }));
+                                    onChange={(val: string | { value: string; label: string }) => {
+                                        const specializationValue =
+                                            typeof val === "string" ? val : val?.value || "";
+
+                                        setForm(f => ({ ...f, specialization: specializationValue }));
+                                        setErrors(e => ({
+                                            ...e,
+                                            specialization: specializationValue ? "" : "Specialization is required.",
+                                        }));
                                     }}
                                     variant={errors.specialization ? 'error' : 'normal'}
                                     message={errors.specialization}
@@ -367,7 +388,7 @@ export default function DoctorSignup() {
                             <div className="ds-textarea">
                                 <CustomInput
                                     as="textarea"
-                                    label="Biography (optional)"
+                                    label="Biography"
                                     placeholder="Short bio"
                                     value={form.biography ?? ""}
                                     onChange={onChange("biography")}
@@ -392,14 +413,14 @@ export default function DoctorSignup() {
                                     description="Image or PDF"
                                     value={licenseFile}
                                     onChange={setLicenseFile}
-                                    optional
+                                // optional
                                 />
                                 <FileUploader
                                     label="ID Card"
                                     description="Image or PDF"
                                     value={idCardFile}
                                     onChange={setIdCardFile}
-                                    optional
+                                // optional
                                 />
                             </FieldRow>
                         </div>

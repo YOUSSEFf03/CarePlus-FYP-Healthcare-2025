@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import "../../styles/assistantWorkplaces.css";
+import { useNavigate } from "react-router-dom";
 
 type Workplace = {
     id: number;
@@ -27,7 +28,7 @@ const doctors: Doctor[] = [
             {
                 id: 101,
                 name: "Green Clinic",
-                image: "https://avatar.freepik.com/18526052-211117104115.jpg",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
                 address: "123 Health Ave, City",
                 workingHours: "9:00 AM - 5:00 PM",
                 type: "Clinic",
@@ -36,7 +37,7 @@ const doctors: Doctor[] = [
             {
                 id: 102,
                 name: "Apollo Hospital",
-                image: "https://avatar.freepik.com/18526052-211117104115.jpg",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
                 address: "56 Main Rd, City",
                 workingHours: "10:00 AM - 4:00 PM",
                 type: "Hospital",
@@ -49,9 +50,9 @@ const doctors: Doctor[] = [
         name: "Dr. Kamran Aziz",
         workplaces: [
             {
-                id: 103,
+                id: 10387,
                 name: "DHA Medical Tower",
-                image: "https://avatar.freepik.com/18526052-211117104115.jpg",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
                 address: "99 DHA Blvd, City",
                 workingHours: "8:30 AM - 3:30 PM",
                 type: "Medical Tower",
@@ -62,10 +63,24 @@ const doctors: Doctor[] = [
 ];
 
 export default function AssistantWorkplaces() {
-    const [expandedDoctorId, setExpandedDoctorId] = useState<number | null>(null);
+    const [collapsedDoctorIds, setCollapsedDoctorIds] = useState<number[]>([]);
+    const navigate = useNavigate();
+
+    const slugify = (name: string) =>
+        name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 
     const toggleDoctor = (id: number) => {
-        setExpandedDoctorId((prev) => (prev === id ? null : id));
+        setCollapsedDoctorIds(prev =>
+            prev.includes(id)
+                ? prev.filter(d => d !== id)
+                : [...prev, id]
+        );
+    };
+
+    const isCollapsed = (id: number) => collapsedDoctorIds.includes(id);
+
+    const handleManageWorkplace = (workplaceName: string) => {
+        navigate(`/assistant/workplaces/${slugify(workplaceName)}`);
     };
 
     return (
@@ -80,20 +95,20 @@ export default function AssistantWorkplaces() {
                         <CustomText as="h3" variant="text-heading-H4">
                             {doctor.name}
                         </CustomText>
-                        <span className={`chevron ${expandedDoctorId === doctor.id ? "open" : ""}`}>
+                        <span className={`chevron ${!isCollapsed(doctor.id) ? "open" : ""}`}>
                             <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M26.7071 12.7081L16.7071 22.7081C16.6142 22.801 16.5039 22.8748 16.3825 22.9251C16.2611 22.9754 16.131 23.0013 15.9996 23.0013C15.8682 23.0013 15.738 22.9754 15.6166 22.9251C15.4952 22.8748 15.385 22.801 15.2921 22.7081L5.29208 12.7081C5.10444 12.5204 4.99902 12.2659 4.99902 12.0006C4.99902 11.7352 5.10444 11.4807 5.29208 11.2931C5.47972 11.1054 5.73422 11 5.99958 11C6.26494 11 6.51944 11.1054 6.70708 11.2931L15.9996 20.5868L25.2921 11.2931C25.385 11.2001 25.4953 11.1264 25.6167 11.0762C25.7381 11.0259 25.8682 11 25.9996 11C26.131 11 26.2611 11.0259 26.3825 11.0762C26.5039 11.1264 26.6142 11.2001 26.7071 11.2931C26.8 11.386 26.8737 11.4963 26.924 11.6177C26.9743 11.7391 27.0001 11.8692 27.0001 12.0006C27.0001 12.132 26.9743 12.2621 26.924 12.3835C26.8737 12.5048 26.8 12.6151 26.7071 12.7081Z" fill="currentColor" />
                             </svg>
                         </span>
                     </div>
 
-                    {expandedDoctorId === doctor.id && (
+                    {!isCollapsed(doctor.id) && (
                         <div className="assistant-workplace-cards">
                             {doctor.workplaces.map((wp) => (
                                 <div
                                     key={wp.id}
                                     className="assistant-workplace-card"
-                                    onClick={() => handleManageWorkplace(wp.id)}
+                                    onClick={() => handleManageWorkplace(wp.name)}
                                 >
                                     <img src={wp.image} alt={wp.name} className="assistant-workplace-img" />
                                     <div className="assistant-workplace-content">
@@ -120,9 +135,4 @@ export default function AssistantWorkplaces() {
             ))}
         </div>
     );
-}
-
-function handleManageWorkplace(workplaceId: number) {
-    console.log("Navigate to manage workplace", workplaceId);
-    // e.g., navigate(`/assistant/workplace/${workplaceId}`);
 }
