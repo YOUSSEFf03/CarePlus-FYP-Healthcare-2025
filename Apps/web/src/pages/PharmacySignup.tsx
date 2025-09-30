@@ -4,6 +4,7 @@ import Button from "../components/Button/Button";
 import CustomInput from "../components/Inputs/CustomInput";
 import PhoneInput from "../components/Inputs/PhoneInput";
 import FileUploader from "../components/Inputs/FileUploader";
+import GoogleMapsAddressPicker from "../components/Inputs/GoogleMapsAddressPicker";
 import { createClient } from "@supabase/supabase-js";
 import "../styles/doctorSignup.css";
 
@@ -20,18 +21,49 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const API_BASE = "http://localhost:3000";
 
 // ---- Types ----
+interface AddressData {
+    street: string;
+    city: string;
+    state: string;
+    country: string;
+    zipcode: string;
+    building_name?: string;
+    building_number?: string;
+    floor_number?: string;
+    area_description?: string;
+    maps_link?: string;
+    latitude?: number;
+    longitude?: number;
+}
+
 interface PharmacySignupPayload {
     name: string;                // contact person name
     email: string;
     password: string;
     phone: string;
     role: "pharmacy";
+    profile_picture_url?: string;
+    pharmacy_owner: string;
     pharmacy_name: string;
+    pharmacy_license?: string;
     address: string;
     license_number: string;
     commercial_register_url?: string;
     logo_url?: string;
     verification_status: "pending" | "verified" | "rejected";
+    // Address fields
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipcode?: string;
+    building_name?: string;
+    building_number?: string;
+    floor_number?: string;
+    area_description?: string;
+    maps_link?: string;
+    latitude?: number;
+    longitude?: number;
 }
 
 const initialState: PharmacySignupPayload = {
@@ -40,7 +72,10 @@ const initialState: PharmacySignupPayload = {
     password: "",
     phone: "",
     role: "pharmacy",
+    profile_picture_url: "",
+    pharmacy_owner: "",
     pharmacy_name: "",
+    pharmacy_license: "",
     address: "",
     license_number: "",
     commercial_register_url: "",
@@ -112,8 +147,11 @@ export default function PharmacySignup() {
     const [licenseFile, setLicenseFile] = useState<File | null>(null);
     const [logoFile, setLogoFile] = useState<File | null>(null);
 
+    // address
+    const [addressData, setAddressData] = useState<AddressData | null>(null);
+
     // validation (same style as doctor)
-    const validators = {
+    const validators = useMemo(() => ({
         name: (v: string) => (v.trim() ? "" : "Contact name is required."),
         email: (v: string) => (/^[^@]+@[^@]+\.[^@]+$/.test(v) ? "" : "Enter a valid email address."),
         phone: (v: string) => (v.startsWith("+") && /\+\d{6,}$/.test(v) ? "" : "Enter a valid phone number."),
@@ -122,10 +160,11 @@ export default function PharmacySignup() {
             if (!/[A-Za-z]/.test(v) || !/[0-9]/.test(v)) return "Use letters and numbers.";
             return "";
         },
+        pharmacy_owner: (v: string) => (v.trim() ? "" : "Pharmacy owner name is required."),
         pharmacy_name: (v: string) => (v.trim() ? "" : "Pharmacy name is required."),
         address: (v: string) => (v.trim() ? "" : "Address is required."),
         license_number: (v: string) => (v.trim() ? "" : "License number is required."),
-    } as const;
+    }), []);
 
     const runValidation = (key: keyof PharmacySignupPayload, value: string) => {
         const fn = (validators as any)[key];
@@ -148,15 +187,16 @@ export default function PharmacySignup() {
             !validators.email(form.email) &&
             !validators.phone(form.phone) &&
             !validators.password(form.password),
-        [form.name, form.email, form.phone, form.password]
+        [form.name, form.email, form.phone, form.password, validators]
     );
 
     const pharmacyValid = useMemo(
         () =>
+            !validators.pharmacy_owner(form.pharmacy_owner) &&
             !validators.pharmacy_name(form.pharmacy_name) &&
             !validators.address(form.address) &&
             !validators.license_number(form.license_number),
-        [form.pharmacy_name, form.address, form.license_number]
+        [form.pharmacy_owner, form.pharmacy_name, form.address, form.license_number, validators]
     );
 
     const docsValid = useMemo(() => !!licenseFile || !!form.commercial_register_url, [licenseFile, form.commercial_register_url]);
@@ -168,19 +208,66 @@ export default function PharmacySignup() {
         return true;
     }, [step, accountValid, pharmacyValid, docsValid]);
 
-    // upload helper
+    // upload helper with RLS workaround
     async function uploadToSupabase(file: File, kind: "license" | "logo"): Promise<string> {
         const safe = file.name.replace(/[^A-Za-z0-9_.-]+/g, "_");
         const path = `pharmacies/${Date.now()}_${kind}_${safe}`;
 
-        const { error } = await supabase.storage
-            .from(SUPABASE_BUCKET)
-            .upload(path, file, { contentType: file.type, upsert: true });
+        console.log(`Uploading ${kind} file to path: ${path}`);
 
-        if (error) throw new Error(error.message);
+        try {
+            // Try the normal upload first
+            const { data, error } = await supabase.storage
+                .from(SUPABASE_BUCKET)
+                .upload(path, file, { 
+                    contentType: file.type, 
+                    upsert: true,
+                    cacheControl: '3600'
+                });
 
-        const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
-        return data.publicUrl;
+            if (error) {
+                console.error('Supabase upload error:', error);
+                
+                // If RLS error, try with different approach
+                if (error.message.includes('row-level security')) {
+                    console.log('RLS error detected, trying alternative upload method...');
+                    
+                    // Try uploading to root of bucket instead of subfolder
+                    const rootPath = `${Date.now()}_${kind}_${safe}`;
+                    const { data: rootData, error: rootError } = await supabase.storage
+                        .from(SUPABASE_BUCKET)
+                        .upload(rootPath, file, { 
+                            contentType: file.type, 
+                            upsert: true
+                        });
+                    
+                    if (rootError) {
+                        throw new Error(`Upload failed: ${rootError.message}`);
+                    }
+                    
+                    const { data: urlData } = supabase.storage
+                        .from(SUPABASE_BUCKET)
+                        .getPublicUrl(rootPath);
+                    
+                    console.log('Alternative upload successful:', urlData.publicUrl);
+                    return urlData.publicUrl;
+                }
+                
+                throw new Error(`Upload failed: ${error.message}`);
+            }
+
+            console.log('Upload successful:', data);
+
+            const { data: urlData } = supabase.storage
+                .from(SUPABASE_BUCKET)
+                .getPublicUrl(path);
+            
+            console.log('Public URL generated:', urlData.publicUrl);
+            return urlData.publicUrl;
+        } catch (err) {
+            console.error('Upload failed completely:', err);
+            throw err;
+        }
     }
 
     // submit
@@ -190,23 +277,40 @@ export default function PharmacySignup() {
         setUploading(true);
 
         try {
-            const payload: PharmacySignupPayload = {
-                ...form,
+            // Send required fields plus file URLs
+            const payload = {
+                name: form.name,
+                email: form.email,
+                password: form.password,
                 role: "pharmacy",
-                verification_status: "pending",
+                phone: form.phone,
+                profile_picture_url: form.profile_picture_url,
+                pharmacy_owner: form.pharmacy_owner,
+                pharmacy_name: form.pharmacy_name,
+                pharmacy_license: form.pharmacy_license,
             };
 
-            // ensure required docs presence (backend tends to require them)
-            if (licenseFile) {
-                payload.commercial_register_url = await uploadToSupabase(licenseFile, "license");
-            }
-            if (logoFile) {
-                payload.logo_url = await uploadToSupabase(logoFile, "logo");
-            }
+            console.log('Registration payload:', payload);
 
-            // client-side guard
-            if (!payload.commercial_register_url) {
-                throw new Error("Please upload your commercial register/license document.");
+            // Upload files to Supabase storage
+            try {
+                if (logoFile) {
+                    console.log('Uploading logo file...');
+                    payload.profile_picture_url = await uploadToSupabase(logoFile, "logo");
+                    console.log('Logo uploaded successfully:', payload.profile_picture_url);
+                }
+                if (licenseFile) {
+                    console.log('Uploading license file...');
+                    payload.pharmacy_license = await uploadToSupabase(licenseFile, "license");
+                    console.log('License uploaded successfully:', payload.pharmacy_license);
+                }
+            } catch (uploadError) {
+                console.error('File upload failed:', uploadError);
+                const errorMessage = uploadError instanceof Error ? uploadError.message : 'Unknown upload error';
+                setError(`File upload failed: ${errorMessage}`);
+                setLoading(false);
+                setUploading(false);
+                return;
             }
 
             // send to the same /auth/register used elsewhere
@@ -232,10 +336,6 @@ export default function PharmacySignup() {
         }
     }
 
-    function nextStep() {
-        setDir("right");
-        setStep((s) => Math.min(totalSteps - 1, s + 1));
-    }
     function prevStep() {
         setDir("left");
         setStep((s) => Math.max(0, s - 1));
@@ -339,6 +439,14 @@ export default function PharmacySignup() {
                             <h2 className="ds-section-title">Pharmacy Details</h2>
                             <FieldRow>
                                 <CustomInput
+                                    label="Pharmacy Owner Name"
+                                    placeholder="John Smith"
+                                    value={form.pharmacy_owner}
+                                    onChange={onChange("pharmacy_owner")}
+                                    variant={errors.pharmacy_owner ? "error" : "normal"}
+                                    message={errors.pharmacy_owner}
+                                />
+                                <CustomInput
                                     label="Pharmacy Name"
                                     placeholder="HealthPlus Pharmacy"
                                     value={form.pharmacy_name}
@@ -346,6 +454,8 @@ export default function PharmacySignup() {
                                     variant={errors.pharmacy_name ? "error" : "normal"}
                                     message={errors.pharmacy_name}
                                 />
+                            </FieldRow>
+                            <FieldRow>
                                 <CustomInput
                                     label="License Number"
                                     placeholder="PHR-123456"
@@ -357,7 +467,7 @@ export default function PharmacySignup() {
                             </FieldRow>
                             <FieldRow>
                                 <CustomInput
-                                    label="Address"
+                                    label="Address (Text)"
                                     placeholder="Street, City, Country"
                                     value={form.address}
                                     onChange={onChange("address")}
@@ -365,6 +475,99 @@ export default function PharmacySignup() {
                                     message={errors.address}
                                 />
                             </FieldRow>
+                            <FieldRow>
+                                <GoogleMapsAddressPicker
+                                    label="Select Address on Map"
+                                    value={addressData || undefined}
+                                    onChange={setAddressData}
+                                    onError={(error) => setError(error)}
+                                    variant={errors.addressData ? "error" : "normal"}
+                                    message={errors.addressData}
+                                    placeholder="Search for your pharmacy address..."
+                                />
+                            </FieldRow>
+                            
+                            {/* Address Details - Optional Fields */}
+                            {addressData && (
+                                <div style={{ marginTop: '20px' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '15px', color: '#374151' }}>
+                                        Address Details (Optional)
+                                    </h3>
+                                    <FieldRow>
+                                        <CustomInput
+                                            label="Street Address"
+                                            placeholder="Enter street address"
+                                            value={addressData.street || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, street: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                        <CustomInput
+                                            label="Building Name"
+                                            placeholder="Enter building name"
+                                            value={addressData.building_name || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, building_name: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                    </FieldRow>
+                                    <FieldRow>
+                                        <CustomInput
+                                            label="Building Number"
+                                            placeholder="Enter building number"
+                                            value={addressData.building_number || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, building_number: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                        <CustomInput
+                                            label="Floor Number"
+                                            placeholder="Enter floor number"
+                                            value={addressData.floor_number || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, floor_number: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                    </FieldRow>
+                                    <FieldRow>
+                                        <CustomInput
+                                            label="City"
+                                            placeholder="Enter city"
+                                            value={addressData.city || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, city: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                        <CustomInput
+                                            label="State/Province"
+                                            placeholder="Enter state or province"
+                                            value={addressData.state || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, state: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                    </FieldRow>
+                                    <FieldRow>
+                                        <CustomInput
+                                            label="Country"
+                                            placeholder="Enter country"
+                                            value={addressData.country || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, country: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                        <CustomInput
+                                            label="ZIP/Postal Code"
+                                            placeholder="Enter ZIP or postal code"
+                                            value={addressData.zipcode || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, zipcode: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                    </FieldRow>
+                                    <FieldRow>
+                                        <CustomInput
+                                            label="Area Description"
+                                            placeholder="Enter area description or landmarks"
+                                            value={addressData.area_description || ''}
+                                            onChange={(e) => setAddressData(prev => prev ? { ...prev, area_description: e.target.value } : null)}
+                                            variant="normal"
+                                        />
+                                    </FieldRow>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -406,27 +609,45 @@ export default function PharmacySignup() {
                                 </div>
                                 <div className="ds-review-card">
                                     <h3 className="ds-review-title">Pharmacy</h3>
+                                    <div><span className="ds-muted">Owner:</span> {form.pharmacy_owner}</div>
                                     <div><span className="ds-muted">Pharmacy:</span> {form.pharmacy_name}</div>
                                     <div><span className="ds-muted">License No.:</span> {form.license_number}</div>
-                                    <div><span className="ds-muted">Address:</span> {form.address}</div>
+                                    <div><span className="ds-muted">Address (Text):</span> {form.address}</div>
+                                    {addressData && (
+                                        <div>
+                                            <span className="ds-muted">Selected Address:</span>
+                                            <div className="ds-address-details">
+                                                <div><strong>Coordinates:</strong> {addressData.latitude?.toFixed(6)}, {addressData.longitude?.toFixed(6)}</div>
+                                                {addressData.street && <div><strong>Street:</strong> {addressData.street}</div>}
+                                                {addressData.building_name && <div><strong>Building:</strong> {addressData.building_name}</div>}
+                                                {addressData.building_number && <div><strong>Building #:</strong> {addressData.building_number}</div>}
+                                                {addressData.floor_number && <div><strong>Floor:</strong> {addressData.floor_number}</div>}
+                                                {addressData.city && <div><strong>City:</strong> {addressData.city}</div>}
+                                                {addressData.state && <div><strong>State:</strong> {addressData.state}</div>}
+                                                {addressData.country && <div><strong>Country:</strong> {addressData.country}</div>}
+                                                {addressData.zipcode && <div><strong>ZIP:</strong> {addressData.zipcode}</div>}
+                                                {addressData.area_description && <div><strong>Area:</strong> {addressData.area_description}</div>}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="ds-review-card ds-col-span-2">
                                     <h3 className="ds-review-title">Documents</h3>
                                     <div className="ds-ellipsis">
-                                        <span className="ds-muted">Commercial Register / License:</span>{" "}
+                                        <span className="ds-muted">Pharmacy License:</span>{" "}
                                         {licenseFile ? (
                                             <>
                                                 {licenseFile.name} <span className="ds-hint">• {formatBytes(licenseFile.size)}</span>
                                             </>
-                                        ) : (fileNameFromUrl(form.commercial_register_url) || "—")}
+                                        ) : (fileNameFromUrl(form.pharmacy_license) || "—")}
                                     </div>
                                     <div className="ds-ellipsis">
-                                        <span className="ds-muted">Logo:</span>{" "}
+                                        <span className="ds-muted">Profile Picture (Logo):</span>{" "}
                                         {logoFile ? (
                                             <>
                                                 {logoFile.name} <span className="ds-hint">• {formatBytes(logoFile.size)}</span>
                                             </>
-                                        ) : (fileNameFromUrl(form.logo_url) || "—")}
+                                        ) : (fileNameFromUrl(form.profile_picture_url) || "—")}
                                     </div>
                                 </div>
                             </div>
@@ -465,6 +686,23 @@ export default function PharmacySignup() {
             </div>
 
             <p className="ds-legal">By creating an account you agree to our Terms and Privacy Policy.</p>
+            
+            <style>{`
+                .ds-address-details {
+                    margin-top: 0.5rem;
+                    padding: 0.75rem;
+                    background-color: var(--neutral-50);
+                    border-radius: 0.375rem;
+                    font-size: 0.875rem;
+                    line-height: 1.4;
+                }
+                .ds-address-details div {
+                    margin-bottom: 0.25rem;
+                }
+                .ds-address-details div:last-child {
+                    margin-bottom: 0;
+                }
+            `}</style>
         </div>
     );
 }

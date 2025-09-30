@@ -24,6 +24,9 @@ export class Pharmacy {
   @Column()
   pharmacy_name: string;
 
+  @Column({ nullable: true })
+  pharmacy_license: string;
+
   @CreateDateColumn()
   created_at: Date;
 

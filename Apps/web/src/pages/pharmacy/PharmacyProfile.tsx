@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import "../../styles/pharmacyProfile.css";
+import pharmacyProfileService, { UpdateProfileData } from "../../services/pharmacyProfileService";
 
 type Hours = {
     mon: string; tue: string; wed: string; thu: string; fri: string; sat: string; sun: string;
@@ -20,6 +21,10 @@ type PharmacyProfile = {
     notes: string;
     hours: Hours;
     logoDataUrl?: string;
+    // Additional fields for API integration
+    pharmacy_name?: string;
+    pharmacy_owner?: string;
+    pharmacy_license?: string;
 };
 
 const defaultHours: Hours = {
@@ -47,15 +52,55 @@ const LS_KEY = "pharmacyProfile";
 export default function PharmacyProfilePage() {
     const [profile, setProfile] = useState<PharmacyProfile>(emptyProfile);
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
+    // Load profile data from API
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(LS_KEY);
-            if (raw) setProfile({ ...emptyProfile, ...JSON.parse(raw) });
-        } catch {
-            // ignore
-        }
+        const loadProfile = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const profileData = await pharmacyProfileService.getProfile();
+                
+                // Map API data to local profile format
+                setProfile({
+                    name: profileData.user.name || '',
+                    email: profileData.user.email || '',
+                    phone: profileData.user.phone || '',
+                    address: profileData.branches[0]?.address || '',
+                    city: '', // Not available in current API
+                    country: '', // Not available in current API
+                    licenseNo: profileData.pharmacy_license || '',
+                    supportsDelivery: true, // Default value
+                    deliveryRadiusKm: 5, // Default value
+                    notes: '', // Not available in current API
+                    hours: defaultHours, // Default hours
+                    logoDataUrl: profileData.user.profile_picture_url || undefined,
+                    // Additional fields
+                    pharmacy_name: profileData.pharmacy_name || '',
+                    pharmacy_owner: profileData.pharmacy_owner || '',
+                    pharmacy_license: profileData.pharmacy_license || '',
+                });
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load profile');
+                
+                // Fallback to localStorage if API fails
+                try {
+                    const raw = localStorage.getItem(LS_KEY);
+                    if (raw) setProfile({ ...emptyProfile, ...JSON.parse(raw) });
+                } catch {
+                    // ignore
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadProfile();
     }, []);
 
     const update = <K extends keyof PharmacyProfile>(k: K, v: PharmacyProfile[K]) =>
@@ -72,10 +117,40 @@ export default function PharmacyProfilePage() {
 
     const onSave = async () => {
         setSaving(true);
+        setError(null);
         try {
+            // Prepare update data for API
+            const updateData: UpdateProfileData = {
+                name: profile.name,
+                email: profile.email,
+                phone: profile.phone,
+                pharmacy_name: profile.pharmacy_name,
+                pharmacy_owner: profile.pharmacy_owner,
+                pharmacy_license: profile.pharmacy_license,
+                profile_picture_url: profile.logoDataUrl,
+            };
+
+            // Update via API
+            const updatedProfile = await pharmacyProfileService.updateProfile(updateData);
+            
+            // Update local state with API response
+            setProfile(prev => ({
+                ...prev,
+                name: updatedProfile.user.name,
+                email: updatedProfile.user.email,
+                phone: updatedProfile.user.phone,
+                pharmacy_name: updatedProfile.pharmacy_name,
+                pharmacy_owner: updatedProfile.pharmacy_owner,
+                pharmacy_license: updatedProfile.pharmacy_license,
+                logoDataUrl: updatedProfile.user.profile_picture_url,
+            }));
+
+            // Also save to localStorage as backup
             localStorage.setItem(LS_KEY, JSON.stringify(profile));
-            // tiny pause for UX
-            await new Promise(r => setTimeout(r, 450));
+            
+        } catch (err) {
+            console.error('Error saving profile:', err);
+            setError(err instanceof Error ? err.message : 'Failed to save profile');
         } finally {
             setSaving(false);
         }
@@ -86,6 +161,20 @@ export default function PharmacyProfilePage() {
         localStorage.removeItem(LS_KEY);
     };
 
+    // Loading state
+    if (loading) {
+        return (
+            <div className="profile-page">
+                <div className="profile-header">
+                    <CustomText variant="text-heading-H2">Pharmacy profile</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading profile...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="profile-page">
             <div className="profile-header">
@@ -95,6 +184,19 @@ export default function PharmacyProfilePage() {
                     <Button text={saving ? "Saving…" : "Save changes"} onClick={onSave} />
                 </div>
             </div>
+
+            {error && (
+                <div style={{ 
+                    backgroundColor: '#fef2f2', 
+                    border: '1px solid #fecaca', 
+                    borderRadius: '8px', 
+                    padding: '12px', 
+                    marginBottom: '20px',
+                    color: '#dc2626'
+                }}>
+                    <CustomText variant="text-body-sm-r">Error: {error}</CustomText>
+                </div>
+            )}
 
             <div className="profile-grid">
                 {/* Identity card */}
@@ -113,9 +215,25 @@ export default function PharmacyProfilePage() {
                             <div className="field">
                                 <label>Pharmacy name</label>
                                 <input
+                                    value={profile.pharmacy_name || ''}
+                                    onChange={e => update("pharmacy_name", e.target.value)}
+                                    placeholder="City Care Pharmacy"
+                                />
+                            </div>
+                            <div className="field">
+                                <label>Contact person name</label>
+                                <input
                                     value={profile.name}
                                     onChange={e => update("name", e.target.value)}
-                                    placeholder="City Care Pharmacy"
+                                    placeholder="John Smith"
+                                />
+                            </div>
+                            <div className="field">
+                                <label>Pharmacy owner</label>
+                                <input
+                                    value={profile.pharmacy_owner || ''}
+                                    onChange={e => update("pharmacy_owner", e.target.value)}
+                                    placeholder="Jane Doe"
                                 />
                             </div>
                             <div className="btns-inline">
@@ -194,8 +312,8 @@ export default function PharmacyProfilePage() {
                     <div className="field">
                         <label>License number</label>
                         <input
-                            value={profile.licenseNo}
-                            onChange={e => update("licenseNo", e.target.value)}
+                            value={profile.pharmacy_license || ''}
+                            onChange={e => update("pharmacy_license", e.target.value)}
                             placeholder="PH-XXXX-YYYY"
                         />
                     </div>
