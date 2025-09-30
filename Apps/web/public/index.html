@@ -16,6 +16,14 @@
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <!-- Google Maps API -->
+  <script>
+    function initMap() {
+      console.log('Google Maps API loaded successfully!');
+      window.googleMapsReady = true;
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXOiQ1pFAkUz2Uf-rnAqqYvFB9l8NQq80&libraries=places&callback=initMap" async defer></script>
   <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.

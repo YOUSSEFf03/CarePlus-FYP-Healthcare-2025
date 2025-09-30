@@ -142,6 +142,27 @@ export class AssistantController {
     );
   }
 
+  @Get('doctor/pending-invites')
+  async getPendingInvites(@Req() req: AuthenticatedRequest) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_pending_invites' },
+      { token: req.token, doctorUserId: req.user.id },
+      'Failed to get pending invites',
+    );
+  }
+
   @Post('doctor/invite')
   async inviteAssistant(
     @Req() req: AuthenticatedRequest,
@@ -168,6 +189,30 @@ export class AssistantController {
       { cmd: 'invite_assistant' },
       { token: req.token, doctorUserId: req.user.id, ...body },
       'Failed to invite assistant',
+    );
+  }
+
+  @Delete('doctor/invites/:inviteId')
+  async cancelInvite(
+    @Req() req: AuthenticatedRequest,
+    @Param('inviteId') inviteId: string,
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'cancel_invite' },
+      { token: req.token, doctorUserId: req.user.id, inviteId },
+      'Failed to cancel invite',
     );
   }
 
@@ -200,29 +245,6 @@ export class AssistantController {
     );
   }
 
-  @Delete('doctor/cancel-invite/:inviteId')
-  async cancelInvite(
-    @Req() req: AuthenticatedRequest,
-    @Param('inviteId') inviteId: string,
-  ) {
-    if (req.user.role !== 'doctor') {
-      throw new HttpException(
-        {
-          success: false,
-          status: 403,
-          message: 'Doctor access required',
-          error: 'Forbidden',
-        },
-        403,
-      );
-    }
-
-    return this.handleRequest(
-      { cmd: 'cancel_invite' },
-      { token: req.token, doctorUserId: req.user.id, inviteId },
-      'Failed to cancel invite',
-    );
-  }
 
   // ==================== ADDITIONAL ASSISTANT ROUTES ====================
 

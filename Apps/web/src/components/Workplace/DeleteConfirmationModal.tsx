@@ -14,7 +14,7 @@ interface DeleteModalProps {
 export default function DeleteConfirmationModal({ name, onConfirm, onCancel }: DeleteModalProps) {
     const [input, setInput] = useState("");
 
-    const isMatch = input.trim() === name.trim();
+    const isMatch = input.trim() === (name || "").trim();
 
     useEffect(() => {
         document.body.style.overflow = "hidden";

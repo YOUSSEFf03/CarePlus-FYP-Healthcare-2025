@@ -15,6 +15,7 @@ export enum InviteStatus {
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
   EXPIRED = 'expired',
+  CANCELLED = 'cancelled',
 }
 
 @Entity('assistant_invites')

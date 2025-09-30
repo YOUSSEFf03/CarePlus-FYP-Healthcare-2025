@@ -10,7 +10,7 @@ import Login from '../pages/Login';
 import Unauthorized from '../pages/Unauthorized';
 import AssistantLayout from '../layouts/AssistantLayout';
 import AssistantDashboard from '../pages/assistant/AssistantDashboard';
-import DoctorAddPatient from '../pages/doctor/DoctorAddPatient';
+import AddWorkplace from '../pages/doctor/AddWorkplace';
 import DoctorProfilePage from "../pages/doctor/DoctorProfilePage";
 import PatientFullChart from '../pages/doctor/PatientFullChart';
 import DoctorAppointments from '../pages/doctor/DoctorAppointments';
@@ -35,6 +35,7 @@ import BreastCancerPage from './views/BreastCancerPage';
 import WorkplaceManagementPage from '../pages/assistant/WorkplaceManagementPage';
 import AssistantSignup from '../pages/AssistantSignup';
 import PharmacySignup from '../pages/PharmacySignup';
+import DoctorAssistants from '../pages/doctor/DoctorAssistants';
 
 export default function AppRoutes() {
     return (
@@ -75,7 +76,9 @@ export default function AppRoutes() {
                     <Route path="appointments" element={<DoctorAppointments />} />
                     <Route path="/doctor/appointments/:id" element={<AppointmentDetails />} />
                     <Route path="workplaces" element={<DoctorWorkplaces />} />
-                    <Route path="workplaces/:name" element={<WorkplaceDetails />} />
+                    <Route path="workplaces/:id" element={<WorkplaceDetails />} />
+                    <Route path="/doctor/workplaces/add" element={<AddWorkplace />} />
+                    <Route path="/doctor/assistants" element={<DoctorAssistants />} />
                 </Route>
             </Route>
 

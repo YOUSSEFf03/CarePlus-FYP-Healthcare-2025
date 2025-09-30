@@ -423,6 +423,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import CustomText from "../../components/Text/CustomText";
+import { ResponsivePie } from '@nivo/pie';
 import '../../styles/doctordashboard.css';
 import { ReactComponent as PatientIcon } from "../../assets/svgs/Users.svg";
 import { ReactComponent as AppointmentIcon } from "../../assets/svgs/CalendarBlank.svg";
@@ -434,6 +435,8 @@ import Calendar from "react-calendar";
 import 'react-calendar/dist/Calendar.css';
 import { useAuth } from '../../context/AuthContext';
 
+const API_BASE = "http://localhost:3000";
+
 type ValuePiece = Date | null;
 type CalendarValue = ValuePiece | [ValuePiece, ValuePiece];
 
@@ -444,13 +447,32 @@ type Analytics = {
     rating: number;
 };
 
+type AppointmentStats = {
+    scheduled_appointments: number;
+    requested_appointments: number;
+    completed_appointments: number;
+    cancelled_appointments: number;
+    total_appointments: number;
+};
+
+type PieChartData = {
+    id: string;
+    label: string;
+    value: number;
+    color: string;
+};
+
 type Appointment = {
     id: string;
-    time: string;
-    patient: string;
-    type: string;
+    appointment_time: string;
+    patientId: string;
+    symptoms?: string;
     status: string;
-    date: string; // "YYYY-MM-DD"
+    appointment_date: string; // "YYYY-MM-DD"
+    diagnosis?: string;
+    prescription?: string;
+    notes?: string;
+    consultation_fee?: number;
 };
 
 interface DecodedUser {
@@ -478,6 +500,77 @@ export default function DoctorDashboard() {
     const [errorAppointments, setErrorAppointments] = useState<string | null>(null);
 
     const [selectedDate, setSelectedDate] = useState<ValuePiece>(new Date());
+    const [dayAppointments, setDayAppointments] = useState<Appointment[]>([]);
+    const [loadingDayAppointments, setLoadingDayAppointments] = useState(false);
+
+    const [appointmentStats, setAppointmentStats] = useState<AppointmentStats | null>(null);
+    const [loadingStats, setLoadingStats] = useState(true);
+    const [errorStats, setErrorStats] = useState<string | null>(null);
+
+    // ---- Pie Chart Component
+    const AppointmentDistributionChart = ({ appointmentData }: { appointmentData: PieChartData[] }) => (
+        <div style={{ height: 350 }}>
+            <ResponsivePie
+                data={appointmentData}
+                colors={{ datum: 'data.color' }}
+                margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                innerRadius={0.5}
+                padAngle={0.7}
+                cornerRadius={3}
+                activeOuterRadiusOffset={8}
+                borderWidth={1}
+                borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
+                arcLinkLabelsSkipAngle={10}
+                arcLinkLabelsTextColor="#333333"
+                arcLinkLabelsThickness={2}
+                arcLinkLabelsColor={{ from: 'color' }}
+                arcLabelsSkipAngle={10}
+                arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
+                valueFormat={(v) => `${v}`}
+                legends={[
+                    {
+                        anchor: 'left',
+                        direction: 'column',
+                        justify: false,
+                        translateX: -60,
+                        translateY: 0,
+                        itemsSpacing: 8,
+                        itemWidth: 100,
+                        itemHeight: 20,
+                        itemTextColor: '#999',
+                        itemDirection: 'left-to-right',
+                        itemOpacity: 1,
+                        symbolSize: 18,
+                        symbolShape: 'circle',
+                        effects: [{ on: 'hover', style: { itemTextColor: '#000' } }],
+                    },
+                ]}
+            />
+        </div>
+    );
+
+    // ---- Fetch appointment statistics
+    useEffect(() => {
+        async function fetchAppointmentStats() {
+            try {
+                setLoadingStats(true);
+                setErrorStats(null);
+                const token = localStorage.getItem('token');
+                const { data } = await axios.get(`${API_BASE}/doctors/appointments/statistics`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setAppointmentStats(data.data || data);
+            } catch (err: any) {
+                console.error("Appointment stats fetch error:", err);
+                setErrorStats(err.response?.data?.message || "Failed to fetch appointment statistics");
+            } finally {
+                setLoadingStats(false);
+            }
+        }
+        if (doctorId) fetchAppointmentStats();
+    }, [doctorId]);
 
     // ---- Fetch analytics
     useEffect(() => {
@@ -485,12 +578,17 @@ export default function DoctorDashboard() {
             try {
                 setLoadingAnalytics(true);
                 setErrorAnalytics(null);
-                const { data } = await axios.get(`/doctor/${doctorId}/analytics`);
+                const token = localStorage.getItem('token');
+                const { data } = await axios.get(`${API_BASE}/doctors/analytics/monthly`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 setAnalytics({
-                    patients: data.totalPatients ?? 0,
-                    appointments: data.totalAppointments ?? 0,
-                    revenue: data.totalRevenue ?? 0,
-                    rating: data.rating ?? 0,
+                    patients: data.data?.new_patients ?? 0,
+                    appointments: data.data?.total_appointments ?? 0,
+                    revenue: data.data?.total_revenue ?? 0,
+                    rating: data.data?.rating ?? 0,
                 });
             } catch (err: any) {
                 console.error("Analytics fetch error:", err);
@@ -508,9 +606,22 @@ export default function DoctorDashboard() {
             try {
                 setLoadingAppointments(true);
                 setErrorAppointments(null);
-                const month = new Date().toISOString().slice(0, 7); // YYYY-MM
-                const { data } = await axios.get(`/doctor/${doctorId}/appointments?month=${month}`);
-                setAppointments(data ?? []);
+                const token = localStorage.getItem('token');
+                const today = new Date();
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                
+                const { data } = await axios.get(`${API_BASE}/doctors/appointments/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    params: {
+                        date_from: startOfMonth.toISOString().split('T')[0],
+                        date_to: endOfMonth.toISOString().split('T')[0],
+                        limit: 100 // Get all appointments for the month
+                    }
+                });
+                setAppointments(data.data?.appointments ?? []);
             } catch (err: any) {
                 console.error("Appointments fetch error:", err);
                 setErrorAppointments(err.response?.data?.message || "Failed to fetch appointments");
@@ -521,11 +632,78 @@ export default function DoctorDashboard() {
         if (doctorId) fetchAppointments();
     }, [doctorId]);
 
-    // ---- Filter appointments for selected day
-    const dayAppointments = useMemo(() => {
-        const iso = fmtISO(selectedDate);
-        return appointments.filter(a => a.date === iso);
-    }, [selectedDate, appointments]);
+    // ---- Fetch today's appointments on mount
+    useEffect(() => {
+        if (doctorId) {
+            fetchDayAppointments(new Date());
+        }
+    }, [doctorId]);
+
+    // ---- Fetch appointments for selected day
+    const fetchDayAppointments = async (date: Date) => {
+        try {
+            setLoadingDayAppointments(true);
+            const token = localStorage.getItem('token');
+            const iso = fmtISO(date);
+            const { data } = await axios.get(`${API_BASE}/doctors/appointments/me`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                params: {
+                    date_from: iso,
+                    date_to: iso,
+                    limit: 50
+                }
+            });
+            setDayAppointments(data.data?.appointments ?? []);
+        } catch (err: any) {
+            console.error("Day appointments fetch error:", err);
+            setDayAppointments([]);
+        } finally {
+            setLoadingDayAppointments(false);
+        }
+    };
+
+    // ---- Handle calendar date change
+    const handleDateChange = (val: CalendarValue) => {
+        const newDate = Array.isArray(val) ? val[0] : val;
+        setSelectedDate(newDate);
+        if (newDate) {
+            fetchDayAppointments(newDate);
+        }
+    };
+
+    // ---- Process appointment stats for pie chart
+    const pieChartData = useMemo(() => {
+        if (!appointmentStats) return [];
+        
+        return [
+            {
+                id: 'Scheduled',
+                label: 'Scheduled',
+                value: appointmentStats.scheduled_appointments,
+                color: '#7bbbff'
+            },
+            {
+                id: 'Requested',
+                label: 'Requested',
+                value: appointmentStats.requested_appointments,
+                color: '#b8a9ff'
+            },
+            {
+                id: 'Completed',
+                label: 'Completed',
+                value: appointmentStats.completed_appointments,
+                color: '#10b981'
+            },
+            {
+                id: 'Cancelled',
+                label: 'Cancelled',
+                value: appointmentStats.cancelled_appointments,
+                color: '#F58078'
+            }
+        ].filter(item => item.value > 0);
+    }, [appointmentStats]);
 
     return (
         <div className="dashboard-container">
@@ -555,6 +733,32 @@ export default function DoctorDashboard() {
                         <div className="empty-box">No analytics data available</div>
                     )}
                 </div>
+
+                {/* Pie Chart Section */}
+                <div className="pie-chart-section">
+                    <div className="chart-header">
+                        <CustomText variant="text-heading-H4" as="h4">Appointment Status Distribution</CustomText>
+                        <CustomText className="chart-subtitle" variant="text-body-sm-r" as="p">
+                            Breakdown of appointments by status across all time.
+                        </CustomText>
+                    </div>
+                    {loadingStats ? (
+                        <div className="skeleton-chart">Loading chart...</div>
+                    ) : errorStats ? (
+                        <div className="error-box">{errorStats}</div>
+                    ) : pieChartData.length > 0 ? (
+                        <>
+                            <AppointmentDistributionChart appointmentData={pieChartData} />
+                            <div className="chart-conclusion">
+                                <CustomText variant="text-body-md-r" as="p">
+                                    Total appointments: <strong>{appointmentStats?.total_appointments || 0}</strong>
+                                </CustomText>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="empty-box">No appointment data available</div>
+                    )}
+                </div>
             </div>
 
             {/* ---------- RIGHT PANEL ---------- */}
@@ -563,12 +767,12 @@ export default function DoctorDashboard() {
                     <CustomText variant="text-heading-H5" as="h5">Calendar</CustomText>
                     <Calendar
                         selectRange={false}
-                        onChange={(val: CalendarValue) => setSelectedDate(Array.isArray(val) ? val[0] : val)}
+                        onChange={handleDateChange}
                         value={selectedDate}
                         tileClassName={({ date, view }) => {
                             if (view !== 'month') return undefined;
                             const iso = fmtISO(date);
-                            return appointments.some(a => a.date === iso) ? "has-appts" : "";
+                            return appointments.some(a => a.appointment_date === iso) ? "has-appts" : "";
                         }}
                     />
                 </div>
@@ -578,18 +782,19 @@ export default function DoctorDashboard() {
                         {fmtISO(selectedDate) === fmtISO(new Date()) ? "Today’s Schedule" : "Selected Day"}
                     </CustomText>
 
-                    {loadingAppointments ? (
+                    {loadingDayAppointments ? (
                         <div className="skeleton-list">Loading appointments...</div>
-                    ) : errorAppointments ? (
-                        <div className="error-box">{errorAppointments}</div>
                     ) : (
                         <ul className="appointments-list">
                             {dayAppointments.length > 0 ? (
                                 dayAppointments.map(appt => (
                                     <li key={appt.id} className={`appt-item ${appt.status.toLowerCase()}`}>
-                                        <div className="appt-time">{appt.time}</div>
-                                        <div className="appt-patient">{appt.patient}</div>
+                                        <div className="appt-time">{appt.appointment_time}</div>
+                                        <div className="appt-patient">Patient ID: {appt.patientId}</div>
                                         <div className="appt-status">{appt.status}</div>
+                                        {appt.symptoms && (
+                                            <div className="appt-symptoms">{appt.symptoms}</div>
+                                        )}
                                     </li>
                                 ))
                             ) : (

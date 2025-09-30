@@ -1,6 +1,7 @@
 // src/doctor.service.ts - FIXED VERSION
 import { Injectable, Inject, Delete } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 import { RpcException } from '@nestjs/microservices';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
@@ -721,30 +722,132 @@ export class DoctorService {
     const doctor = await this.getDoctorByUserId(doctorUserId);
 
     // Get all assistants for this doctor's workplaces
-    const assistants = await this.doctorWorkplaceAssistantRepo
-      .createQueryBuilder('dwa')
-      .leftJoin('doctor_workplaces', 'dw', 'dw.id = dwa.doctorWorkplaceId')
-      .where('dw.doctorId = :doctorId', { doctorId: doctor.id })
-      .andWhere('dwa.status = :status', { status: 'active' })
-      .getMany();
+    // First get all workplaces for this doctor
+    const workplaces = await this.workplaceRepo.find({
+      where: { doctorId: doctor.id },
+      select: ['id']
+    });
+
+    const workplaceIds = workplaces.map(w => w.id);
+
+    if (workplaceIds.length === 0) {
+      return [];
+    }
+
+    // Then get all assistants for these workplaces
+    const assistants = await this.doctorWorkplaceAssistantRepo.find({
+      where: {
+        doctorWorkplaceId: In(workplaceIds),
+        status: 'active'
+      }
+    });
 
     // Get user details for each assistant
     const assistantDetails = [];
     for (const assistant of assistants) {
-      const userInfo = (await firstValueFrom(
-        this.authClient.send(
-          { cmd: 'get_user_by_id' },
-          { userId: assistant.assistantId },
-        ),
-      )) as UserInfo;
+      try {
+        const userInfo = (await firstValueFrom(
+          this.authClient.send(
+            { cmd: 'get_user_by_id' },
+            { userId: assistant.assistantId },
+          ),
+        )) as UserInfo;
 
-      assistantDetails.push({
-        ...assistant,
-        userInfo,
-      });
+        // Get workplace info
+        const workplace = await this.workplaceRepo.findOne({
+          where: { id: assistant.doctorWorkplaceId },
+        });
+
+        assistantDetails.push({
+          ...assistant,
+          userInfo,
+          workplaceInfo: workplace ? {
+            id: workplace.id,
+            workplace_name: workplace.workplace_name,
+            workplace_type: workplace.workplace_type,
+          } : null,
+        });
+      } catch (error) {
+        console.error(`Error fetching user info for assistant ${assistant.assistantId}:`, error);
+        // Continue with other assistants even if one fails
+      }
     }
 
     return assistantDetails;
+  }
+
+  async getDoctorPendingInvites(doctorUserId: string): Promise<any[]> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+
+    // Get all pending invites for this doctor's workplaces
+    // First get all workplaces for this doctor
+    const workplaces = await this.workplaceRepo.find({
+      where: { doctorId: doctor.id },
+      select: ['id']
+    });
+
+    const workplaceIds = workplaces.map(w => w.id);
+
+    if (workplaceIds.length === 0) {
+      return [];
+    }
+
+    // Then get all pending invites for these workplaces
+    const invites = await this.assistantInviteRepo.find({
+      where: {
+        workplaceId: In(workplaceIds),
+        status: InviteStatus.PENDING
+      },
+      order: { created_at: 'DESC' }
+    });
+
+    // Get workplace info for each invite
+    const inviteDetails = [];
+    for (const invite of invites) {
+      try {
+        const workplace = await this.workplaceRepo.findOne({
+          where: { id: invite.workplaceId },
+        });
+
+        inviteDetails.push({
+          ...invite,
+          workplaceInfo: workplace ? {
+            id: workplace.id,
+            workplace_name: workplace.workplace_name,
+            workplace_type: workplace.workplace_type,
+          } : null,
+        });
+      } catch (error) {
+        console.error(`Error fetching workplace info for invite ${invite.id}:`, error);
+        // Continue with other invites even if one fails
+      }
+    }
+
+    return inviteDetails;
+  }
+
+  async cancelInvite(doctorUserId: string, inviteId: string): Promise<void> {
+    const doctor = await this.getDoctorByUserId(doctorUserId);
+
+    // Find the invite and verify it belongs to this doctor
+    const invite = await this.assistantInviteRepo.findOne({
+      where: { id: inviteId },
+      relations: ['workplace'],
+    });
+
+    if (!invite) {
+      throw new Error('Invite not found');
+    }
+
+    // Verify the workplace belongs to this doctor
+    if (invite.workplace.doctorId !== doctor.id) {
+      throw new Error('You do not have permission to cancel this invite');
+    }
+
+    // Update invite status to cancelled
+    await this.assistantInviteRepo.update(inviteId, {
+      status: InviteStatus.CANCELLED,
+    });
   }
 
   private async addAssistantToWorkplace(
@@ -1127,16 +1230,6 @@ export class DoctorService {
 
   // ==================== ASSISTANT EXTRA METHODS ====================
 
-  async getDoctorPendingInvites(
-    doctorUserId: string,
-  ): Promise<AssistantInvite[]> {
-    const doctor = await this.getDoctorByUserId(doctorUserId);
-    return this.assistantInviteRepo.find({
-      where: { doctorId: doctor.id, status: InviteStatus.PENDING },
-      order: { created_at: 'DESC' },
-    });
-  }
-
   async getAssistantWorkplaces(assistantUserId: string): Promise<any[]> {
     const assignments = await this.doctorWorkplaceAssistantRepo.find({
       where: { assistantId: assistantUserId, status: 'active' },
@@ -1236,32 +1329,6 @@ export class DoctorService {
     return { message: 'Invite cancelled successfully' };
   }
 
-  async cancelInvite(
-    doctorUserId: string,
-    inviteId: string,
-  ): Promise<{ message: string }> {
-    const doctor = await this.getDoctorByUserId(doctorUserId);
-    const invite = await this.assistantInviteRepo.findOne({
-      where: {
-        id: inviteId,
-        doctorId: doctor.id,
-        status: InviteStatus.PENDING,
-      },
-    });
-
-    if (!invite) {
-      throw new RpcException({
-        status: 404,
-        message: 'Invite not found or already responded',
-      });
-    }
-
-    invite.status = InviteStatus.REJECTED;
-
-    await this.assistantInviteRepo.save(invite);
-
-    return { message: 'Invite cancelled successfully' };
-  }
   async getDoctorWeeklyStats(doctorId: string): Promise<any> {
     const startOfWeek = new Date();
     startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
