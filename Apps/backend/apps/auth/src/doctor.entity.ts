@@ -1,40 +1,47 @@
-// This file is deprecated and should be deleted.
-// The Doctor entity now lives in the doctor microservice.
-// Remove all code below or delete this file.
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
-// import {
-//   Entity,
-//   PrimaryGeneratedColumn,
-//   Column,
-//   OneToOne,
-//   JoinColumn,
-// } from 'typeorm';
-// import { User } from './user.entity';
+@Entity('doctors')
+export class Doctor {
+  @PrimaryGeneratedColumn()
+  doctor_id: number;
 
-// @Entity()
-// export class Doctor {
-//   @PrimaryGeneratedColumn('uuid')
-//   doctor_id: string;
+  @Column()
+  user_id: number;
 
-//   @OneToOne(() => User, { cascade: true })
-//   @JoinColumn({ name: 'user_id' })
-//   user: User;
+  @Column({ length: 100 })
+  specialization: string;
 
-//   @Column()
-//   specialization: string;
+  @Column({ length: 50 })
+  license_number: string;
 
-//   @Column()
-//   license_number: string;
+  @Column({ type: 'text', nullable: true })
+  biography: string;
 
-//   @Column()
-//   dr_idCard_url: string;
+  @Column({ nullable: true })
+  dr_idCard_url: string;
 
-//   @Column()
-//   biography: string;
+  @Column({ nullable: true })
+  medical_license_url: string;
 
-//   @Column()
-//   medical_license_url: string;
+  @Column({ default: 'pending' })
+  verification_status: string;
 
-//   @Column({ default: 'pending' })
-//   verification_status: string;
-// }
+  @ManyToOne(() => User, user => user.doctors)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+}

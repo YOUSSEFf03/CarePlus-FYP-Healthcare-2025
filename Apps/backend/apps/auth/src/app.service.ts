@@ -29,11 +29,25 @@ export class AppService {
       }
 
       const tokens = await this.usersService.generateTokens(user);
+      
+      // Get user profile with role-specific data
+      const userProfile = await this.usersService.getUserProfile({ userId: user.id });
+      
       return {
         access_token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
         expires_in: '15m',
         token_type: 'Bearer',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          date_of_birth: userProfile?.date_of_birth,
+          gender: userProfile?.gender,
+          medical_history: userProfile?.medical_history,
+        },
       };
     } catch (err) {
       console.error('Error in registerUser:', err?.message);
@@ -48,11 +62,30 @@ export class AppService {
         data.password,
       );
 
+      // Get user data
+      const user = await this.usersService.findByEmail(data.email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Get user profile with role-specific data
+      const userProfile = await this.usersService.getUserProfile({ userId: user.id });
+
       return {
         access_token: userWithTokens.access_token,
         refresh_token: userWithTokens.refresh_token,
         expires_in: '30m',
         token_type: 'Bearer',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          date_of_birth: userProfile?.date_of_birth,
+          gender: userProfile?.gender,
+          medical_history: userProfile?.medical_history,
+        },
       };
     } catch (err) {
       console.error('Error in loginUser:', err?.message);
@@ -66,11 +99,31 @@ export class AppService {
         data.refresh_token,
       );
 
+      // Get user data from the refresh token
+      const payload = this.jwtService.verify(data.refresh_token);
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Get user profile with role-specific data
+      const userProfile = await this.usersService.getUserProfile({ userId: user.id });
+
       return {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: '15m',
         token_type: 'Bearer',
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          date_of_birth: userProfile?.date_of_birth,
+          gender: userProfile?.gender,
+          medical_history: userProfile?.medical_history,
+        },
       };
     } catch (err) {
       console.error('Error in refreshToken:', err?.message);

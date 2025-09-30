@@ -7,6 +7,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 // Import entities
 import { User } from './user.entity';
 import { Patient } from './patient.entity';
+import { Doctor } from './doctor.entity';
 import { Pharmacy } from './pharmacy.entity';
 import { Assistant } from './assistant.entity';
 import { Address } from './address.entity';
@@ -37,7 +38,7 @@ import { AuthMiddleware } from './middleware/auth.middleware';
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [User, Patient, Pharmacy, Assistant, Address],
+      entities: [User, Patient, Doctor, Pharmacy, Assistant, Address],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       autoLoadEntities: true,
@@ -57,7 +58,7 @@ import { AuthMiddleware } from './middleware/auth.middleware';
     }),
 
     // Register repositories for entities
-    TypeOrmModule.forFeature([User, Patient, Pharmacy, Assistant, Address]),
+    TypeOrmModule.forFeature([User, Patient, Doctor, Pharmacy, Assistant, Address]),
 
     // RabbitMQ clients
     ClientsModule.register([

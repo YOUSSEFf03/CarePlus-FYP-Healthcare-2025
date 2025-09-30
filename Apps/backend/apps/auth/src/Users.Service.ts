@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
 import { Pharmacy } from './pharmacy.entity';
+import { Doctor } from './doctor.entity';
 import { Address } from './address.entity';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
@@ -19,6 +20,9 @@ export class UsersService {
 
     @InjectRepository(Patient)
     private readonly patientRepo: Repository<Patient>,
+
+    @InjectRepository(Doctor)
+    private readonly doctorRepo: Repository<Doctor>,
 
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
@@ -95,6 +99,7 @@ export class UsersService {
       } catch (otpError) {
         console.error('Failed to send OTP via notification service:', otpError);
         // Don't throw error, continue with user creation
+        // User will need to verify OTP later
       }
 
       // Handle role-specific data
@@ -123,10 +128,11 @@ export class UsersService {
       // Send email OTP
       const emailResult = await firstValueFrom(
         this.notificationClient.send(
-          { cmd: 'send_email_otp' },
+          { cmd: 'send_otp' },
           {
             userId: user.id,
-            email: user.email,
+            type: 'EMAIL',
+            recipient: user.email,
             otp: otp,
             userName: user.name,
           },
@@ -139,10 +145,11 @@ export class UsersService {
       if (user.phone) {
         const whatsappResult = await firstValueFrom(
           this.notificationClient.send(
-            { cmd: 'send_whatsapp_otp' },
+            { cmd: 'send_otp' },
             {
               userId: user.id,
-              phone: user.phone,
+              type: 'WHATSAPP',
+              recipient: user.phone,
               otp: otp,
               userName: user.name,
             },
@@ -190,7 +197,19 @@ export class UsersService {
   // ==================== EXISTING METHODS (Updated) ====================
 
   private async createPatientProfile(user: User, data: any): Promise<void> {
+    console.log('Creating patient profile with data:', {
+      date_of_birth: data.date_of_birth,
+      gender: data.gender,
+      medical_history: data.medical_history
+    });
+
     if (!data.date_of_birth || !data.gender) {
+      console.error('Missing required patient details:', {
+        hasDateOfBirth: !!data.date_of_birth,
+        hasGender: !!data.gender,
+        dateOfBirth: data.date_of_birth,
+        gender: data.gender
+      });
       throw this.rpcError(
         'Missing required patient details: date_of_birth and gender are required',
       );
@@ -201,12 +220,13 @@ export class UsersService {
         user: user,
         date_of_birth: data.date_of_birth,
         gender: data.gender,
-        medical_history: data.medical_history || '',
+        medical_history: data.medical_history || null, // Use null instead of empty string
       });
-      await this.patientRepo.save(patient);
+      const savedPatient = await this.patientRepo.save(patient);
+      console.log('Patient profile created successfully:', savedPatient.id);
     } catch (error) {
       console.error('Error creating patient profile:', error);
-      throw this.rpcError('Failed to create patient profile');
+      throw this.rpcError(`Failed to create patient profile: ${error.message}`);
     }
   }
 
@@ -297,6 +317,59 @@ export class UsersService {
     } catch (error) {
       console.error('Error finding user by ID:', error);
       return null;
+    }
+  }
+
+  async getUserProfile(data: { userId: string }): Promise<any> {
+    try {
+      const user = await this.userRepo.findOne({ 
+        where: { id: data.userId }
+      });
+
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      // Get role-specific profile data by querying the respective tables
+      if (user.role === UserRole.PATIENT) {
+        const patient = await this.patientRepo.findOne({ 
+          where: { user: { id: data.userId } } 
+        });
+        if (patient) {
+          return {
+            date_of_birth: patient.date_of_birth,
+            gender: patient.gender,
+            medical_history: patient.medical_history,
+          };
+        }
+      } else if (user.role === UserRole.DOCTOR) {
+        const doctor = await this.doctorRepo.findOne({ 
+          where: { user: { id: data.userId } } 
+        });
+        if (doctor) {
+          return {
+            specialization: doctor.specialization,
+            license_number: doctor.license_number,
+            biography: doctor.biography,
+          };
+        }
+      } else if (user.role === UserRole.PHARMACY) {
+        const pharmacy = await this.pharmacyRepo.findOne({ 
+          where: { user: { id: data.userId } } 
+        });
+        if (pharmacy) {
+          return {
+            pharmacy_name: pharmacy.pharmacy_name,
+            pharmacy_owner: pharmacy.pharmacy_owner,
+            pharmacy_license: pharmacy.pharmacy_license,
+          };
+        }
+      }
+
+      return {};
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      throw this.rpcError('Failed to get user profile');
     }
   }
 

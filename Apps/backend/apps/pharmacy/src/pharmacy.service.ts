@@ -461,10 +461,10 @@ export class PharmacyService {
   // Get pharmacy profile by user ID
   async getPharmacyProfile(userId: string) {
     try {
-      // Find pharmacy by user_id (UUID from auth service)
+      // Find pharmacy by user_id (convert string to number)
       const pharmacy = await this.pharmacyRepository.findOne({
-        where: { user_id: userId },
-        relations: ['user', 'branches'],
+        where: { user_id: parseInt(userId) },
+        relations: ['user'],
       });
 
       if (!pharmacy) {
@@ -476,23 +476,13 @@ export class PharmacyService {
         pharmacy_id: pharmacy.pharmacy_id,
         pharmacy_name: pharmacy.pharmacy_name,
         pharmacy_owner: pharmacy.pharmacy_owner,
-        pharmacy_license: pharmacy.pharmacy_license,
         user: {
-          id: pharmacy.user.id,
+          id: pharmacy.user.user_id,
           name: pharmacy.user.name,
           email: pharmacy.user.email,
           phone: pharmacy.user.phone,
           profile_picture_url: pharmacy.user.profile_picture_url,
         },
-        branches: pharmacy.branches.map(branch => ({
-          branch_id: branch.branch_id,
-          branch_name: branch.branch_name,
-          address: branch.address,
-          phone: branch.phone,
-          is_main: branch.is_main,
-        })),
-        created_at: pharmacy.created_at,
-        updated_at: pharmacy.updated_at,
       };
     } catch (error) {
       console.error('Error getting pharmacy profile:', error);
@@ -503,9 +493,9 @@ export class PharmacyService {
   // Update pharmacy profile
   async updatePharmacyProfile(userId: string, updateData: any) {
     try {
-      // Find pharmacy by user_id
+      // Find pharmacy by user_id (convert string to number)
       const pharmacy = await this.pharmacyRepository.findOne({
-        where: { user_id: userId },
+        where: { user_id: parseInt(userId) },
         relations: ['user'],
       });
 
@@ -520,9 +510,7 @@ export class PharmacyService {
       if (updateData.pharmacy_owner) {
         pharmacy.pharmacy_owner = updateData.pharmacy_owner;
       }
-      if (updateData.pharmacy_license) {
-        pharmacy.pharmacy_license = updateData.pharmacy_license;
-      }
+      // Remove pharmacy_license as it doesn't exist in the entity
 
       // Update user fields
       if (updateData.name) {
@@ -540,7 +528,7 @@ export class PharmacyService {
 
       // Save changes
       await this.pharmacyRepository.save(pharmacy);
-      await this.userRepository.save(pharmacy.user);
+      // Note: User updates should be handled by auth service
 
       return {
         success: true,
@@ -549,10 +537,9 @@ export class PharmacyService {
           pharmacy_id: pharmacy.pharmacy_id,
           pharmacy_name: pharmacy.pharmacy_name,
           pharmacy_owner: pharmacy.pharmacy_owner,
-          pharmacy_license: pharmacy.pharmacy_license,
         },
         user: {
-          id: pharmacy.user.id,
+          id: pharmacy.user.user_id,
           name: pharmacy.user.name,
           email: pharmacy.user.email,
           phone: pharmacy.user.phone,

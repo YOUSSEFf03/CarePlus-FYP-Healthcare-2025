@@ -62,4 +62,7 @@ export class User {
 
   @OneToMany('Address', 'user')
   addresses: any[];
+
+  @OneToMany('Doctor', 'user')
+  doctors: any[];
 }

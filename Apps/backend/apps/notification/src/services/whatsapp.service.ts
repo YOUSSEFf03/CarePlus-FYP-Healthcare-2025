@@ -3,8 +3,9 @@ import axios from 'axios';
 
 @Injectable()
 export class WhatsappService {
-  private instanceId = process.env.ULTRA_INSTANCE_ID;
-  private token = process.env.ULTRA_TOKEN;
+  private instanceId = process.env.ULTRA_INSTANCE_ID || 'your_instance_id_here';
+  private token = process.env.ULTRA_TOKEN || 'your_token_here';
+  private fromNumber = '+96171247781'; // Your WhatsApp number
 
   async sendMessage(
     phone: string,
@@ -15,7 +16,11 @@ export class WhatsappService {
 
       const response = await axios.post(
         url,
-        { to: phone, body: message },
+        { 
+          to: phone, 
+          body: message,
+          from: this.fromNumber
+        },
         { headers: { 'Content-Type': 'application/json' } },
       );
 
