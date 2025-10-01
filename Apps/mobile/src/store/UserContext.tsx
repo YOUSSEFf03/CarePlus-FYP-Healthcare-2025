@@ -7,6 +7,10 @@ export type User = {
     age: number;
     sex: Sex;
     phone?: string;
+    email?: string;
+    dateOfBirth?: string;
+    medicalHistory?: string;
+    role?: string;
 };
 
 type Ctx = {

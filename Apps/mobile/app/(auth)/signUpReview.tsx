@@ -1,6 +1,6 @@
 // app/(auth)/signUpReview.tsx
-import React, { useMemo } from 'react';
-import { View, StyleSheet, Pressable, ImageBackground } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, Pressable, ImageBackground, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -11,6 +11,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fontFamily, fontSize, radius, shadow, spacing } from '@/styles/tokens';
 import type { RootStackParamList, SignupDraft } from '../../App';
 import { useSignupDraft } from '@/context/SignupDraftContext';
+import { useUser } from '@/store/UserContext';
+import authService from '@/services/authService';
+import { testConnection } from '@/services/testConnection';
 
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
 type R = RouteProp<{ SignUpReview: { draft: SignupDraft } }, 'SignUpReview'>;
@@ -18,7 +21,10 @@ type R = RouteProp<{ SignUpReview: { draft: SignupDraft } }, 'SignUpReview'>;
 export default function SignUpReviewScreen() {
     const navigation = useNavigation<RootNav>();
     const { draft, reset } = useSignupDraft();
+    const { setUser } = useUser();
     const route = useRoute<R>();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isTestingConnection, setIsTestingConnection] = useState(false);
     // const draft = route.params?.draft;
 
     const dobDisplay = useMemo(() => {
@@ -44,11 +50,89 @@ export default function SignUpReviewScreen() {
         navigation.pop(2);
     };
 
-    const onCreate = () => {
-        // use `draft` to submit to API
-        // if success:
-        reset();
-        // then go to Tabs (or wherever)
+    const onCreate = async () => {
+        if (!draft.password) {
+            Alert.alert('Error', 'Password is required');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Prepare registration data
+            const registrationData = {
+                name: draft.fullName,
+                email: draft.email,
+                password: draft.password,
+                phone: draft.phone,
+                role: 'patient' as const,
+                date_of_birth: draft.dob ? new Date(draft.dob).toISOString().split('T')[0] : undefined, // Convert to YYYY-MM-DD format
+                gender: draft.gender,
+                medical_history: draft.history || undefined, // Convert empty string to undefined
+            };
+
+            // Submit registration
+            const response = await authService.registerPatient(registrationData);
+            
+            // Store auth data
+            await authService.storeAuthData(response);
+            
+            // Update user context
+            setUser({
+                id: response.data.user.id,
+                name: response.data.user.name,
+                age: response.data.user.date_of_birth 
+                    ? new Date().getFullYear() - new Date(response.data.user.date_of_birth).getFullYear()
+                    : 0,
+                sex: (response.data.user.gender as 'male' | 'female') || 'unknown',
+                phone: response.data.user.phone,
+                email: response.data.user.email,
+                dateOfBirth: response.data.user.date_of_birth,
+                medicalHistory: response.data.user.medical_history,
+                role: response.data.user.role,
+            });
+
+            // Reset draft
+            reset();
+
+            // Navigate to OTP verification
+            navigation.navigate('AuthStack', { 
+                screen: 'VerifyOtp', 
+                params: { 
+                    email: draft.email,
+                    phone: draft.phone 
+                } 
+            } as any);
+
+        } catch (error) {
+            console.error('Registration error:', error);
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            Alert.alert(
+                'Registration Failed', 
+                error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const testConnectionToServer = async () => {
+        setIsTestingConnection(true);
+        try {
+            const result = await testConnection();
+            Alert.alert(
+                'Connection Test', 
+                result.success 
+                    ? `Success! Status: ${result.status}` 
+                    : `Failed: ${result.error}`
+            );
+        } catch (error) {
+            Alert.alert('Connection Test', `Error: ${error}`);
+        } finally {
+            setIsTestingConnection(false);
+        }
     };
 
     const requiredOk = !!draft?.gender && !!draft?.dob && !!draft?.fullName && !!draft?.phone && !!draft?.email;
@@ -93,12 +177,23 @@ export default function SignUpReviewScreen() {
                     </View>
 
                     <View style={{ height: spacing[16] }} />
+                    
+                    {/* Debug: Test Connection Button */}
                     <Button
-                        text="Create account"
+                        text={isTestingConnection ? "Testing..." : "Test Connection"}
+                        variant="secondary"
+                        fullWidth
+                        onPress={testConnectionToServer}
+                        disabled={isTestingConnection}
+                    />
+                    
+                    <View style={{ height: spacing[8] }} />
+                    <Button
+                        text={isSubmitting ? "Creating account..." : "Create account"}
                         variant="primary"
                         fullWidth
                         onPress={onCreate}
-                        disabled={!requiredOk}
+                        disabled={!requiredOk || isSubmitting}
                     />
                 </View>
             </ImageBackground>

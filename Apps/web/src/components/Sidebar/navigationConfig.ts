@@ -41,7 +41,7 @@ export const sidebarConfig: {
         { title: "Overview", icon: "Grid3X3", url: "/assistant/dashboard" },
         { title: "Doctors", icon: "Doctor", url: "/assistant/doctors" },
         { title: "Workplaces", icon: "Workplaces", url: "/assistant/workplaces" },
-        { title: "Invites", icon: "Inivitations", url: "/assistant/workplaces/appointments" },
+        { title: "Invites", icon: "Inivitations", url: "/assistant/invitations" },
     ],
     pharmacy: [
         { title: "Overview", icon: "Grid3X3", url: "/pharmacy/dashboard" },

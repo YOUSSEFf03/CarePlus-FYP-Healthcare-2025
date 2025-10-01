@@ -1,5 +1,5 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, NativeScrollEvent, NativeSyntheticEvent, Image, ScrollView } from 'react-native';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, NativeScrollEvent, NativeSyntheticEvent, Image, ScrollView, Alert } from 'react-native';
 import CustomText from '../../src/components/CustomText';
 import CustomInput from '@/components/CustomInput';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, fontFamily, fontSize, spacing, radius, shadow } from '../../src/styles/tokens';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../App';
+import { useUser } from '@/store/UserContext';
+import locationService from '@/services/locationService';
+import notificationService from '@/services/notificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FRAME_HORIZONTAL = spacing[16];
@@ -100,18 +106,125 @@ const POPULAR_DOCTORS = [
     },
 ];
 
+type RootNav = NativeStackNavigationProp<RootStackParamList>;
+
 export default function Home() {
-    const userName = 'Ryan Blake';
+    const navigation = useNavigation<RootNav>();
+    const { user } = useUser();
     const [query, setQuery] = useState('');
     const insets = useSafeAreaInsets();
     const [page, setPage] = useState(0);
     const listRef = useRef<FlatList>(null);
+    
+    // Location and notification states
+    const [currentAddress, setCurrentAddress] = useState<string>('Getting location...');
+    const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
     const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
         const x = e.nativeEvent.contentOffset.x;
         const p = Math.round(x / (SCREEN_WIDTH - spacing[32])); // account for side padding
         if (p !== page) setPage(p);
     }, [page]);
+
+    // Initialize location and notifications
+    useEffect(() => {
+        initializeLocation();
+        loadNotifications();
+    }, []);
+
+    const initializeLocation = async () => {
+        try {
+            setIsLoadingLocation(true);
+            
+            // Check if we have stored location first
+            const storedLocation = await locationService.getStoredLocation();
+            if (storedLocation && storedLocation.address) {
+                setCurrentAddress(storedLocation.address);
+                setLocationPermissionGranted(true);
+                setIsLoadingLocation(false);
+                return;
+            }
+
+            // Request location permission
+            const permissionGranted = await locationService.requestLocationPermission();
+            setLocationPermissionGranted(permissionGranted);
+
+            if (permissionGranted) {
+                const location = await locationService.getCurrentLocation();
+                if (location && location.address) {
+                    setCurrentAddress(location.address);
+                } else {
+                    setCurrentAddress('Location not available');
+                }
+            } else {
+                setCurrentAddress('Location permission required');
+            }
+        } catch (error) {
+            console.error('Error initializing location:', error);
+            setCurrentAddress('Error getting location');
+        } finally {
+            setIsLoadingLocation(false);
+        }
+    };
+
+    const loadNotifications = async () => {
+        try {
+            await notificationService.loadNotifications();
+            
+            // Add sample notifications if none exist (for testing)
+            const notifications = notificationService.getNotifications();
+            if (notifications.length === 0) {
+                await notificationService.addSampleNotifications();
+            }
+            
+            const unreadCount = notificationService.getUnreadCount();
+            setUnreadNotifications(unreadCount);
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+        }
+    };
+
+    const handleLocationPermissionRequest = () => {
+        Alert.alert(
+            'Location Permission Required',
+            'This app needs location access to show your current address and provide location-based services. Please grant location permission to continue.',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Grant Permission',
+                    onPress: initializeLocation,
+                },
+            ]
+        );
+    };
+
+    const handleNotificationPress = () => {
+        navigation.navigate('Notifications' as any);
+    };
+
+    const refreshLocation = async () => {
+        if (!locationPermissionGranted) {
+            handleLocationPermissionRequest();
+            return;
+        }
+
+        try {
+            setIsLoadingLocation(true);
+            const location = await locationService.refreshLocation();
+            if (location && location.address) {
+                setCurrentAddress(location.address);
+            }
+        } catch (error) {
+            console.error('Error refreshing location:', error);
+        } finally {
+            setIsLoadingLocation(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -129,27 +242,54 @@ export default function Home() {
                     end={{ x: 0, y: 1 }}
                     style={styles.gradient}
                 >
-                    {/* Top row: avatar placeholder + greeting + bell */}
+                    {/* Top row: address + notification bell */}
                     <View style={styles.topRow}>
-                        <View style={styles.leftBlock}>
-                            {/* Avatar placeholder (no profile photo) */}
-                            <View style={styles.avatar}>
-                                <Ionicons name="person-outline" size={24} color={colors.neutral700} />
+                        <TouchableOpacity 
+                            style={styles.leftBlock}
+                            onPress={refreshLocation}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.locationContainer}>
+                                <Ionicons 
+                                    name="location-outline" 
+                                    size={20} 
+                                    color={locationPermissionGranted ? colors.primary : colors.neutral500} 
+                                />
+                                <View style={styles.addressContainer}>
+                                    <CustomText variant="text-body-xs-r" style={styles.locationLabel}>
+                                        Current Location
+                                    </CustomText>
+                                    <CustomText 
+                                        variant="text-body-sm-m" 
+                                        style={[
+                                            styles.addressText,
+                                            !locationPermissionGranted && styles.permissionRequiredText
+                                        ]}
+                                        numberOfLines={2}
+                                    >
+                                        {isLoadingLocation ? 'Getting location...' : currentAddress}
+                                    </CustomText>
+                                </View>
+                                {isLoadingLocation && (
+                                    <Ionicons name="refresh" size={16} color={colors.neutral500} />
+                                )}
                             </View>
+                        </TouchableOpacity>
 
-                            <View style={styles.greeting}>
-                                <CustomText variant="text-body-sm-r" style={styles.hello}>
-                                    Welcome Back!
-                                </CustomText>
-                                <CustomText variant="text-heading-H4" style={styles.name}>
-                                    {userName}
-                                </CustomText>
-                            </View>
-                        </View>
-
-                        {/* Bell (ghost circle) */}
-                        <TouchableOpacity activeOpacity={0.8} style={styles.ghostIconBtn}>
+                        {/* Notification Bell with unread indicator */}
+                        <TouchableOpacity 
+                            activeOpacity={0.8} 
+                            style={styles.ghostIconBtn}
+                            onPress={handleNotificationPress}
+                        >
                             <Ionicons name="notifications-outline" size={24} color={colors.black} />
+                            {unreadNotifications > 0 && (
+                                <View style={styles.notificationBadge}>
+                                    <CustomText variant="text-body-sm-m" style={styles.badgeText}>
+                                        {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                                    </CustomText>
+                                </View>
+                            )}
                         </TouchableOpacity>
                     </View>
 
@@ -433,7 +573,44 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         marginBottom: spacing[16],
     },
-    leftBlock: { flexDirection: 'row', alignItems: 'center' },
+    leftBlock: { 
+        flex: 1, 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        marginRight: spacing[12],
+    },
+
+    locationContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.white,
+        borderRadius: radius.r12,
+        padding: spacing[12],
+        ...shadow(1),
+    },
+
+    addressContainer: {
+        flex: 1,
+        marginLeft: spacing[8],
+    },
+
+    locationLabel: {
+        color: colors.neutral500,
+        fontSize: fontSize[12],
+        marginBottom: spacing[2],
+    },
+
+    addressText: {
+        color: colors.primary,
+        fontSize: fontSize[14],
+        fontFamily: fontFamily.poppinsSemiBold,
+        lineHeight: 18,
+    },
+
+    permissionRequiredText: {
+        color: colors.neutral500,
+    },
 
     avatar: {
         width: 48,
@@ -458,6 +635,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: colors.white,
+        position: 'relative',
+    },
+
+    notificationBadge: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        backgroundColor: colors.error,
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: spacing[4],
+    },
+
+    badgeText: {
+        color: colors.white,
+        fontSize: fontSize[10],
+        fontFamily: fontFamily.poppinsBold,
     },
 
     /* search */

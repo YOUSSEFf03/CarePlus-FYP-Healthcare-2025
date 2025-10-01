@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { NavigationContainer, NavigatorScreenParams, } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,8 +10,9 @@ import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SignupDraftProvider } from './src/context/SignupDraftContext';
-import { UserProvider } from "./src/store/UserContext";
+import { UserProvider, useUser } from "./src/store/UserContext";
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import authService from './src/services/authService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,12 +20,17 @@ import Login from './app/(auth)/login';
 import Signup from './app/(auth)/signup';
 import SignUpDetailsScreen from 'app/(auth)/signUpDetailsScreen';
 import SignUpReviewScreen from 'app/(auth)/signUpReview';
+import VerifyOtpScreen from 'app/(auth)/verifyOtp';
+import PhoneLoginScreen from './app/(auth)/phoneLogin';
+import VerifyPhoneOtpScreen from './app/(auth)/verifyPhoneOtp';
 
 import Welcome from './app/(onboarding)/welcome';
 import Onboarding from './app/(onboarding)/onboarding';
 
 import Home from './app/(tabs)/home';
 import TriageScreen1 from 'app/(tabs)/triageScreen';
+import Profile from './app/(tabs)/profile';
+import Notifications from './app/(tabs)/notifications';
 // If you have more tab screens later, import them too, e.g.
 // import Appointments from '../app/(tabs)/appointments';
 // import Settings from '../app/(tabs)/settings';
@@ -34,6 +40,7 @@ export type RootStackParamList = {
     OnboardingStack: undefined;
     AuthStack: NavigatorScreenParams<AuthStackParamList>;
     Tabs: NavigatorScreenParams<TabsParamList>;
+    Notifications: undefined;
     // ModalExample?: { id: string }; // add if you have modals
 };
 
@@ -57,6 +64,9 @@ export type AuthStackParamList = {
     }
     | undefined;
     SignUpReview: { draft: SignupDraft };   // <— new
+    VerifyOtp: { email: string; phone: string };
+    PhoneLogin: undefined;
+    VerifyPhoneOtp: { phone: string; loginType: string };
 };
 
 export type OnboardingStackParamList = {
@@ -67,6 +77,8 @@ export type OnboardingStackParamList = {
 export type TabsParamList = {
     Home: undefined;
     VitaAI: undefined;
+    Profile: undefined;
+    Notifications: undefined;
     // Appointments: undefined;
     // Settings: undefined;
 };
@@ -90,6 +102,9 @@ function AuthNavigator() {
             <AuthStack.Screen name="Signup" component={Signup} />
             <AuthStack.Screen name="SignUpDetails" component={SignUpDetailsScreen} />
             <AuthStack.Screen name="SignUpReview" component={SignUpReviewScreen} />
+            <AuthStack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
+            <AuthStack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
+            <AuthStack.Screen name="VerifyPhoneOtp" component={VerifyPhoneOtpScreen} />
         </AuthStack.Navigator>
     );
 }
@@ -118,6 +133,9 @@ function TabsNavigator() {
                         case 'VitaAI':
                             iconName = focused ? 'sparkles' : 'sparkles-outline';
                             break;
+                        case 'Profile':
+                            iconName = focused ? 'person' : 'person-outline';
+                            break;
                         default:
                             iconName = 'ellipse';
                     }
@@ -140,11 +158,16 @@ function TabsNavigator() {
                 component={TriageScreen1}
                 options={{ title: 'Vita AI' }}
             />
+            <Tab.Screen
+                name="Profile"
+                component={Profile}
+                options={{ title: 'Profile' }}
+            />
         </Tab.Navigator>
     );
 }
 
-export default function App() {
+function AppContent() {
     const [fontsLoaded] = useFonts({
         'Poppins-Regular': require('./assets/fonts/Poppins-Regular.ttf'),
         'Poppins-Medium': require('./assets/fonts/Poppins-Medium.ttf'),
@@ -156,33 +179,73 @@ export default function App() {
         'RedHatDisplay-Bold': require('./assets/fonts/RedHatDisplayBold.ttf'),
     });
 
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
+    const { user, setUser } = useUser();
+
+    // Check for stored authentication on app start
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const authData = await authService.getStoredAuthData();
+                if (authData) {
+                    setUser({
+                        id: authData.user.id,
+                        name: authData.user.name,
+                        age: authData.user.date_of_birth 
+                            ? new Date().getFullYear() - new Date(authData.user.date_of_birth).getFullYear()
+                            : 0,
+                        sex: (authData.user.gender as 'male' | 'female') || 'unknown',
+                        phone: authData.user.phone,
+                        email: authData.user.email,
+                        dateOfBirth: authData.user.date_of_birth,
+                        medicalHistory: authData.user.medical_history,
+                        role: authData.user.role,
+                    });
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            } finally {
+                setIsAuthChecked(true);
+            }
+        };
+
+        checkAuth();
+    }, [setUser]);
+
     const onLayoutRootView = useCallback(async () => {
-        if (fontsLoaded) {
+        if (fontsLoaded && isAuthChecked) {
             await SplashScreen.hideAsync();
         }
-    }, [fontsLoaded]);
+    }, [fontsLoaded, isAuthChecked]);
 
-    if (!fontsLoaded) return null;
+    if (!fontsLoaded || !isAuthChecked) return null;
 
+    return (
+        <NavigationContainer>
+            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                <RootStack.Navigator
+                    id={undefined}
+                    initialRouteName={user ? "Tabs" : "AuthStack"}
+                    screenOptions={{ headerShown: false }}
+                >
+                    <RootStack.Screen name="OnboardingStack" component={OnboardingNavigator} />
+                    <RootStack.Screen name="AuthStack" component={AuthNavigator} />
+                    <RootStack.Screen name="Tabs" component={TabsNavigator} />
+                    <RootStack.Screen name="Notifications" component={Notifications} />
+                </RootStack.Navigator>
+            </View>
+        </NavigationContainer>
+    );
+}
+
+export default function App() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
                 <SafeAreaProvider>
                     <UserProvider>
                         <SignupDraftProvider>
-                            <NavigationContainer>
-                                <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                                    <RootStack.Navigator
-                                        id={undefined}
-                                        initialRouteName="AuthStack"
-                                        screenOptions={{ headerShown: false }}
-                                    >
-                                        <RootStack.Screen name="OnboardingStack" component={OnboardingNavigator} />
-                                        <RootStack.Screen name="AuthStack" component={AuthNavigator} />
-                                        <RootStack.Screen name="Tabs" component={TabsNavigator} />
-                                    </RootStack.Navigator>
-                                </View>
-                            </NavigationContainer>
+                            <AppContent />
                         </SignupDraftProvider>
                     </UserProvider>
                 </SafeAreaProvider>

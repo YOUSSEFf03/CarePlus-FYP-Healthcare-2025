@@ -1,0 +1,138 @@
+import React, { useState } from "react";
+import CustomText from "../../components/Text/CustomText";
+import Button from "../../components/Button/Button";
+import "../../styles/assistantWorkplaces.css";
+import { useNavigate } from "react-router-dom";
+
+type Workplace = {
+    id: number;
+    name: string;
+    image: string;
+    address: string;
+    workingHours: string;
+    type: string;
+    price: string;
+};
+
+type Doctor = {
+    id: number;
+    name: string;
+    workplaces: Workplace[];
+};
+
+const doctors: Doctor[] = [
+    {
+        id: 1,
+        name: "Dr. Ayesha Khan",
+        workplaces: [
+            {
+                id: 101,
+                name: "Green Clinic",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
+                address: "123 Health Ave, City",
+                workingHours: "9:00 AM - 5:00 PM",
+                type: "Clinic",
+                price: "$50",
+            },
+            {
+                id: 102,
+                name: "Apollo Hospital",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
+                address: "56 Main Rd, City",
+                workingHours: "10:00 AM - 4:00 PM",
+                type: "Hospital",
+                price: "$70",
+            },
+        ],
+    },
+    {
+        id: 2,
+        name: "Dr. Kamran Aziz",
+        workplaces: [
+            {
+                id: 10387,
+                name: "DHA Medical Tower",
+                image: "https://img.freepik.com/premium-photo/white-doctors-gown-stethoscope-hanging-rack-clinic_1339860-4144.jpg",
+                address: "99 DHA Blvd, City",
+                workingHours: "8:30 AM - 3:30 PM",
+                type: "Medical Tower",
+                price: "$60",
+            },
+        ],
+    },
+];
+
+export default function AssistantWorkplaces() {
+    const [collapsedDoctorIds, setCollapsedDoctorIds] = useState<number[]>([]);
+    const navigate = useNavigate();
+
+    const slugify = (name: string) =>
+        name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+
+    const toggleDoctor = (id: number) => {
+        setCollapsedDoctorIds(prev =>
+            prev.includes(id)
+                ? prev.filter(d => d !== id)
+                : [...prev, id]
+        );
+    };
+
+    const isCollapsed = (id: number) => collapsedDoctorIds.includes(id);
+
+    const handleManageWorkplace = (workplaceName: string) => {
+        navigate(`/assistant/workplaces/${slugify(workplaceName)}`);
+    };
+
+    return (
+        <div className="assistant-workplaces-page">
+            <CustomText as="h2" variant="text-heading-H2">
+                Your Managed Workplaces
+            </CustomText>
+
+            {doctors.map((doctor) => (
+                <div key={doctor.id} className="doctor-section">
+                    <div className="doctor-header" onClick={() => toggleDoctor(doctor.id)}>
+                        <CustomText as="h3" variant="text-heading-H4">
+                            {doctor.name}
+                        </CustomText>
+                        <span className={`chevron ${!isCollapsed(doctor.id) ? "open" : ""}`}>
+                            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M26.7071 12.7081L16.7071 22.7081C16.6142 22.801 16.5039 22.8748 16.3825 22.9251C16.2611 22.9754 16.131 23.0013 15.9996 23.0013C15.8682 23.0013 15.738 22.9754 15.6166 22.9251C15.4952 22.8748 15.385 22.801 15.2921 22.7081L5.29208 12.7081C5.10444 12.5204 4.99902 12.2659 4.99902 12.0006C4.99902 11.7352 5.10444 11.4807 5.29208 11.2931C5.47972 11.1054 5.73422 11 5.99958 11C6.26494 11 6.51944 11.1054 6.70708 11.2931L15.9996 20.5868L25.2921 11.2931C25.385 11.2001 25.4953 11.1264 25.6167 11.0762C25.7381 11.0259 25.8682 11 25.9996 11C26.131 11 26.2611 11.0259 26.3825 11.0762C26.5039 11.1264 26.6142 11.2001 26.7071 11.2931C26.8 11.386 26.8737 11.4963 26.924 11.6177C26.9743 11.7391 27.0001 11.8692 27.0001 12.0006C27.0001 12.132 26.9743 12.2621 26.924 12.3835C26.8737 12.5048 26.8 12.6151 26.7071 12.7081Z" fill="currentColor" />
+                            </svg>
+                        </span>
+                    </div>
+
+                    {!isCollapsed(doctor.id) && (
+                        <div className="assistant-workplace-cards">
+                            {doctor.workplaces.map((wp) => (
+                                <div
+                                    key={wp.id}
+                                    className="assistant-workplace-card"
+                                    onClick={() => handleManageWorkplace(wp.name)}
+                                >
+                                    <img src={wp.image} alt={wp.name} className="assistant-workplace-img" />
+                                    <div className="assistant-workplace-content">
+                                        <CustomText as="h4" variant="text-heading-H5">{wp.name}</CustomText>
+                                        <p><svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M17.8 13.938h-.011a7 7 0 1 0-11.464.144h-.016l.14.171c.1.127.2.251.3.371L12 21l5.13-6.248c.194-.209.374-.429.54-.659l.13-.155Z" />
+                                        </svg> {wp.address}</p>
+                                        <p><svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg> {wp.workingHours}</p>
+                                        <p><svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M31 26.0005H29V12.0005C29.2652 12.0005 29.5196 11.8951 29.7071 11.7076C29.8946 11.5201 30 11.2657 30 11.0005C30 10.7353 29.8946 10.4809 29.7071 10.2934C29.5196 10.1058 29.2652 10.0005 29 10.0005H23V6.00049C23.2652 6.00049 23.5196 5.89513 23.7071 5.70759C23.8946 5.52006 24 5.2657 24 5.00049C24 4.73527 23.8946 4.48092 23.7071 4.29338C23.5196 4.10585 23.2652 4.00049 23 4.00049H5C4.73478 4.00049 4.48043 4.10585 4.29289 4.29338C4.10536 4.48092 4 4.73527 4 5.00049C4 5.2657 4.10536 5.52006 4.29289 5.70759C4.48043 5.89513 4.73478 6.00049 5 6.00049V26.0005H3C2.73478 26.0005 2.48043 26.1058 2.29289 26.2934C2.10536 26.4809 2 26.7353 2 27.0005C2 27.2657 2.10536 27.5201 2.29289 27.7076C2.48043 27.8951 2.73478 28.0005 3 28.0005H31C31.2652 28.0005 31.5196 27.8951 31.7071 27.7076C31.8946 27.5201 32 27.2657 32 27.0005C32 26.7353 31.8946 26.4809 31.7071 26.2934C31.5196 26.1058 31.2652 26.0005 31 26.0005ZM27 12.0005V26.0005H23V12.0005H27ZM7 6.00049H21V26.0005H18V20.0005C18 19.7353 17.8946 19.4809 17.7071 19.2934C17.5196 19.1058 17.2652 19.0005 17 19.0005H11C10.7348 19.0005 10.4804 19.1058 10.2929 19.2934C10.1054 19.4809 10 19.7353 10 20.0005V26.0005H7V6.00049ZM16 26.0005H12V21.0005H16V26.0005ZM9 10.0005C9 9.73527 9.10536 9.48092 9.29289 9.29338C9.48043 9.10585 9.73478 9.00049 10 9.00049H12C12.2652 9.00049 12.5196 9.10585 12.7071 9.29338C12.8946 9.48092 13 9.73527 13 10.0005C13 10.2657 12.8946 10.5201 12.7071 10.7076C12.5196 10.8951 12.2652 11.0005 12 11.0005H10C9.73478 11.0005 9.48043 10.8951 9.29289 10.7076C9.10536 10.5201 9 10.2657 9 10.0005ZM15 10.0005C15 9.73527 15.1054 9.48092 15.2929 9.29338C15.4804 9.10585 15.7348 9.00049 16 9.00049H18C18.2652 9.00049 18.5196 9.10585 18.7071 9.29338C18.8946 9.48092 19 9.73527 19 10.0005C19 10.2657 18.8946 10.5201 18.7071 10.7076C18.5196 10.8951 18.2652 11.0005 18 11.0005H16C15.7348 11.0005 15.4804 10.8951 15.2929 10.7076C15.1054 10.5201 15 10.2657 15 10.0005ZM9 15.0005C9 14.7353 9.10536 14.4809 9.29289 14.2934C9.48043 14.1058 9.73478 14.0005 10 14.0005H12C12.2652 14.0005 12.5196 14.1058 12.7071 14.2934C12.8946 14.4809 13 14.7353 13 15.0005C13 15.2657 12.8946 15.5201 12.7071 15.7076C12.5196 15.8951 12.2652 16.0005 12 16.0005H10C9.73478 16.0005 9.48043 15.8951 9.29289 15.7076C9.10536 15.5201 9 15.2657 9 15.0005ZM15 15.0005C15 14.7353 15.1054 14.4809 15.2929 14.2934C15.4804 14.1058 15.7348 14.0005 16 14.0005H18C18.2652 14.0005 18.5196 14.1058 18.7071 14.2934C18.8946 14.4809 19 14.7353 19 15.0005C19 15.2657 18.8946 15.5201 18.7071 15.7076C18.5196 15.8951 18.2652 16.0005 18 16.0005H16C15.7348 16.0005 15.4804 15.8951 15.2929 15.7076C15.1054 15.5201 15 15.2657 15 15.0005Z" fill="currentColor" />
+                                        </svg> {wp.type}</p>
+                                        <p><svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 11.0005C15.0111 11.0005 14.0444 11.2937 13.2221 11.8431C12.3999 12.3925 11.759 13.1734 11.3806 14.0871C11.0022 15.0007 10.9031 16.006 11.0961 16.9759C11.289 17.9458 11.7652 18.8368 12.4645 19.536C13.1637 20.2353 14.0546 20.7115 15.0245 20.9044C15.9945 21.0973 16.9998 20.9983 17.9134 20.6199C18.827 20.2414 19.6079 19.6006 20.1573 18.7783C20.7068 17.9561 21 16.9894 21 16.0005C21 14.6744 20.4732 13.4026 19.5355 12.465C18.5979 11.5273 17.3261 11.0005 16 11.0005ZM16 19.0005C15.4067 19.0005 14.8266 18.8245 14.3333 18.4949C13.8399 18.1653 13.4554 17.6967 13.2284 17.1485C13.0013 16.6004 12.9419 15.9972 13.0576 15.4152C13.1734 14.8333 13.4591 14.2987 13.8787 13.8792C14.2982 13.4596 14.8328 13.1739 15.4147 13.0581C15.9967 12.9424 16.5999 13.0018 17.1481 13.2288C17.6962 13.4559 18.1648 13.8404 18.4944 14.3338C18.8241 14.8271 19 15.4071 19 16.0005C19 16.7961 18.6839 17.5592 18.1213 18.1218C17.5587 18.6844 16.7956 19.0005 16 19.0005ZM30 7.00049H2C1.73478 7.00049 1.48043 7.10585 1.29289 7.29338C1.10536 7.48092 1 7.73527 1 8.00049V24.0005C1 24.2657 1.10536 24.5201 1.29289 24.7076C1.48043 24.8951 1.73478 25.0005 2 25.0005H30C30.2652 25.0005 30.5196 24.8951 30.7071 24.7076C30.8946 24.5201 31 24.2657 31 24.0005V8.00049C31 7.73527 30.8946 7.48092 30.7071 7.29338C30.5196 7.10585 30.2652 7.00049 30 7.00049ZM24.2062 23.0005H7.79375C7.45801 21.865 6.84351 20.8315 6.00623 19.9943C5.16895 19.157 4.1355 18.5425 3 18.2067V13.7942C4.1355 13.4585 5.16895 12.844 6.00623 12.0067C6.84351 11.1694 7.45801 10.136 7.79375 9.00049H24.2062C24.542 10.136 25.1565 11.1694 25.9938 12.0067C26.8311 12.844 27.8645 13.4585 29 13.7942V18.2067C27.8645 18.5425 26.8311 19.157 25.9938 19.9943C25.1565 20.8315 24.542 21.865 24.2062 23.0005ZM29 11.6717C27.8005 11.156 26.8445 10.1999 26.3288 9.00049H29V11.6717ZM5.67125 9.00049C5.15549 10.1999 4.19945 11.156 3 11.6717V9.00049H5.67125ZM3 20.3292C4.19945 20.845 5.15549 21.801 5.67125 23.0005H3V20.3292ZM26.3288 23.0005C26.8445 21.801 27.8005 20.845 29 20.3292V23.0005H26.3288Z" fill="currentColor" />
+                                        </svg> {wp.price}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}

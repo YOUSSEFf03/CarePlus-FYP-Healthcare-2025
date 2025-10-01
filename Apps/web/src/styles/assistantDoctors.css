@@ -1,0 +1,88 @@
+/* assistantDoctors.css */
+
+/* .assistant-doctors-page {
+    padding: var(--section-padding);
+    font-family: var(--ff-poppins);
+    background-color: var(--neutral-100);
+    min-height: 100vh;
+} */
+
+.doctor-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--gap-24);
+    margin-top: var(--gap-24);
+}
+
+.doctor-card {
+    background: var(--white);
+    border-radius: var(--radius-16);
+    box-shadow: var(--shadow-light);
+    padding: var(--padding-12-24);
+    transition: box-shadow var(--transition-200);
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-16);
+}
+
+.doctor-card:hover {
+    box-shadow: var(--shadow-1);
+}
+
+.doctor-header {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-16);
+}
+
+.doctor-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    border: 2px solid var(--secondary-color);
+}
+
+.doctor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.assistant-workplace-hint {
+    color: var(--neutral-700);
+    font-size: var(--fs-14);
+    margin-top: 2px;
+}
+
+.assistant-workplaces-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-12);
+}
+
+.assistant-workplace-btn {
+    width: 100%;
+    text-align: center;
+    font-weight: var(--fw-500);
+    background-color: var(--secondary-05);
+    color: var(--primary-color);
+    border: none;
+    border-radius: var(--radius-12);
+    padding: var(--padding-10-16);
+    transition: background-color var(--transition-200);
+}
+
+.assistant-workplace-btn:hover {
+    background-color: var(--secondary-20);
+}
+
+.empty-state {
+    background: var(--neutral-200);
+    padding: var(--padding-16);
+    border-radius: var(--radius-16);
+    text-align: center;
+    margin-top: var(--gap-32);
+}

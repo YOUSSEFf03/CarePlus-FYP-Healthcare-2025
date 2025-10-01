@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/pharmacyDashboard.css";
 import CustomText from "../../components/Text/CustomText";
 import StatsCard from "../../components/StatsCard/StatsCard";
@@ -7,59 +7,168 @@ import { ReactComponent as BuildingOffice } from "../../assets/svgs/BuildingOffi
 import { ReactComponent as RevenueIcon } from "../../assets/svgs/CurrencyCircleDollar.svg";
 import { ReactComponent as PrescriptionIcon } from '../../assets/svgs/Files.svg';
 import { useNavigate } from "react-router-dom";
+import pharmacyDashboardService, { DashboardStats, TopSellingProduct, RecentActivity } from "../../services/pharmacyDashboardService";
 
-type Order = {
-    id: string;
-    customer: string;
-    type: "Delivery" | "Pickup";
-    total: string;
-    status: "Pending" | "In Fulfillment" | "Ready" | "Completed";
-    time: string;
-};
-
-const mockStats = [
-    {
-        title: "Sales (Today)",
-        value: "$1,240",
-        icon: RevenueIcon,
-        change: 5.2,
-        timeframe: "7d" as const,
-    },
-    {
-        title: "Orders (Today)",
-        value: 32,
-        icon: PrescriptionIcon,
-        change: 3.8,
-        timeframe: "7d" as const,
-    },
-    {
-        title: "Prescription Queue",
-        value: 6,
-        icon: BuildingOffice,
-        change: -1.0,
-        timeframe: "7d" as const,
-    },
-    {
-        title: "Low‑Stock SKUs",
-        value: 12,
-        icon: BuildingOffice,
-        change: 2.0,
-        timeframe: "7d" as const,
-        // bottomContent: (
-        //     <span className="stat-inline-link">View list</span>
-        // ),
-    },
-];
-
-const mockOrders: Order[] = [
-    { id: "ORD-4319", customer: "Samir K.", type: "Delivery", total: "$42.60", status: "Pending", time: "5m ago" },
-    { id: "ORD-4318", customer: "Lina R.", type: "Pickup", total: "$18.30", status: "In Fulfillment", time: "12m ago" },
-    { id: "ORD-4317", customer: "Ahmed N.", type: "Delivery", total: "$73.10", status: "Ready", time: "28m ago" },
-    { id: "ORD-4316", customer: "Dana B.", type: "Pickup", total: "$25.40", status: "Completed", time: "1h ago" },
-];
+// Removed unused Order type
 
 export default function PharmacyDashboard() {
     const navigate = useNavigate();
+    
+    // State for dashboard data
+    const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+    const [topProducts, setTopProducts] = useState<TopSellingProduct[]>([]);
+    const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load dashboard data
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const [stats, products, activity] = await Promise.all([
+                    pharmacyDashboardService.getDashboardStats(),
+                    pharmacyDashboardService.getTopSellingProducts(5),
+                    pharmacyDashboardService.getRecentActivity(10)
+                ]);
+                
+                setDashboardStats(stats);
+                setTopProducts(products);
+                setRecentActivity(activity);
+            } catch (err) {
+                console.error('Error loading dashboard data:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDashboardData();
+    }, []);
+
+    // Format currency
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount);
+    };
+
+    // Format time ago
+    const formatTimeAgo = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+        
+        if (diffInMinutes < 60) {
+            return `${diffInMinutes}m ago`;
+        } else if (diffInMinutes < 1440) {
+            const hours = Math.floor(diffInMinutes / 60);
+            return `${hours}h ago`;
+        } else {
+            const days = Math.floor(diffInMinutes / 1440);
+            return `${days}d ago`;
+        }
+    };
+
+    // Get status color class
+    const getStatusClass = (status: string) => {
+        const statusMap: { [key: string]: string } = {
+            'pending': 'status--pending',
+            'confirmed': 'status--infulfillment',
+            'processing': 'status--infulfillment',
+            'ready': 'status--ready',
+            'completed': 'status--completed',
+            'cancelled': 'status--cancelled',
+            'reserved': 'status--pending',
+            'picked_up': 'status--completed'
+        };
+        return statusMap[status.toLowerCase()] || 'status--pending';
+    };
+
+    // Convert recent activity to display format
+    const formatRecentActivity = (activity: RecentActivity[]) => {
+        return activity.map(item => ({
+            id: item.id,
+            customer: `Patient ${item.patient_id}`,
+            type: item.delivery_method === 'delivery' ? 'Delivery' : 'Pickup',
+            total: item.total ? formatCurrency(item.total) : 'N/A',
+            status: item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('_', ' '),
+            time: formatTimeAgo(item.date)
+        }));
+    };
+
+    // Create stats array for StatsCard components
+    const statsArray = dashboardStats ? [
+        {
+            title: "Sales (Today)",
+            value: formatCurrency(dashboardStats.sales.today),
+            icon: RevenueIcon,
+            change: dashboardStats.sales.change,
+            timeframe: dashboardStats.sales.timeframe,
+        },
+        {
+            title: "Orders (Today)",
+            value: dashboardStats.orders.today,
+            icon: PrescriptionIcon,
+            change: dashboardStats.orders.change,
+            timeframe: dashboardStats.orders.timeframe,
+        },
+        {
+            title: "Prescription Queue",
+            value: dashboardStats.prescriptionQueue.current,
+            icon: BuildingOffice,
+            change: dashboardStats.prescriptionQueue.change,
+            timeframe: dashboardStats.prescriptionQueue.timeframe,
+        },
+        {
+            title: "Low‑Stock SKUs",
+            value: dashboardStats.lowStockSKUs.current,
+            icon: BuildingOffice,
+            change: dashboardStats.lowStockSKUs.change,
+            timeframe: dashboardStats.lowStockSKUs.timeframe,
+        },
+    ] : [];
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Overview</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading dashboard...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Overview</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column' }}>
+                    <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+                        <CustomText variant="text-body-lg-r">
+                            Error: {error}
+                        </CustomText>
+                    </div>
+                    <Button 
+                        text="Retry" 
+                        onClick={() => window.location.reload()} 
+                        variant="primary"
+                    />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="overview">
             {/* Top: Title + quick actions */}
@@ -95,7 +204,7 @@ export default function PharmacyDashboard() {
 
             {/* KPI stats */}
             <div className="overview__stats-grid">
-                {mockStats.map((s) => (
+                {statsArray.map((s) => (
                     <StatsCard
                         key={s.title}
                         title={s.title}
@@ -103,7 +212,6 @@ export default function PharmacyDashboard() {
                         icon={s.icon}
                         change={s.change}
                         timeframe={s.timeframe}
-                    // bottomContent={s.bottomContent}
                     />
                 ))}
             </div>
@@ -124,21 +232,21 @@ export default function PharmacyDashboard() {
                             <span>Units Sold</span>
                             <span>Revenue</span>
                         </div>
-                        <div className="ph-row">
-                            <span>Paracetamol 500mg</span>
-                            <span>320</span>
-                            <span>$1,280</span>
-                        </div>
-                        <div className="ph-row">
-                            <span>Amoxicillin 250mg</span>
-                            <span>190</span>
-                            <span>$950</span>
-                        </div>
-                        <div className="ph-row">
-                            <span>Vitamin C 1000mg</span>
-                            <span>150</span>
-                            <span>$600</span>
-                        </div>
+                        {topProducts.length > 0 ? (
+                            topProducts.map((product) => (
+                                <div className="ph-row" key={product.product_id}>
+                                    <span>{product.name}</span>
+                                    <span>{product.units_sold}</span>
+                                    <span>{formatCurrency(product.revenue)}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="ph-row" style={{ textAlign: 'center', padding: '20px' }}>
+                                <span style={{ gridColumn: '1 / -1', color: '#6b7280' }}>
+                                    No products sold yet
+                                </span>
+                            </div>
+                        )}
                     </div>
                     {/* 
                     <div className="panel__footer">
@@ -166,16 +274,24 @@ export default function PharmacyDashboard() {
                             <span>When</span>
                         </div>
 
-                        {mockOrders.map((o) => (
-                            <div className="ph-row" key={o.id}>
-                                <span className="mono">{o.id}</span>
-                                <span>{o.customer}</span>
-                                <span>{o.type}</span>
-                                <span className={`status status--${o.status.replace(/\s/g, "").toLowerCase()}`}>{o.status}</span>
-                                <span>{o.total}</span>
-                                <span className="muted">{o.time}</span>
+                        {recentActivity.length > 0 ? (
+                            formatRecentActivity(recentActivity).map((activity) => (
+                                <div className="ph-row" key={activity.id}>
+                                    <span className="mono">{activity.id}</span>
+                                    <span>{activity.customer}</span>
+                                    <span>{activity.type}</span>
+                                    <span className={`status ${getStatusClass(activity.status)}`}>{activity.status}</span>
+                                    <span>{activity.total}</span>
+                                    <span className="muted">{activity.time}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="ph-row" style={{ textAlign: 'center', padding: '20px' }}>
+                                <span style={{ gridColumn: '1 / -1', color: '#6b7280' }}>
+                                    No recent activity
+                                </span>
                             </div>
-                        ))}
+                        )}
                     </div>
                     {/* 
                     <div className="panel__footer">

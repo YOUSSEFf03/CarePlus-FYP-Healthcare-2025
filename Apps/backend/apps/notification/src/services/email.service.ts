@@ -8,8 +8,8 @@ export class EmailService {
     // ← FIXED: createTransport (not createTransporter)
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: 'fyphealthcare2025@gmail.com',
+      pass: process.env.EMAIL_PASS || 'your_app_password_here', // You need to set this in your environment
     },
   });
 

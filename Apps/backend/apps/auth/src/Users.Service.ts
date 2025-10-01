@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './user.entity';
 import { Patient } from './patient.entity';
 import { Pharmacy } from './pharmacy.entity';
+import { Doctor } from './doctor.entity';
+import { Address } from './address.entity';
 import { Assistant } from './assistant.entity';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
@@ -20,11 +22,11 @@ export class UsersService {
     @InjectRepository(Patient)
     private readonly patientRepo: Repository<Patient>,
 
+    @InjectRepository(Doctor)
+    private readonly doctorRepo: Repository<Doctor>,
+
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
-
-    @InjectRepository(Assistant) // ← NEW: Inject Assistant repository
-    private readonly assistantRepo: Repository<Assistant>,
 
     private readonly jwtService: JwtService,
 
@@ -95,23 +97,17 @@ export class UsersService {
       } catch (otpError) {
         console.error('Failed to send OTP via notification service:', otpError);
         // Don't throw error, continue with user creation
+        // User will need to verify OTP later
       }
 
       // Handle role-specific data
       if (data.role === UserRole.PATIENT) {
+        console.log('Creating patient profile...');
         await this.createPatientProfile(savedUser, data);
       } else if (data.role === UserRole.DOCTOR) {
-        try {
-          await this.createDoctorProfile(savedUser, data);
-        } catch (doctorError) {
-          console.error(
-            '⚠️ Doctor profile creation failed, but user was created:',
-            doctorError.message,
-          );
-          // Don't fail the entire registration if doctor service is unavailable
-          // The user can complete their doctor profile later
-        }
+        await this.createDoctorProfile(savedUser, data);
       } else if (data.role === UserRole.PHARMACY) {
+        console.log('Creating pharmacy profile...');
         await this.createPharmacyProfile(savedUser, data);
       } else if (data.role === UserRole.ASSISTANT) {
         await this.createAssistantProfile(savedUser, data);
@@ -131,10 +127,11 @@ export class UsersService {
       // Send email OTP
       const emailResult = await firstValueFrom(
         this.notificationClient.send(
-          { cmd: 'send_email_otp' },
+          { cmd: 'send_otp' },
           {
             userId: user.id,
-            email: user.email,
+            type: 'EMAIL',
+            recipient: user.email,
             otp: otp,
             userName: user.name,
           },
@@ -147,10 +144,11 @@ export class UsersService {
       if (user.phone) {
         const whatsappResult = await firstValueFrom(
           this.notificationClient.send(
-            { cmd: 'send_whatsapp_otp' },
+            { cmd: 'send_otp' },
             {
               userId: user.id,
-              phone: user.phone,
+              type: 'WHATSAPP',
+              recipient: user.phone,
               otp: otp,
               userName: user.name,
             },
@@ -198,7 +196,19 @@ export class UsersService {
   // ==================== EXISTING METHODS (Updated) ====================
 
   private async createPatientProfile(user: User, data: any): Promise<void> {
+    console.log('Creating patient profile with data:', {
+      date_of_birth: data.date_of_birth,
+      gender: data.gender,
+      medical_history: data.medical_history,
+    });
+
     if (!data.date_of_birth || !data.gender) {
+      console.error('Missing required patient details:', {
+        hasDateOfBirth: !!data.date_of_birth,
+        hasGender: !!data.gender,
+        dateOfBirth: data.date_of_birth,
+        gender: data.gender,
+      });
       throw this.rpcError(
         'Missing required patient details: date_of_birth and gender are required',
       );
@@ -209,12 +219,13 @@ export class UsersService {
         user: user,
         date_of_birth: data.date_of_birth,
         gender: data.gender,
-        medical_history: data.medical_history || '',
+        medical_history: data.medical_history || null, // Use null instead of empty string
       });
-      await this.patientRepo.save(patient);
+      const savedPatient = await this.patientRepo.save(patient);
+      console.log('Patient profile created successfully:', savedPatient.id);
     } catch (error) {
       console.error('Error creating patient profile:', error);
-      throw this.rpcError('Failed to create patient profile');
+      throw this.rpcError(`Failed to create patient profile: ${error.message}`);
     }
   }
 
@@ -300,10 +311,23 @@ export class UsersService {
   }
 
   private async createPharmacyProfile(user: User, data: any): Promise<void> {
+    console.log('Creating pharmacy profile for user:', user.id);
+    console.log('Pharmacy data received:', {
+      pharmacy_owner: data.pharmacy_owner,
+      pharmacy_name: data.pharmacy_name,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      street: data.street,
+      city: data.city,
+      state: data.state,
+      country: data.country,
+    });
+
     if (!data.pharmacy_owner || !data.pharmacy_name) {
-      throw this.rpcError(
-        'Missing required pharmacy details: pharmacy_owner and pharmacy_name are required',
+      console.log(
+        'Missing pharmacy details, skipping pharmacy profile creation',
       );
+      return; // Don't throw error, just skip
     }
 
     try {
@@ -311,11 +335,20 @@ export class UsersService {
         user: user,
         pharmacy_owner: data.pharmacy_owner,
         pharmacy_name: data.pharmacy_name,
+        pharmacy_license: data.pharmacy_license || null,
       });
-      await this.pharmacyRepo.save(pharmacy);
+      const savedPharmacy = await this.pharmacyRepo.save(pharmacy);
+      console.log('Pharmacy created successfully:', savedPharmacy.id);
+
+      // Address creation completely disabled to prevent RLS errors
+      console.log(
+        'Pharmacy profile created successfully, skipping address creation',
+      );
     } catch (error) {
       console.error('Error creating pharmacy profile:', error);
-      throw this.rpcError('Failed to create pharmacy profile');
+      // Don't throw error for pharmacy profile creation failure
+      // The user is already created, so we can continue
+      console.log('Continuing without pharmacy profile creation...');
     }
   }
 
@@ -365,6 +398,244 @@ export class UsersService {
     } catch (error) {
       console.error('Error finding user by ID:', error);
       return null;
+    }
+  }
+
+  async getUserProfile(data: { userId: string }): Promise<any> {
+    try {
+      const user = await this.userRepo.findOne({
+        where: { id: data.userId },
+      });
+
+      if (!user) {
+        throw this.rpcError('User not found', 404);
+      }
+
+      // Get role-specific profile data by querying the respective tables
+      if (user.role === UserRole.PATIENT) {
+        const patient = await this.patientRepo.findOne({
+          where: { user: { id: data.userId } },
+        });
+        if (patient) {
+          return {
+            date_of_birth: patient.date_of_birth,
+            gender: patient.gender,
+            medical_history: patient.medical_history,
+          };
+        }
+      } else if (user.role === UserRole.DOCTOR) {
+        const doctor = await this.doctorRepo.findOne({
+          where: { user: { id: data.userId } },
+        });
+        if (doctor) {
+          return {
+            specialization: doctor.specialization,
+            license_number: doctor.license_number,
+            biography: doctor.biography,
+          };
+        }
+      } else if (user.role === UserRole.PHARMACY) {
+        const pharmacy = await this.pharmacyRepo.findOne({
+          where: { user: { id: data.userId } },
+        });
+        if (pharmacy) {
+          return {
+            pharmacy_name: pharmacy.pharmacy_name,
+            pharmacy_owner: pharmacy.pharmacy_owner,
+            pharmacy_license: pharmacy.pharmacy_license,
+          };
+        }
+      }
+
+      return {};
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      throw this.rpcError('Failed to get user profile');
+    }
+  }
+
+  // Phone OTP methods
+  async sendPhoneOtp(
+    phone: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('Sending phone OTP to:', phone);
+
+      // Debug: List all users to see what phone numbers exist
+      const allUsers = await this.userRepo.find({
+        select: ['id', 'name', 'email', 'phone'],
+      });
+      console.log('All users in database:', allUsers);
+
+      // Find user by phone number
+      const user = await this.userRepo.findOne({
+        where: { phone: phone },
+      });
+
+      console.log('User found:', user ? 'Yes' : 'No');
+      if (user) {
+        console.log('User details:', {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+        });
+      }
+
+      if (!user) {
+        throw this.rpcError('No account found with this phone number', 404);
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Update user with OTP
+      user.otp_code = otp;
+      user.otp_expiry = otpExpiry;
+      await this.userRepo.save(user);
+
+      // Send OTP via WhatsApp
+      console.log('Sending WhatsApp OTP to:', user.phone);
+      await this.sendPhoneOtpNotification(user, otp);
+      console.log('WhatsApp OTP sent successfully');
+
+      return {
+        success: true,
+        message: 'OTP sent to your WhatsApp number',
+      };
+    } catch (error) {
+      console.error('Error sending phone OTP:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw this.rpcError('Failed to send OTP');
+    }
+  }
+
+  async verifyPhoneOtp(
+    phone: string,
+    otp: string,
+  ): Promise<{ success: boolean; data?: any; message: string }> {
+    try {
+      console.log('Verifying phone OTP for:', phone);
+
+      // Find user by phone number
+      const user = await this.userRepo.findOne({
+        where: { phone: phone },
+      });
+
+      if (!user) {
+        throw this.rpcError('No account found with this phone number', 404);
+      }
+
+      // Check OTP
+      if (!user.otp_code || user.otp_code !== otp) {
+        throw this.rpcError('Invalid OTP code', 400);
+      }
+
+      if (!user.otp_expiry || new Date() > user.otp_expiry) {
+        throw this.rpcError('OTP code has expired', 400);
+      }
+
+      // Clear OTP
+      user.otp_code = null;
+      user.otp_expiry = null;
+      user.is_verified = true;
+      await this.userRepo.save(user);
+
+      // Generate JWT tokens
+      const payload = { sub: user.id, email: user.email, role: user.role };
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      return {
+        success: true,
+        data: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_in: '15m',
+          token_type: 'Bearer',
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            date_of_birth: user.date_of_birth,
+            gender: user.gender,
+            medical_history: user.medical_history,
+          },
+        },
+        message: 'Phone number verified successfully',
+      };
+    } catch (error) {
+      console.error('Error verifying phone OTP:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw this.rpcError('Failed to verify OTP');
+    }
+  }
+
+  private async sendPhoneOtpNotification(
+    user: User,
+    otp: string,
+  ): Promise<void> {
+    try {
+      console.log('Sending notification to notification service...');
+      console.log('Notification payload:', {
+        userId: user.id,
+        type: 'WHATSAPP',
+        recipient: user.phone,
+        otp: otp,
+        userName: user.name,
+      });
+
+      // Send WhatsApp OTP
+      const whatsappResult = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_otp' },
+          {
+            userId: user.id,
+            type: 'WHATSAPP',
+            recipient: user.phone,
+            otp: otp,
+            userName: user.name,
+          },
+        ),
+      );
+
+      console.log(
+        '✅ WhatsApp OTP sent via notification service:',
+        whatsappResult,
+      );
+    } catch (error) {
+      console.error(
+        '❌ Failed to send WhatsApp OTP via notification service:',
+        error,
+      );
+      console.error('Error details:', error);
+      throw error;
+    }
+  }
+
+  async debugUsers(): Promise<any> {
+    try {
+      const users = await this.userRepo.find({
+        select: ['id', 'name', 'email', 'phone', 'role'],
+      });
+      return {
+        success: true,
+        data: users,
+        count: users.length,
+      };
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 

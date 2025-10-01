@@ -85,4 +85,67 @@ export class RegisterUserDto {
   @IsOptional()
   @IsString()
   pharmacy_name?: string;
+
+  @IsOptional()
+  @IsString()
+  pharmacy_license?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  commercial_register_url?: string;
+
+  @IsOptional()
+  @IsString()
+  logo_url?: string;
+
+  // ==================== ADDRESS FIELDS ====================
+  @IsOptional()
+  @IsString()
+  street?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  country?: string;
+
+  @IsOptional()
+  @IsString()
+  zipcode?: string;
+
+  @IsOptional()
+  @IsString()
+  building_name?: string;
+
+  @IsOptional()
+  @IsString()
+  building_number?: string;
+
+  @IsOptional()
+  @IsString()
+  floor_number?: string;
+
+  @IsOptional()
+  @IsString()
+  area_description?: string;
+
+  @IsOptional()
+  @IsString()
+  maps_link?: string;
+
+  @IsOptional()
+  latitude?: number;
+
+  @IsOptional()
+  longitude?: number;
 }

@@ -115,4 +115,40 @@ export class PharmacyController {
     // This would be implemented in the service
     return { message: 'Cancel reservation not implemented yet' };
   }
+
+  // ==================== PHARMACY PROFILE APIs ====================
+
+  // Get pharmacy profile
+  @MessagePattern({ cmd: 'get_pharmacy_profile' })
+  async getPharmacyProfile(@Payload() data: { userId: string }) {
+    return await this.pharmacyService.getPharmacyProfile(data.userId);
+  }
+
+  // Update pharmacy profile
+  @MessagePattern({ cmd: 'update_pharmacy_profile' })
+  async updatePharmacyProfile(@Payload() data: { userId: string; updateData: any }) {
+    return await this.pharmacyService.updatePharmacyProfile(data.userId, data.updateData);
+  }
+
+  // ==================== PHARMACY DASHBOARD APIs ====================
+
+  // Get pharmacy dashboard stats
+  @MessagePattern({ cmd: 'get_pharmacy_dashboard_stats' })
+  async getPharmacyDashboardStats(@Payload() data: { pharmacyId: number }) {
+    return await this.pharmacyService.getPharmacyDashboardStats(data.pharmacyId);
+  }
+
+  // Get top-selling products
+  @MessagePattern({ cmd: 'get_top_selling_products' })
+  async getTopSellingProducts(@Payload() data: { pharmacyId: number; limit?: number }) {
+    const { pharmacyId, limit = 5 } = data;
+    return await this.pharmacyService.getTopSellingProducts(pharmacyId, limit);
+  }
+
+  // Get recent activity
+  @MessagePattern({ cmd: 'get_recent_activity' })
+  async getRecentActivity(@Payload() data: { pharmacyId: number; limit?: number }) {
+    const { pharmacyId, limit = 10 } = data;
+    return await this.pharmacyService.getRecentActivity(pharmacyId, limit);
+  }
 }

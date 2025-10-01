@@ -1,34 +1,173 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import axios from 'axios';
 import '../../styles/doctorPatients.css';
 import CustomText from "../../components/Text/CustomText";
 import PatientDrawer, { Patient } from "../../components/Patient/PatientDrawer";
+import Button from "../../components/Button/Button";
 
-const patients: Patient[] = [
-    { id: "P001", name: "Dianne Russell", phone: "(505) 555-0125", email: "dianne.russell@example.com", dob: "1985-03-25", gender: "Female" },
-    { id: "P002", name: "Ralph Edwards", email: "ralph.edwards@example.com", dob: "1978-11-03", gender: "Male" },
-    { id: "P003", name: "Jane Cooper", phone: "(402) 555-0175", dob: "1990-07-15", gender: "Female" },
-    { id: "P004", name: "Esther Howard", phone: "(303) 555-0190", email: "", dob: "1988-05-20", gender: "Female" },
-    { id: "P005", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P006", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P007", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P008", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P009", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P010", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P011", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-    { id: "P012", name: "Cody Fisher", phone: "(214) 555-0140", email: "", dob: "1992-09-10", gender: "Male" },
-];
+const API_BASE = "http://localhost:3000";
+
+interface Appointment {
+    id: string;
+    patientName: string;
+    patientEmail?: string;
+    patientPhone?: string;
+    patientId: string;
+    appointment_date: string;
+    appointment_time: string;
+    status: string;
+    symptoms?: string;
+    diagnosis?: string;
+    prescription?: string;
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface PatientData extends Patient {
+    lastAppointment?: string;
+    totalAppointments: number;
+    status: string;
+}
+
+// Helper function to decode JWT token
+const decodeJWT = (token: string) => {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+    }
+};
+
+// API function to fetch patients from appointments
+const fetchPatients = async (page: number = 1, limit: number = 10): Promise<{ patients: PatientData[], total: number, totalPages: number }> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No authentication token found');
+    
+    try {
+        // Fetch all appointments to extract unique patients
+        const response = await axios.get(`${API_BASE}/doctors/appointments/me`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            params: {
+                page: 1,
+                limit: 1000 // Get all appointments to extract patients
+            }
+        });
+        
+        console.log('Appointments API response:', response.data);
+        const appointments = response.data.data?.appointments || response.data.appointments || [];
+        
+        // Extract unique patients from appointments
+        const patientMap = new Map<string, PatientData>();
+        
+        appointments.forEach((appt: Appointment) => {
+            if (appt.patientId && appt.patientName) {
+                if (!patientMap.has(appt.patientId)) {
+                    patientMap.set(appt.patientId, {
+                        id: appt.patientId,
+                        name: appt.patientName,
+                        email: appt.patientEmail || '',
+                        phone: appt.patientPhone || '',
+                        dob: '', // Not available in appointments
+                        gender: '', // Not available in appointments
+                        lastAppointment: appt.appointment_date,
+                        totalAppointments: 1,
+                        status: appt.status
+                    });
+                } else {
+                    const existingPatient = patientMap.get(appt.patientId)!;
+                    existingPatient.totalAppointments++;
+                    // Update last appointment if this one is more recent
+                    if (new Date(appt.appointment_date) > new Date(existingPatient.lastAppointment || '')) {
+                        existingPatient.lastAppointment = appt.appointment_date;
+                        existingPatient.status = appt.status;
+                    }
+                }
+            }
+        });
+        
+        const allPatients = Array.from(patientMap.values());
+        
+        // Apply pagination
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedPatients = allPatients.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(allPatients.length / limit);
+        
+        return {
+            patients: paginatedPatients,
+            total: allPatients.length,
+            totalPages
+        };
+    } catch (error: any) {
+        console.error('Failed to fetch patients:', error);
+        throw error;
+    }
+};
 
 export default function DoctorPatients() {
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
+    const [patients, setPatients] = useState<PatientData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalPatients, setTotalPatients] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
+    const itemsPerPage = 10;
 
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedId = searchParams.get("selected");
     const selectedPatient = useMemo(
         () => patients.find(p => p.id === selectedId) ?? null,
-        [selectedId]
+        [selectedId, patients]
     );
+
+    // Fetch patients data
+    const fetchPatientsData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await fetchPatients(currentPage, itemsPerPage);
+            setPatients(data.patients);
+            setTotalPages(data.totalPages);
+            setTotalPatients(data.total);
+        } catch (err: any) {
+            console.error('Failed to fetch patients:', err);
+            setError(err.response?.data?.message || 'Failed to fetch patients');
+        } finally {
+            setLoading(false);
+        }
+    }, [currentPage, itemsPerPage]);
+
+    // Fetch data on mount and when page changes
+    useEffect(() => {
+        fetchPatientsData();
+    }, [fetchPatientsData]);
+
+    // Filter patients based on search term
+    const filteredPatients = useMemo(() => {
+        if (!searchTerm.trim()) return patients;
+        
+        return patients.filter(patient =>
+            patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (patient.phone && patient.phone.includes(searchTerm))
+        );
+    }, [patients, searchTerm]);
 
     const openDrawer = (id: string) => {
         setSearchParams(prev => {
@@ -50,6 +189,14 @@ export default function DoctorPatients() {
         setOpenMenuId(prev => (prev === id ? null : id));
     };
 
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -61,16 +208,43 @@ export default function DoctorPatients() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    if (loading) {
+        return (
+            <div className="patients-container">
+                <div className="loading-container">
+                    <div className="loading-spinner"></div>
+                    <p>Loading patients...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="patients-container">
             <div className="patients-header">
                 <CustomText variant="text-heading-H2" as="h2" className="patients-title">
                     Your Patients
                     <CustomText variant="text-body-md-r" as="p" className="patients-count">
-                        {patients.length}
+                        {totalPatients}
                     </CustomText>
                 </CustomText>
+                <div className="patients-search">
+                    <input
+                        type="text"
+                        placeholder="Search patients..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        className="search-input"
+                    />
+                </div>
             </div>
+
+            {error && (
+                <div className="error-banner">
+                    <p>{error}</p>
+                    <Button variant="tertiary" text="Retry" onClick={fetchPatientsData} />
+                </div>
+            )}
 
             <div className="patients-table-wrapper">
                 <div className="patients-table">
@@ -78,12 +252,13 @@ export default function DoctorPatients() {
                         <span>ID</span>
                         <span>Name</span>
                         <span>Contact</span>
-                        <span>DOB</span>
-                        <span>Gender</span>
+                        <span>Last Appointment</span>
+                        <span>Total Appointments</span>
+                        <span>Status</span>
                         <span>Actions</span>
                     </div>
 
-                    {patients.map((patient) => (
+                    {filteredPatients.map((patient) => (
                         <div key={patient.id}
                             className="patients-row patients-row--clickable"
                             onClick={(e) => {
@@ -103,9 +278,16 @@ export default function DoctorPatients() {
                                     {patient.name}
                                 </Link>
                             </span>
-                            <span>{patient.phone || "-"}</span>
-                            <span>{patient.dob}</span>
-                            <span>{patient.gender}</span>
+                            <span>
+                                {patient.phone && <div>{patient.phone}</div>}
+                                {patient.email && <div className="email">{patient.email}</div>}
+                                {!patient.phone && !patient.email && "-"}
+                            </span>
+                            <span>{patient.lastAppointment ? new Date(patient.lastAppointment).toLocaleDateString() : "-"}</span>
+                            <span>{patient.totalAppointments}</span>
+                            <span className={`status-badge ${patient.status}`}>
+                                {patient.status.charAt(0).toUpperCase() + patient.status.slice(1)}
+                            </span>
                             <span className="patients-actions">
                                 <span className="action-icon tooltip-wrapper" title="View">
                                     <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -130,12 +312,12 @@ export default function DoctorPatients() {
                                                     </svg>
                                                     Send Reminder
                                                 </div>
-                                                <div className="dropdown-item">
+                                                {/* <div className="dropdown-item">
                                                     <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                                         <path stroke="var(--neutral-500)" stroke-linecap="square" stroke-linejoin="round" stroke-width="1.5" d="M7 19H5a1 1 0 0 1-1-1v-1a3 3 0 0 1 3-3h1m4-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm7.441 1.559a1.907 1.907 0 0 1 0 2.698l-6.069 6.069L10 19l.674-3.372 6.07-6.07a1.907 1.907 0 0 1 2.697 0Z" />
                                                     </svg>
                                                     Edit Patient Info
-                                                </div>
+                                                </div> */}
                                             </div>
                                         )}
                                         <span className="tooltip-text">Options</span>
@@ -145,11 +327,61 @@ export default function DoctorPatients() {
                         </div>
                     ))}
 
-                    {patients.length === 0 && (
-                        <div className="appointments-empty">No patients found.</div>
+                    {filteredPatients.length === 0 && (
+                        <div className="appointments-empty">
+                            {searchTerm ? 'No patients found matching your search.' : 'No patients found.'}
+                        </div>
                     )}
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="pagination-container">
+                    <div className="pagination-info">
+                        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalPatients)} of {totalPatients} patients
+                    </div>
+                    <div className="pagination-controls">
+                        <Button
+                            variant="secondary"
+                            text="Previous"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        />
+                        <div className="pagination-pages">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum: number;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = currentPage - 2 + i;
+                                }
+                                
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        className={`pagination-page ${currentPage === pageNum ? 'active' : ''}`}
+                                        onClick={() => handlePageChange(pageNum)}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <Button
+                            variant="secondary"
+                            text="Next"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                        />
+                    </div>
+                </div>
+            )}
+
             {selectedPatient && (
                 <PatientDrawer
                     patient={selectedPatient}

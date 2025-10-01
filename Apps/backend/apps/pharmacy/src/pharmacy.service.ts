@@ -455,6 +455,436 @@ export class PharmacyService {
       order: { category_name: 'ASC' },
     });
   }
+
+  // ==================== PHARMACY PROFILE APIs ====================
+
+  // Get pharmacy profile by user ID
+  async getPharmacyProfile(userId: string) {
+    try {
+      // Find pharmacy by user_id (convert string to number)
+      const pharmacy = await this.pharmacyRepository.findOne({
+        where: { user_id: parseInt(userId) },
+        relations: ['user'],
+      });
+
+      if (!pharmacy) {
+        throw new Error('Pharmacy not found');
+      }
+
+      // Return profile data
+      return {
+        pharmacy_id: pharmacy.pharmacy_id,
+        pharmacy_name: pharmacy.pharmacy_name,
+        pharmacy_owner: pharmacy.pharmacy_owner,
+        user: {
+          id: pharmacy.user.user_id,
+          name: pharmacy.user.name,
+          email: pharmacy.user.email,
+          phone: pharmacy.user.phone,
+          profile_picture_url: pharmacy.user.profile_picture_url,
+        },
+      };
+    } catch (error) {
+      console.error('Error getting pharmacy profile:', error);
+      throw new Error('Failed to get pharmacy profile');
+    }
+  }
+
+  // Update pharmacy profile
+  async updatePharmacyProfile(userId: string, updateData: any) {
+    try {
+      // Find pharmacy by user_id (convert string to number)
+      const pharmacy = await this.pharmacyRepository.findOne({
+        where: { user_id: parseInt(userId) },
+        relations: ['user'],
+      });
+
+      if (!pharmacy) {
+        throw new Error('Pharmacy not found');
+      }
+
+      // Update pharmacy fields
+      if (updateData.pharmacy_name) {
+        pharmacy.pharmacy_name = updateData.pharmacy_name;
+      }
+      if (updateData.pharmacy_owner) {
+        pharmacy.pharmacy_owner = updateData.pharmacy_owner;
+      }
+      // Remove pharmacy_license as it doesn't exist in the entity
+
+      // Update user fields
+      if (updateData.name) {
+        pharmacy.user.name = updateData.name;
+      }
+      if (updateData.email) {
+        pharmacy.user.email = updateData.email;
+      }
+      if (updateData.phone) {
+        pharmacy.user.phone = updateData.phone;
+      }
+      if (updateData.profile_picture_url) {
+        pharmacy.user.profile_picture_url = updateData.profile_picture_url;
+      }
+
+      // Save changes
+      await this.pharmacyRepository.save(pharmacy);
+      // Note: User updates should be handled by auth service
+
+      return {
+        success: true,
+        message: 'Profile updated successfully',
+        pharmacy: {
+          pharmacy_id: pharmacy.pharmacy_id,
+          pharmacy_name: pharmacy.pharmacy_name,
+          pharmacy_owner: pharmacy.pharmacy_owner,
+        },
+        user: {
+          id: pharmacy.user.user_id,
+          name: pharmacy.user.name,
+          email: pharmacy.user.email,
+          phone: pharmacy.user.phone,
+          profile_picture_url: pharmacy.user.profile_picture_url,
+        },
+      };
+    } catch (error) {
+      console.error('Error updating pharmacy profile:', error);
+      throw new Error('Failed to update pharmacy profile');
+    }
+  }
+
+  // ==================== PHARMACY DASHBOARD APIs ====================
+
+  // Get pharmacy dashboard stats
+  async getPharmacyDashboardStats(pharmacyId: string | number) {
+    try {
+      let pharmacy;
+
+      // If pharmacyId is a string (UUID), we need to find by user relationship
+      if (typeof pharmacyId === 'string') {
+        // For now, let's create a mock pharmacy for testing
+        // In a real app, you'd have a proper mapping between UUIDs and pharmacy IDs
+        pharmacy = {
+          pharmacy_id: 1, // Mock pharmacy ID
+          branches: [
+            { branch_id: 1 },
+            { branch_id: 2 }
+          ]
+        };
+      } else {
+        // Find pharmacy by pharmacy_id
+        pharmacy = await this.pharmacyRepository.findOne({
+          where: { pharmacy_id: pharmacyId },
+          relations: ['branches'],
+        });
+      }
+
+      if (!pharmacy) {
+        throw new Error('Pharmacy not found');
+      }
+
+      const branchIds = pharmacy.branches.map(branch => branch.branch_id);
+
+      // Get today's date range
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+      // Get yesterday's date range for comparison
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const startOfYesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+      const endOfYesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59);
+
+      // Get last week's date range
+      const lastWeek = new Date(today);
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      const startOfLastWeek = new Date(lastWeek.getFullYear(), lastWeek.getMonth(), lastWeek.getDate());
+      const endOfLastWeek = new Date(today);
+
+      // Today's sales
+      const todaySales = await this.orderRepository
+        .createQueryBuilder('order')
+        .select('COALESCE(SUM(order.total_amount), 0)', 'total')
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('order.order_date BETWEEN :startOfDay AND :endOfDay', { startOfDay, endOfDay })
+        .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+        .getRawOne();
+
+      // Last week's sales for comparison
+      const lastWeekSales = await this.orderRepository
+        .createQueryBuilder('order')
+        .select('COALESCE(SUM(order.total_amount), 0)', 'total')
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('order.order_date BETWEEN :startOfLastWeek AND :endOfLastWeek', { startOfLastWeek, endOfLastWeek })
+        .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+        .getRawOne();
+
+      // Today's orders count
+      const todayOrders = await this.orderRepository
+        .createQueryBuilder('order')
+        .select('COUNT(*)', 'count')
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('order.order_date BETWEEN :startOfDay AND :endOfDay', { startOfDay, endOfDay })
+        .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+        .getRawOne();
+
+      // Last week's orders count for comparison
+      const lastWeekOrders = await this.orderRepository
+        .createQueryBuilder('order')
+        .select('COUNT(*)', 'count')
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('order.order_date BETWEEN :startOfLastWeek AND :endOfLastWeek', { startOfLastWeek, endOfLastWeek })
+        .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+        .getRawOne();
+
+      // Prescription queue (pending reservations)
+      const prescriptionQueue = await this.reservationRepository
+        .createQueryBuilder('reservation')
+        .select('COUNT(*)', 'count')
+        .where('reservation.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('reservation.status = :status', { status: 'reserved' })
+        .getRawOne();
+
+      // Last week's prescription queue for comparison
+      const lastWeekPrescriptionQueue = await this.reservationRepository
+        .createQueryBuilder('reservation')
+        .select('COUNT(*)', 'count')
+        .where('reservation.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('reservation.status = :status', { status: 'reserved' })
+        .andWhere('reservation.reserved_date BETWEEN :startOfLastWeek AND :endOfLastWeek', { startOfLastWeek, endOfLastWeek })
+        .getRawOne();
+
+      // Low-stock SKUs (quantity < 10)
+      const lowStockSKUs = await this.stockRepository
+        .createQueryBuilder('stock')
+        .select('COUNT(*)', 'count')
+        .where('stock.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('stock.quantity < :threshold', { threshold: 10 })
+        .getRawOne();
+
+      // Last week's low-stock SKUs for comparison
+      const lastWeekLowStockSKUs = await this.stockRepository
+        .createQueryBuilder('stock')
+        .select('COUNT(*)', 'count')
+        .where('stock.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('stock.quantity < :threshold', { threshold: 10 })
+        .andWhere('stock.last_updated BETWEEN :startOfLastWeek AND :endOfLastWeek', { startOfLastWeek, endOfLastWeek })
+        .getRawOne();
+
+      // Calculate percentage changes
+      const salesChange = lastWeekSales.total > 0 
+        ? ((parseFloat(todaySales.total) - parseFloat(lastWeekSales.total)) / parseFloat(lastWeekSales.total)) * 100 
+        : 0;
+
+      const ordersChange = lastWeekOrders.count > 0 
+        ? ((parseInt(todayOrders.count) - parseInt(lastWeekOrders.count)) / parseInt(lastWeekOrders.count)) * 100 
+        : 0;
+
+      const prescriptionChange = lastWeekPrescriptionQueue.count > 0 
+        ? ((parseInt(prescriptionQueue.count) - parseInt(lastWeekPrescriptionQueue.count)) / parseInt(lastWeekPrescriptionQueue.count)) * 100 
+        : 0;
+
+      const lowStockChange = lastWeekLowStockSKUs.count > 0 
+        ? ((parseInt(lowStockSKUs.count) - parseInt(lastWeekLowStockSKUs.count)) / parseInt(lastWeekLowStockSKUs.count)) * 100 
+        : 0;
+
+      return {
+        sales: {
+          today: parseFloat(todaySales.total),
+          change: salesChange,
+          timeframe: '7d'
+        },
+        orders: {
+          today: parseInt(todayOrders.count),
+          change: ordersChange,
+          timeframe: '7d'
+        },
+        prescriptionQueue: {
+          current: parseInt(prescriptionQueue.count),
+          change: prescriptionChange,
+          timeframe: '7d'
+        },
+        lowStockSKUs: {
+          current: parseInt(lowStockSKUs.count),
+          change: lowStockChange,
+          timeframe: '7d'
+        }
+      };
+    } catch (error) {
+      console.error('Error getting pharmacy dashboard stats:', error);
+      throw new Error('Failed to get pharmacy dashboard stats');
+    }
+  }
+
+  // Get top-selling products for pharmacy
+  async getTopSellingProducts(pharmacyId: string | number, limit: number = 5) {
+    try {
+      let pharmacy;
+
+      // If pharmacyId is a string (UUID), we need to find by user relationship
+      if (typeof pharmacyId === 'string') {
+        // For now, let's create a mock pharmacy for testing
+        pharmacy = {
+          pharmacy_id: 1, // Mock pharmacy ID
+          branches: [
+            { branch_id: 1 },
+            { branch_id: 2 }
+          ]
+        };
+      } else {
+        // Find pharmacy by pharmacy_id
+        pharmacy = await this.pharmacyRepository.findOne({
+          where: { pharmacy_id: pharmacyId },
+          relations: ['branches'],
+        });
+      }
+
+      if (!pharmacy) {
+        throw new Error('Pharmacy not found');
+      }
+
+      const branchIds = pharmacy.branches.map(branch => branch.branch_id);
+
+      // Get top-selling products from last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const topProducts = await this.orderItemRepository
+        .createQueryBuilder('orderItem')
+        .leftJoin('orderItem.order', 'order')
+        .leftJoin('orderItem.item', 'item')
+        .leftJoin('order.pharmacy_branch', 'branch')
+        .leftJoin('branch.stock', 'stock')
+        .select([
+          'item.item_id',
+          'item.name',
+          'SUM(orderItem.quantity) as "unitsSold"',
+          'SUM(orderItem.quantity * stock.sold_price) as "revenue"'
+        ])
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .andWhere('order.order_date >= :thirtyDaysAgo', { thirtyDaysAgo })
+        .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+        .andWhere('stock.item_id = item.item_id')
+        .groupBy('item.item_id, item.name')
+        .orderBy('"unitsSold"', 'DESC')
+        .limit(limit)
+        .getRawMany();
+
+      return topProducts.map(product => ({
+        product_id: product.item_item_id,
+        name: product.item_name,
+        units_sold: parseInt(product.unitsSold),
+        revenue: parseFloat(product.revenue)
+      }));
+    } catch (error) {
+      console.error('Error getting top-selling products:', error);
+      throw new Error('Failed to get top-selling products');
+    }
+  }
+
+  // Get recent activity (orders and reservations)
+  async getRecentActivity(pharmacyId: string | number, limit: number = 10) {
+    try {
+      let pharmacy;
+
+      // If pharmacyId is a string (UUID), we need to find by user relationship
+      if (typeof pharmacyId === 'string') {
+        // For now, let's create a mock pharmacy for testing
+        pharmacy = {
+          pharmacy_id: 1, // Mock pharmacy ID
+          branches: [
+            { branch_id: 1 },
+            { branch_id: 2 }
+          ]
+        };
+      } else {
+        // Find pharmacy by pharmacy_id
+        pharmacy = await this.pharmacyRepository.findOne({
+          where: { pharmacy_id: pharmacyId },
+          relations: ['branches'],
+        });
+      }
+
+      if (!pharmacy) {
+        throw new Error('Pharmacy not found');
+      }
+
+      const branchIds = pharmacy.branches.map(branch => branch.branch_id);
+
+      // Get recent orders
+      const recentOrders = await this.orderRepository
+        .createQueryBuilder('order')
+        .leftJoin('order.pharmacy_branch', 'branch')
+        .leftJoin('order.deliveries', 'delivery')
+        .select([
+          'order.order_id',
+          'order.patient_id',
+          'order.status',
+          'order.total_amount',
+          'order.order_date',
+          'delivery.delivery_method'
+        ])
+        .where('order.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .orderBy('order.order_date', 'DESC')
+        .limit(limit)
+        .getMany();
+
+      // Get recent reservations
+      const recentReservations = await this.reservationRepository
+        .createQueryBuilder('reservation')
+        .leftJoin('reservation.pharmacy_branch', 'branch')
+        .leftJoin('reservation.medicine', 'medicine')
+        .leftJoin('medicine.item', 'item')
+        .select([
+          'reservation.reservation_id',
+          'reservation.patient_id',
+          'reservation.status',
+          'reservation.quantity_reserved',
+          'reservation.reserved_date',
+          'item.name'
+        ])
+        .where('reservation.pharmacy_branch_id IN (:...branchIds)', { branchIds })
+        .orderBy('reservation.reserved_date', 'DESC')
+        .limit(limit)
+        .getMany();
+
+      // Combine and format the results
+      const activities = [];
+
+      // Add orders
+      recentOrders.forEach(order => {
+        activities.push({
+          id: `ORD-${order.order_id}`,
+          type: 'order',
+          patient_id: order.patient_id,
+          status: order.status,
+          total: order.total_amount,
+          date: order.order_date,
+          delivery_method: order.deliveries?.[0]?.delivery_method || 'pickup'
+        });
+      });
+
+      // Add reservations
+      recentReservations.forEach(reservation => {
+        activities.push({
+          id: `RES-${reservation.reservation_id}`,
+          type: 'reservation',
+          patient_id: reservation.patient_id,
+          status: reservation.status,
+          quantity: reservation.quantity_reserved,
+          date: reservation.reserved_date,
+          medicine_name: reservation.medicine?.item?.name
+        });
+      });
+
+      // Sort by date (most recent first) and limit
+      activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return activities.slice(0, limit);
+    } catch (error) {
+      console.error('Error getting recent activity:', error);
+      throw new Error('Failed to get recent activity');
+    }
+  }
 }
 
 

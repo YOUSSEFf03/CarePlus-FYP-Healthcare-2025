@@ -24,7 +24,6 @@
     "start:ai-triage": "npm start --workspace=Apps/ai-triage",
     "start:breast-cancer": "npm start --workspace=Apps/Breast-Cancer-Detection",
     "start:breast-cancer-api": "cd Apps/Breast-Cancer-Detection && python api_server.py"
-   
   },
   "keywords": [],
   "packageManager": "npm@10.8.2",

@@ -1,0 +1,120 @@
+.assistant-invitations-page {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    height: 100vh;
+    background-color: var(--neutral-100);
+    font-family: var(--ff-poppins);
+}
+
+.invitations-list {
+    background-color: #fff;
+    border-right: 1px solid var(--neutral-200);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.invitation-email-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.invitation-email-item:hover {
+    background-color: #f9f9f9;
+}
+
+.invitation-email-item.selected {
+    background-color: #eaf3fb;
+    border-left: 4px solid var(--primary-color);
+}
+
+.email-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.sender {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.subject {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.email-meta {
+    font-size: 12px;
+    color: var(--neutral-400);
+}
+
+.email-meta-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+}
+
+.invitation-email-detail {
+    background-color: #fff;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.invitation-email-detail h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.status-badge {
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    text-transform: capitalize;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.accepted {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.expired {
+    background-color: #e2e3e5;
+    color: #6c757d;
+}
+
+.invite-message {
+    background-color: #f4f7fb;
+    padding: 16px;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.invite-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--neutral-200);
+    justify-content: flex-end;
+}

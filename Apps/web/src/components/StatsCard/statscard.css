@@ -83,6 +83,10 @@
 .stat-bottom-content-link {
     text-decoration: none;
     color: inherit;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
 }
 
 .stat-bottom-content-link .text-body-sm-sb {

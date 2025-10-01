@@ -347,4 +347,134 @@ export class PharmacyController {
       'Failed to cancel reservation',
     );
   }
+
+  // ==================== PHARMACY PROFILE APIs ====================
+
+  @Get('profile')
+  async getProfile(@Req() req: AuthenticatedRequest) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    const userId = req.user.id;
+
+    return this.handleRequest(
+      { cmd: 'get_pharmacy_profile' },
+      { userId },
+      'Failed to get pharmacy profile',
+    );
+  }
+
+  @Put('profile')
+  async updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() updateData: any,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    const userId = req.user.id;
+
+    return this.handleRequest(
+      { cmd: 'update_pharmacy_profile' },
+      { userId, updateData },
+      'Failed to update pharmacy profile',
+    );
+  }
+
+  // ==================== PHARMACY DASHBOARD APIs ====================
+
+  @Get('dashboard/stats')
+  async getDashboardStats(@Req() req: AuthenticatedRequest) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    // Get pharmacy ID from user ID (assuming user ID is the pharmacy ID for now)
+    // In a real app, you'd have a separate table linking users to pharmacies
+    const pharmacyId = req.user.id; // Keep as string since it's a UUID
+
+    return this.handleRequest(
+      { cmd: 'get_pharmacy_dashboard_stats' },
+      { pharmacyId },
+      'Failed to get dashboard stats',
+    );
+  }
+
+  @Get('dashboard/top-products')
+  async getTopSellingProducts(
+    @Req() req: AuthenticatedRequest,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    const pharmacyId = req.user.id; // Keep as string since it's a UUID
+
+    return this.handleRequest(
+      { cmd: 'get_top_selling_products' },
+      { pharmacyId, limit },
+      'Failed to get top-selling products',
+    );
+  }
+
+  @Get('dashboard/recent-activity')
+  async getRecentActivity(
+    @Req() req: AuthenticatedRequest,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    const pharmacyId = req.user.id; // Keep as string since it's a UUID
+
+    return this.handleRequest(
+      { cmd: 'get_recent_activity' },
+      { pharmacyId, limit },
+      'Failed to get recent activity',
+    );
+  }
 }

@@ -1,18 +1,67 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import StatsCard from "../../components/StatsCard/StatsCard";
 import "../../styles/assistantDashboard.css";
 import { ReactComponent as AttentionIcon } from "../../assets/svgs/Warning.svg";
+import { ReactComponent as DoctorIcon } from "../../assets/svgs/Stethoscope.svg";
+import { ReactComponent as WorkplaceIcon } from "../../assets/svgs/BuildingOffice.svg";
 import { dimensionValueTypes } from "framer-motion";
+import Calendar from "react-calendar";
+import 'react-calendar/dist/Calendar.css';
+import Sidebar from "../../components/Sidebar/Sidebar";
+
+
+type ValuePiece = Date | null;
+type CalendarRange = [ValuePiece, ValuePiece];
+type CalendarValue = ValuePiece | CalendarRange;
+
+
+// ---- Mock data for schedule (replace with real data later)
+type Appt = {
+    id: string;
+    time: string;        // "09:30"
+    patient: string;
+    type: "Consultation" | "Follow-up" | "Procedure";
+    status: "Confirmed" | "Pending" | "Checked-in";
+    date: string;        // "YYYY-MM-DD"
+};
+
+const mockAppointments: Appt[] = [
+    { id: "1", time: "09:00", patient: "Sara Ibrahim", type: "Consultation", status: "Confirmed", date: "2025-09-04" },
+    { id: "2", time: "10:15", patient: "Omar Khaled", type: "Follow-up", status: "Pending", date: "2025-09-04" },
+    { id: "3", time: "11:00", patient: "Layla N.", type: "Procedure", status: "Confirmed", date: "2025-09-04" },
+    { id: "4", time: "14:30", patient: "Maya Fares", type: "Consultation", status: "Checked-in", date: "2025-09-05" },
+];
+
+function fmtISO(d: Date | null) {
+    const date = d ?? new Date();
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
 
 export default function AssistantDashboard() {
-    const hasInvitesOrDoctors = true; // you will dynamically fetch this later
+    const hasInvitesOrDoctors = true;
+    const [selectedDate, setSelectedDate] = useState<ValuePiece>(new Date());
+
+    const selectedIso = fmtISO(selectedDate);
+    const dayAppointments = useMemo(() => {
+        return mockAppointments
+            .filter(a => a.date === selectedIso)
+            .sort((a, b) => a.time.localeCompare(b.time))
+            .slice(0, 6);
+    }, [selectedIso]);
+
+    const noAppointments = useMemo(() => {
+        return mockAppointments.every(a => a.date !== selectedIso);
+    }, [selectedIso]);
 
     const stats = {
-        totalDoctors: 4,
-        totalWorkplaces: 2,
+        totalDoctors: 2,
+        totalWorkplaces: 4,
         pendingAppointments: 6,
         Icon: AttentionIcon,
         mostActiveDoctor: {
@@ -37,6 +86,24 @@ export default function AssistantDashboard() {
                 doctor: "Dr. Khaled Jamal",
             },
         ],
+    };
+
+    const [pendingAppointments, setPendingAppointments] = useState([
+        { id: "1", patient: "Patient 1", doctor: "Dr. Example", workplace: "Clinic 1", datetime: "2025-09-20 – 9:00 AM", status: "Pending" },
+        { id: "2", patient: "Patient 2", doctor: "Dr. Example", workplace: "Clinic 2", datetime: "2025-09-21 – 10:00 AM", status: "Pending" },
+        { id: "3", patient: "Patient 3", doctor: "Dr. Example", workplace: "Clinic 3", datetime: "2025-09-22 – 11:00 AM", status: "Pending" },
+        { id: "4", patient: "Patient 4", doctor: "Dr. Example", workplace: "Clinic 4", datetime: "2025-09-23 – 12:00 PM", status: "Pending" },
+        { id: "5", patient: "Patient 5", doctor: "Dr. Example", workplace: "Clinic 5", datetime: "2025-09-24 – 1:00 PM", status: "Pending" },
+    ]);
+
+    const handleAction = (id: string, action: "accept" | "reject") => {
+        if (action === "accept") {
+            // just remove row for now
+            setPendingAppointments(prev => prev.filter(appt => appt.id !== id));
+        }
+        if (action === "reject") {
+            setPendingAppointments(prev => prev.filter(appt => appt.id !== id));
+        }
     };
 
     if (!hasInvitesOrDoctors) {
@@ -80,69 +147,202 @@ export default function AssistantDashboard() {
                 </div>
 
                 <div className="stats-grid">
-                    <StatsCard title="Doctors Managed" value={stats.totalDoctors} icon={AttentionIcon} bottomContent={
+                    <StatsCard title="Doctors Managed" value={stats.totalDoctors} icon={DoctorIcon} bottomContent={
                         <div className="stat-bottom-content">
                             <Link to={`/assistant/appointments`} className="stat-bottom-content-link">
-                                <CustomText variant="text-body-sm-sb" as="p">Take Actions</CustomText>
+                                <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M29.6004 23.5118L18.6691 4.52807C18.396 4.06298 18.006 3.67734 17.5379 3.4094C17.0698 3.14145 16.5397 3.00049 16.0004 3.00049C15.461 3.00049 14.931 3.14145 14.4629 3.4094C13.9947 3.67734 13.6048 4.06298 13.3316 4.52807L2.40036 23.5118C2.13753 23.9617 1.99902 24.4733 1.99902 24.9943C1.99902 25.5153 2.13753 26.027 2.40036 26.4768C2.67003 26.9447 3.05933 27.3325 3.52832 27.6002C3.9973 27.868 4.52909 28.0062 5.06911 28.0006H26.9316C27.4712 28.0057 28.0025 27.8673 28.471 27.5996C28.9395 27.3318 29.3284 26.9444 29.5979 26.4768C29.8611 26.0272 30 25.5157 30.0005 24.9947C30.0009 24.4737 29.8628 23.9619 29.6004 23.5118ZM27.8666 25.4756C27.7713 25.6381 27.6345 25.7724 27.4702 25.8647C27.3059 25.9569 27.12 26.0038 26.9316 26.0006H5.06911C4.88071 26.0038 4.69483 25.9569 4.53053 25.8647C4.36622 25.7724 4.22941 25.6381 4.13411 25.4756C4.04779 25.3294 4.00226 25.1628 4.00226 24.9931C4.00226 24.8233 4.04779 24.6567 4.13411 24.5106L15.0654 5.52682C15.1626 5.36504 15.3 5.23116 15.4643 5.13822C15.6286 5.04528 15.8141 4.99644 16.0029 4.99644C16.1916 4.99644 16.3771 5.04528 16.5414 5.13822C16.7057 5.23116 16.8431 5.36504 16.9404 5.52682L27.8716 24.5106C27.9572 24.6572 28.0018 24.824 28.001 24.9938C28.0001 25.1635 27.9537 25.3299 27.8666 25.4756ZM15.0004 18.0006V13.0006C15.0004 12.7354 15.1057 12.481 15.2933 12.2935C15.4808 12.1059 15.7351 12.0006 16.0004 12.0006C16.2656 12.0006 16.5199 12.1059 16.7075 12.2935C16.895 12.481 17.0004 12.7354 17.0004 13.0006V18.0006C17.0004 18.2658 16.895 18.5201 16.7075 18.7077C16.5199 18.8952 16.2656 19.0006 16.0004 19.0006C15.7351 19.0006 15.4808 18.8952 15.2933 18.7077C15.1057 18.5201 15.0004 18.2658 15.0004 18.0006ZM17.5004 22.5006C17.5004 22.7972 17.4124 23.0873 17.2476 23.3339C17.0827 23.5806 16.8485 23.7729 16.5744 23.8864C16.3003 23.9999 15.9987 24.0296 15.7077 23.9717C15.4168 23.9139 15.1495 23.771 14.9397 23.5612C14.7299 23.3515 14.5871 23.0842 14.5292 22.7932C14.4713 22.5022 14.501 22.2006 14.6145 21.9265C14.7281 21.6525 14.9203 21.4182 15.167 21.2534C15.4137 21.0885 15.7037 21.0006 16.0004 21.0006C16.3982 21.0006 16.7797 21.1586 17.061 21.4399C17.3423 21.7212 17.5004 22.1027 17.5004 22.5006Z" fill="currentColor" />
+                                </svg>
+                                <CustomText variant="text-body-sm-sb" as="p">Manage their appointments</CustomText>
                             </Link>
                             <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M27.7075 16.7081L18.7075 25.7081C18.5199 25.8957 18.2654 26.0011 18 26.0011C17.7346 26.0011 17.4801 25.8957 17.2925 25.7081C17.1049 25.5204 16.9994 25.2659 16.9994 25.0006C16.9994 24.7352 17.1049 24.4807 17.2925 24.2931L24.5863 17.0006H5C4.73478 17.0006 4.48043 16.8952 4.29289 16.7077C4.10536 16.5201 4 16.2658 4 16.0006C4 15.7353 4.10536 15.481 4.29289 15.2934C4.48043 15.1059 4.73478 15.0006 5 15.0006H24.5863L17.2925 7.70806C17.1049 7.52042 16.9994 7.26592 16.9994 7.00056C16.9994 6.73519 17.1049 6.4807 17.2925 6.29306C17.4801 6.10542 17.7346 6 18 6C18.2654 6 18.5199 6.10542 18.7075 6.29306L27.7075 15.2931C27.8005 15.3859 27.8742 15.4962 27.9246 15.6176C27.9749 15.739 28.0008 15.8691 28.0008 16.0006C28.0008 16.132 27.9749 16.2621 27.9246 16.3835C27.8742 16.5049 27.8005 16.6152 27.7075 16.7081Z" fill="currentColor" />
                             </svg>
                         </div>
                     } />
-                    <StatsCard title="Workplaces" value={stats.totalWorkplaces} icon={AttentionIcon} />
+                    <StatsCard title="Workplaces" value={stats.totalWorkplaces} icon={WorkplaceIcon} />
                 </div>
 
-                <div className="pending-appointments-div">
-                    <div className="pending-appointments-content">
-                        <div className="pending-appointments-header">
-                            <div className="pending-appointments-header-content">
-                                <CustomText variant="text-heading-H4" as="h4">Pending Appointments</CustomText>
-                                <CustomText variant="text-body-md-r" as="p">You have {stats.pendingAppointments} appointments pending confirmation.</CustomText>
-                            </div>
-                            <Button variant="primary"
-                                iconRight={<svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M27.7075 16.7081L18.7075 25.7081C18.5199 25.8957 18.2654 26.0011 18 26.0011C17.7346 26.0011 17.4801 25.8957 17.2925 25.7081C17.1049 25.5204 16.9994 25.2659 16.9994 25.0006C16.9994 24.7352 17.1049 24.4807 17.2925 24.2931L24.5863 17.0006H5C4.73478 17.0006 4.48043 16.8952 4.29289 16.7077C4.10536 16.5201 4 16.2658 4 16.0006C4 15.7353 4.10536 15.481 4.29289 15.2934C4.48043 15.1059 4.73478 15.0006 5 15.0006H24.5863L17.2925 7.70806C17.1049 7.52042 16.9994 7.26592 16.9994 7.00056C16.9994 6.73519 17.1049 6.4807 17.2925 6.29306C17.4801 6.10542 17.7346 6 18 6C18.2654 6 18.5199 6.10542 18.7075 6.29306L27.7075 15.2931C27.8005 15.3859 27.8742 15.4962 27.9246 15.6176C27.9749 15.739 28.0008 15.8691 28.0008 16.0006C28.0008 16.132 27.9749 16.2621 27.9246 16.3835C27.8742 16.5049 27.8005 16.6152 27.7075 16.7081Z" fill="currentColor" />
-                                </svg>
-                                }
-                                text="View All"
-                            />
+                <section className="pending-panel">
+                    <div className="pending-panel__header">
+                        <div>
+                            <CustomText variant="text-heading-H4">Pending Appointments</CustomText>
+                            <CustomText variant="text-body-md-r" as="p">
+                                You have {pendingAppointments.length} appointments pending confirmation.
+                            </CustomText>
                         </div>
-                        <div className="pending-appointments-list">
-                            {Array.from({ length: 5 }, (_, index) => (
-                                <div key={index} className="pending-appointment-item">
-                                    <CustomText variant="text-body-md-r" as="p">Appointment {index + 1}</CustomText>
-                                    <CustomText variant="text-body-sm-r" as="p">Details about the appointment...</CustomText>
+                    </div>
+
+                    <div className="pending-cards">
+                        {pendingAppointments.map(appt => (
+                            <div key={appt.id} className="pending-card">
+                                <div className="pending-card-left">
+                                    <div className="pending-avatar">
+                                        {appt.patient[0]}
+                                    </div>
+                                    <div className="pending-card-main">
+                                        <div className="pending-card-header">
+                                            <CustomText variant="text-body-md-sb">{appt.patient}</CustomText>
+                                            <span className="pending-status pending-status--pending">{appt.status}</span>
+                                        </div>
+                                        <div className="pending-card-meta">
+                                            <span>
+                                                <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M27.5 20.0005C27.5 20.2972 27.412 20.5872 27.2472 20.8338C27.0824 21.0805 26.8481 21.2728 26.574 21.3863C26.2999 21.4998 25.9983 21.5295 25.7074 21.4717C25.4164 21.4138 25.1491 21.2709 24.9393 21.0611C24.7296 20.8514 24.5867 20.5841 24.5288 20.2931C24.4709 20.0022 24.5007 19.7006 24.6142 19.4265C24.7277 19.1524 24.92 18.9181 25.1666 18.7533C25.4133 18.5885 25.7033 18.5005 26 18.5005C26.3978 18.5005 26.7794 18.6585 27.0607 18.9398C27.342 19.2211 27.5 19.6027 27.5 20.0005ZM26.9312 24.9117C26.7116 26.3278 25.9932 27.6187 24.9057 28.5518C23.8181 29.4849 22.433 29.9986 21 30.0005H18C16.4092 29.9988 14.884 29.3662 13.7592 28.2413C12.6343 27.1164 12.0017 25.5913 12 24.0005V18.9367C10.0669 18.6932 8.28915 17.7526 7.00033 16.2914C5.71152 14.8302 5.00024 12.9489 5 11.0005V5.00049C5 4.73527 5.10536 4.48092 5.29289 4.29338C5.48043 4.10585 5.73478 4.00049 6 4.00049H9C9.26522 4.00049 9.51957 4.10585 9.70711 4.29338C9.89464 4.48092 10 4.73527 10 5.00049C10 5.2657 9.89464 5.52006 9.70711 5.70759C9.51957 5.89513 9.26522 6.00049 9 6.00049H7V11.0005C6.99993 11.7952 7.15773 12.582 7.46425 13.3152C7.77077 14.0484 8.2199 14.7135 8.78555 15.2717C9.3512 15.8299 10.0221 16.2702 10.7593 16.5669C11.4965 16.8637 12.2854 17.0111 13.08 17.0005C16.3438 16.958 19 14.2192 19 10.8967V6.00049H17C16.7348 6.00049 16.4804 5.89513 16.2929 5.70759C16.1054 5.52006 16 5.2657 16 5.00049C16 4.73527 16.1054 4.48092 16.2929 4.29338C16.4804 4.10585 16.7348 4.00049 17 4.00049H20C20.2652 4.00049 20.5196 4.10585 20.7071 4.29338C20.8946 4.48092 21 4.73527 21 5.00049V10.8967C21 15.0017 17.9338 18.433 14 18.9355V24.0005C14 25.0614 14.4214 26.0788 15.1716 26.8289C15.9217 27.5791 16.9391 28.0005 18 28.0005H21C21.9084 27.999 22.7893 27.6889 23.4983 27.1212C24.2074 26.5534 24.7025 25.7616 24.9025 24.8755C23.6948 24.6042 22.6306 23.8946 21.916 22.884C21.2013 21.8733 20.8869 20.6335 21.0336 19.4045C21.1803 18.1754 21.7776 17.0444 22.7101 16.2304C23.6426 15.4164 24.8439 14.9771 26.0815 14.9977C27.3191 15.0183 28.5051 15.4973 29.41 16.3418C30.3149 17.1864 30.8743 18.3367 30.98 19.5699C31.0858 20.8032 30.7303 22.0319 29.9824 23.0182C29.2345 24.0045 28.1473 24.6783 26.9312 24.9092V24.9117ZM29 20.0005C29 19.4071 28.8241 18.8271 28.4944 18.3338C28.1648 17.8404 27.6962 17.4559 27.1481 17.2288C26.5999 17.0018 25.9967 16.9424 25.4147 17.0581C24.8328 17.1739 24.2982 17.4596 23.8787 17.8792C23.4591 18.2987 23.1734 18.8333 23.0576 19.4152C22.9419 19.9972 23.0013 20.6004 23.2284 21.1485C23.4554 21.6967 23.8399 22.1653 24.3333 22.4949C24.8266 22.8245 25.4067 23.0005 26 23.0005C26.7956 23.0005 27.5587 22.6844 28.1213 22.1218C28.6839 21.5592 29 20.7961 29 20.0005Z" fill="currentColor" />
+                                                </svg> {appt.doctor}
+                                            </span>
+                                            <span>
+                                                <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M31 26.0005H29V12.0005C29.2652 12.0005 29.5196 11.8951 29.7071 11.7076C29.8946 11.5201 30 11.2657 30 11.0005C30 10.7353 29.8946 10.4809 29.7071 10.2934C29.5196 10.1058 29.2652 10.0005 29 10.0005H23V6.00049C23.2652 6.00049 23.5196 5.89513 23.7071 5.70759C23.8946 5.52006 24 5.2657 24 5.00049C24 4.73527 23.8946 4.48092 23.7071 4.29338C23.5196 4.10585 23.2652 4.00049 23 4.00049H5C4.73478 4.00049 4.48043 4.10585 4.29289 4.29338C4.10536 4.48092 4 4.73527 4 5.00049C4 5.2657 4.10536 5.52006 4.29289 5.70759C4.48043 5.89513 4.73478 6.00049 5 6.00049V26.0005H3C2.73478 26.0005 2.48043 26.1058 2.29289 26.2934C2.10536 26.4809 2 26.7353 2 27.0005C2 27.2657 2.10536 27.5201 2.29289 27.7076C2.48043 27.8951 2.73478 28.0005 3 28.0005H31C31.2652 28.0005 31.5196 27.8951 31.7071 27.7076C31.8946 27.5201 32 27.2657 32 27.0005C32 26.7353 31.8946 26.4809 31.7071 26.2934C31.5196 26.1058 31.2652 26.0005 31 26.0005ZM27 12.0005V26.0005H23V12.0005H27ZM7 6.00049H21V26.0005H18V20.0005C18 19.7353 17.8946 19.4809 17.7071 19.2934C17.5196 19.1058 17.2652 19.0005 17 19.0005H11C10.7348 19.0005 10.4804 19.1058 10.2929 19.2934C10.1054 19.4809 10 19.7353 10 20.0005V26.0005H7V6.00049ZM16 26.0005H12V21.0005H16V26.0005ZM9 10.0005C9 9.73527 9.10536 9.48092 9.29289 9.29338C9.48043 9.10585 9.73478 9.00049 10 9.00049H12C12.2652 9.00049 12.5196 9.10585 12.7071 9.29338C12.8946 9.48092 13 9.73527 13 10.0005C13 10.2657 12.8946 10.5201 12.7071 10.7076C12.5196 10.8951 12.2652 11.0005 12 11.0005H10C9.73478 11.0005 9.48043 10.8951 9.29289 10.7076C9.10536 10.5201 9 10.2657 9 10.0005ZM15 10.0005C15 9.73527 15.1054 9.48092 15.2929 9.29338C15.4804 9.10585 15.7348 9.00049 16 9.00049H18C18.2652 9.00049 18.5196 9.10585 18.7071 9.29338C18.8946 9.48092 19 9.73527 19 10.0005C19 10.2657 18.8946 10.5201 18.7071 10.7076C18.5196 10.8951 18.2652 11.0005 18 11.0005H16C15.7348 11.0005 15.4804 10.8951 15.2929 10.7076C15.1054 10.5201 15 10.2657 15 10.0005ZM9 15.0005C9 14.7353 9.10536 14.4809 9.29289 14.2934C9.48043 14.1058 9.73478 14.0005 10 14.0005H12C12.2652 14.0005 12.5196 14.1058 12.7071 14.2934C12.8946 14.4809 13 14.7353 13 15.0005C13 15.2657 12.8946 15.5201 12.7071 15.7076C12.5196 15.8951 12.2652 16.0005 12 16.0005H10C9.73478 16.0005 9.48043 15.8951 9.29289 15.7076C9.10536 15.5201 9 15.2657 9 15.0005ZM15 15.0005C15 14.7353 15.1054 14.4809 15.2929 14.2934C15.4804 14.1058 15.7348 14.0005 16 14.0005H18C18.2652 14.0005 18.5196 14.1058 18.7071 14.2934C18.8946 14.4809 19 14.7353 19 15.0005C19 15.2657 18.8946 15.5201 18.7071 15.7076C18.5196 15.8951 18.2652 16.0005 18 16.0005H16C15.7348 16.0005 15.4804 15.8951 15.2929 15.7076C15.1054 15.5201 15 15.2657 15 15.0005Z" fill="currentColor" />
+                                                </svg> {appt.workplace}
+                                            </span>
+                                            <span>
+                                                <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M26 4.00049H23V3.00049C23 2.73527 22.8946 2.48092 22.7071 2.29338C22.5196 2.10585 22.2652 2.00049 22 2.00049C21.7348 2.00049 21.4804 2.10585 21.2929 2.29338C21.1054 2.48092 21 2.73527 21 3.00049V4.00049H11V3.00049C11 2.73527 10.8946 2.48092 10.7071 2.29338C10.5196 2.10585 10.2652 2.00049 10 2.00049C9.73478 2.00049 9.48043 2.10585 9.29289 2.29338C9.10536 2.48092 9 2.73527 9 3.00049V4.00049H6C5.46957 4.00049 4.96086 4.2112 4.58579 4.58627C4.21071 4.96135 4 5.47006 4 6.00049V26.0005C4 26.5309 4.21071 27.0396 4.58579 27.4147C4.96086 27.7898 5.46957 28.0005 6 28.0005H26C26.5304 28.0005 27.0391 27.7898 27.4142 27.4147C27.7893 27.0396 28 26.5309 28 26.0005V6.00049C28 5.47006 27.7893 4.96135 27.4142 4.58627C27.0391 4.2112 26.5304 4.00049 26 4.00049ZM9 6.00049V7.00049C9 7.2657 9.10536 7.52006 9.29289 7.70759C9.48043 7.89513 9.73478 8.00049 10 8.00049C10.2652 8.00049 10.5196 7.89513 10.7071 7.70759C10.8946 7.52006 11 7.2657 11 7.00049V6.00049H21V7.00049C21 7.2657 21.1054 7.52006 21.2929 7.70759C21.4804 7.89513 21.7348 8.00049 22 8.00049C22.2652 8.00049 22.5196 7.89513 22.7071 7.70759C22.8946 7.52006 23 7.2657 23 7.00049V6.00049H26V10.0005H6V6.00049H9ZM26 26.0005H6V12.0005H26V26.0005ZM17.5 16.5005C17.5 16.7972 17.412 17.0872 17.2472 17.3338C17.0824 17.5805 16.8481 17.7728 16.574 17.8863C16.2999 17.9998 15.9983 18.0295 15.7074 17.9717C15.4164 17.9138 15.1491 17.7709 14.9393 17.5611C14.7296 17.3514 14.5867 17.0841 14.5288 16.7931C14.4709 16.5022 14.5006 16.2006 14.6142 15.9265C14.7277 15.6524 14.92 15.4181 15.1666 15.2533C15.4133 15.0885 15.7033 15.0005 16 15.0005C16.3978 15.0005 16.7794 15.1585 17.0607 15.4398C17.342 15.7211 17.5 16.1027 17.5 16.5005ZM23 16.5005C23 16.7972 22.912 17.0872 22.7472 17.3338C22.5824 17.5805 22.3481 17.7728 22.074 17.8863C21.7999 17.9998 21.4983 18.0295 21.2074 17.9717C20.9164 17.9138 20.6491 17.7709 20.4393 17.5611C20.2296 17.3514 20.0867 17.0841 20.0288 16.7931C19.9709 16.5022 20.0007 16.2006 20.1142 15.9265C20.2277 15.6524 20.42 15.4181 20.6666 15.2533C20.9133 15.0885 21.2033 15.0005 21.5 15.0005C21.8978 15.0005 22.2794 15.1585 22.5607 15.4398C22.842 15.7211 23 16.1027 23 16.5005ZM12 21.5005C12 21.7972 11.912 22.0872 11.7472 22.3338C11.5824 22.5805 11.3481 22.7728 11.074 22.8863C10.7999 22.9998 10.4983 23.0295 10.2074 22.9717C9.91639 22.9138 9.64912 22.7709 9.43934 22.5611C9.22956 22.3514 9.0867 22.0841 9.02882 21.7931C8.97094 21.5022 9.00065 21.2006 9.11418 20.9265C9.22771 20.6524 9.41997 20.4181 9.66665 20.2533C9.91332 20.0885 10.2033 20.0005 10.5 20.0005C10.8978 20.0005 11.2794 20.1585 11.5607 20.4398C11.842 20.7211 12 21.1027 12 21.5005ZM17.5 21.5005C17.5 21.7972 17.412 22.0872 17.2472 22.3338C17.0824 22.5805 16.8481 22.7728 16.574 22.8863C16.2999 22.9998 15.9983 23.0295 15.7074 22.9717C15.4164 22.9138 15.1491 22.7709 14.9393 22.5611C14.7296 22.3514 14.5867 22.0841 14.5288 21.7931C14.4709 21.5022 14.5006 21.2006 14.6142 20.9265C14.7277 20.6524 14.92 20.4181 15.1666 20.2533C15.4133 20.0885 15.7033 20.0005 16 20.0005C16.3978 20.0005 16.7794 20.1585 17.0607 20.4398C17.342 20.7211 17.5 21.1027 17.5 21.5005ZM23 21.5005C23 21.7972 22.912 22.0872 22.7472 22.3338C22.5824 22.5805 22.3481 22.7728 22.074 22.8863C21.7999 22.9998 21.4983 23.0295 21.2074 22.9717C20.9164 22.9138 20.6491 22.7709 20.4393 22.5611C20.2296 22.3514 20.0867 22.0841 20.0288 21.7931C19.9709 21.5022 20.0007 21.2006 20.1142 20.9265C20.2277 20.6524 20.42 20.4181 20.6666 20.2533C20.9133 20.0885 21.2033 20.0005 21.5 20.0005C21.8978 20.0005 22.2794 20.1585 22.5607 20.4398C22.842 20.7211 23 21.1027 23 21.5005Z" fill="currentColor" />
+                                                </svg> {appt.datetime}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
 
-                <div className="quick-links mt-8">
-                    <CustomText variant="text-heading-H4" as="h4">Quick Links</CustomText>
-                    <div className="quick-links-buttons mt-4 flex flex-wrap gap-4">
-                        <Link to={`/doctor/${stats.mostActiveDoctor.id}`}>
-                            <Button variant="secondary" text={`View ${stats.mostActiveDoctor.name}`} />
-                        </Link>
-                        <Link to={`/workplace/${stats.mostActiveWorkplace.id}`}>
-                            <Button variant="secondary" text={`Visit ${stats.mostActiveWorkplace.name}`} />
-                        </Link>
+                                <div className="pending-card-actions">
+                                    <Button
+                                        text="Reject"
+                                        variant="ghost"
+                                        className="btn-reject"
+                                        onClick={() => handleAction(appt.id, "reject")}
+                                    />
+                                    <Button
+                                        text="Accept"
+                                        variant="primary"
+                                        className="btn-accept"
+                                        onClick={() => handleAction(appt.id, "accept")}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+
+                        {pendingAppointments.length === 0 && (
+                            <div className="pending-empty">
+                                <CustomText as={"p"}>No pending appointments <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21.7075 12.293C21.8005 12.3859 21.8742 12.4962 21.9246 12.6175C21.9749 12.7389 22.0008 12.8691 22.0008 13.0005C22.0008 13.1319 21.9749 13.262 21.9246 13.3834C21.8742 13.5048 21.8005 13.6151 21.7075 13.708L14.7075 20.708C14.6146 20.801 14.5043 20.8747 14.3829 20.925C14.2615 20.9754 14.1314 21.0013 14 21.0013C13.8686 21.0013 13.7385 20.9754 13.6171 20.925C13.4957 20.8747 13.3854 20.801 13.2925 20.708L10.2925 17.708C10.1049 17.5203 9.99945 17.2659 9.99945 17.0005C9.99945 16.7351 10.1049 16.4806 10.2925 16.293C10.4801 16.1053 10.7346 15.9999 11 15.9999C11.2654 15.9999 11.5199 16.1053 11.7075 16.293L14 18.5867L20.2925 12.293C20.3854 12.2 20.4957 12.1263 20.6171 12.0759C20.7385 12.0256 20.8686 11.9997 21 11.9997C21.1314 11.9997 21.2615 12.0256 21.3829 12.0759C21.5043 12.1263 21.6146 12.2 21.7075 12.293ZM29 16.0005C29 18.5716 28.2376 21.0851 26.8091 23.2229C25.3807 25.3607 23.3503 27.027 20.9749 28.0109C18.5995 28.9949 15.9856 29.2523 13.4638 28.7507C10.9421 28.2491 8.6257 27.011 6.80762 25.1929C4.98953 23.3748 3.75141 21.0584 3.2498 18.5367C2.74819 16.0149 3.00563 13.401 3.98957 11.0256C4.97351 8.65016 6.63975 6.61984 8.77759 5.19138C10.9154 3.76293 13.4288 3.00049 16 3.00049C19.4467 3.00413 22.7512 4.37494 25.1884 6.81212C27.6256 9.2493 28.9964 12.5538 29 16.0005ZM27 16.0005C27 13.8249 26.3549 11.6982 25.1462 9.88922C23.9375 8.08027 22.2195 6.67038 20.2095 5.83781C18.1995 5.00525 15.9878 4.78741 13.854 5.21185C11.7202 5.63629 9.76021 6.68394 8.22183 8.22231C6.68345 9.76069 5.63581 11.7207 5.21137 13.8545C4.78693 15.9883 5.00477 18.2 5.83733 20.21C6.66989 22.22 8.07979 23.938 9.88873 25.1467C11.6977 26.3554 13.8244 27.0005 16 27.0005C18.9164 26.9972 21.7123 25.8372 23.7745 23.775C25.8367 21.7128 26.9967 18.9169 27 16.0005Z" fill="currentColor" />
+                                </svg>
+                                </CustomText>
+                            </div>
+                        )}
                     </div>
-                </div>
+                </section>
             </div>
 
-            <div className="dashboard-right">
-                <CustomText variant="text-heading-H4" as="h4">Upcoming Appointments</CustomText>
-                <ul className="mt-4 space-y-3">
-                    {stats.upcomingAppointments.map(app => (
-                        <li key={app.id} className="p-3 bg-white border rounded-md shadow-sm">
-                            <div className="font-semibold">{app.patient}</div>
-                            <div className="text-sm text-gray-600">{app.time}</div>
-                            <div className="text-sm text-gray-500">with {app.doctor}</div>
-                        </li>
-                    ))}
-                </ul>
+            {/* ---------- RIGHT PANEL ---------- */}
+            <div className="doctor-dashboard-right">
+                {/* Calendar */}
+                <div className="calendar-widget">
+                    <div className="side-header">
+                        <CustomText variant="text-heading-H5" as="h5">Calendar</CustomText>
+                    </div>
+
+                    <Calendar
+                        selectRange={false}
+                        onChange={(val: CalendarValue) => setSelectedDate(Array.isArray(val) ? val[0] : val)}
+                        value={selectedDate}
+                        locale="en"
+                        next2Label={null}
+                        prev2Label={null}
+                        // add a tiny dot under days that have appointments
+                        tileClassName={({ date, view }) => {
+                            if (view !== 'month') return undefined;
+                            const iso = fmtISO(date);
+                            const has = mockAppointments.some(a => a.date === iso);
+                            return has ? 'rc-day has-appts' : 'rc-day';
+                        }}
+                        tileContent={({ date, view }) => {
+                            if (view !== 'month') return null;
+                            const iso = fmtISO(date);
+                            const count = mockAppointments.filter(a => a.date === iso).length;
+                            return count > 0 ? <span className="rc-dot" /> : null;
+                        }}
+                    />
+                </div>
+
+                {/* Today's / Selected Day Schedule */}
+                <div className="side-section">
+                    <div className="section-header">
+                        <CustomText variant="text-heading-H5" as="h5">
+                            {(() => {
+                                const d = selectedDate ?? new Date();
+                                return fmtISO(d) === fmtISO(new Date()) ? "Today’s Schedule" : "Selected Day";
+                            })()}
+                        </CustomText>
+                        <Button
+                            text="View all"
+                            variant="tertiary"
+                            iconRight={
+                                <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M24.9996 8.00049V21.0005C24.9996 21.2657 24.8942 21.5201 24.7067 21.7076C24.5192 21.8951 24.2648 22.0005 23.9996 22.0005C23.7344 22.0005 23.48 21.8951 23.2925 21.7076C23.1049 21.5201 22.9996 21.2657 22.9996 21.0005V10.4142L8.70708 24.708C8.51944 24.8956 8.26494 25.001 7.99958 25.001C7.73422 25.001 7.47972 24.8956 7.29208 24.708C7.10444 24.5203 6.99902 24.2659 6.99902 24.0005C6.99902 23.7351 7.10444 23.4806 7.29208 23.293L21.5858 9.00049H10.9996C10.7344 9.00049 10.48 8.89513 10.2925 8.70759C10.1049 8.52006 9.99958 8.2657 9.99958 8.00049C9.99958 7.73527 10.1049 7.48092 10.2925 7.29338C10.48 7.10585 10.7344 7.00049 10.9996 7.00049H23.9996C24.2648 7.00049 24.5192 7.10585 24.7067 7.29338C24.8942 7.48092 24.9996 7.73527 24.9996 8.00049Z" fill="currentColor" />
+                                </svg>
+                            }
+                        />
+                    </div>
+
+                    {/* quick chips with counts for the selected date */}
+                    {(() => {
+                        const iso = fmtISO(selectedDate);
+                        const dayAppts = mockAppointments.filter(a => a.date === iso);
+                        const total = dayAppts.length;
+                        const confirmed = dayAppts.filter(a => a.status === "Confirmed").length;
+                        const pending = dayAppts.filter(a => a.status === "Pending").length;
+                        const checkedin = dayAppts.filter(a => a.status === "Checked-in").length;
+                        return (
+                            <div className="appt-stats-row">
+                                <span className="appt-chip chip-total">Total {total}</span>
+                                <span className="appt-chip chip-confirmed">Confirmed {confirmed}</span>
+                                <span className="appt-chip chip-pending">Pending {pending}</span>
+                                <span className="appt-chip chip-checkedin">Checked-in {checkedin}</span>
+                            </div>
+                        );
+                    })()}
+
+                    <ul className="appointments-list">
+                        {dayAppointments.map(appt => (
+                            <li key={appt.id} className={`appt-item accent-${appt.status.toLowerCase().replace('-', '')}`}>
+                                <div className="appt-left">
+                                    <div className="appt-time-badge">{appt.time}</div>
+                                    <div className="appt-avatar">{appt.patient.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}</div>
+                                </div>
+
+                                <div className="appt-main">
+                                    <div className="appt-title-row">
+                                        {/* <div className="appt-patient">{appt.patient}</div> */}
+                                        <div className="appt-type">{appt.type}</div>
+                                    </div>
+                                    <div className="appt-meta">
+                                        <span className={`badge status-${appt.status.toLowerCase().replace('-', '')}`}>{appt.status}</span>
+                                    </div>
+                                </div>
+
+                                <div className="appt-actions">
+                                    <Button text="Open" variant="ghost" />
+                                </div>
+                            </li>
+                        ))}
+
+                        {/* Empty state */}
+                        {noAppointments && (
+                            <li className="appt-empty">
+                                <div className="empty-icon">
+                                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M26 4.00049H23V3.00049C23 2.73527 22.8946 2.48092 22.7071 2.29338C22.5196 2.10585 22.2652 2.00049 22 2.00049C21.7348 2.00049 21.4804 2.10585 21.2929 2.29338C21.1054 2.48092 21 2.73527 21 3.00049V4.00049H11V3.00049C11 2.73527 10.8946 2.48092 10.7071 2.29338C10.5196 2.10585 10.2652 2.00049 10 2.00049C9.73478 2.00049 9.48043 2.10585 9.29289 2.29338C9.10536 2.48092 9 2.73527 9 3.00049V4.00049H6C5.46957 4.00049 4.96086 4.2112 4.58579 4.58627C4.21071 4.96135 4 5.47006 4 6.00049V26.0005C4 26.5309 4.21071 27.0396 4.58579 27.4147C4.96086 27.7898 5.46957 28.0005 6 28.0005H26C26.5304 28.0005 27.0391 27.7898 27.4142 27.4147C27.7893 27.0396 28 26.5309 28 26.0005V6.00049C28 5.47006 27.7893 4.96135 27.4142 4.58627C27.0391 4.2112 26.5304 4.00049 26 4.00049ZM9 6.00049V7.00049C9 7.2657 9.10536 7.52006 9.29289 7.70759C9.48043 7.89513 9.73478 8.00049 10 8.00049C10.2652 8.00049 10.5196 7.89513 10.7071 7.70759C10.8946 7.52006 11 7.2657 11 7.00049V6.00049H21V7.00049C21 7.2657 21.1054 7.52006 21.2929 7.70759C21.4804 7.89513 21.7348 8.00049 22 8.00049C22.2652 8.00049 22.5196 7.89513 22.7071 7.70759C22.8946 7.52006 23 7.2657 23 7.00049V6.00049H26V10.0005H6V6.00049H9ZM26 26.0005H6V12.0005H26V26.0005ZM17.5 16.5005C17.5 16.7972 17.412 17.0872 17.2472 17.3338C17.0824 17.5805 16.8481 17.7728 16.574 17.8863C16.2999 17.9998 15.9983 18.0295 15.7074 17.9717C15.4164 17.9138 15.1491 17.7709 14.9393 17.5611C14.7296 17.3514 14.5867 17.0841 14.5288 16.7931C14.4709 16.5022 14.5006 16.2006 14.6142 15.9265C14.7277 15.6524 14.92 15.4181 15.1666 15.2533C15.4133 15.0885 15.7033 15.0005 16 15.0005C16.3978 15.0005 16.7794 15.1585 17.0607 15.4398C17.342 15.7211 17.5 16.1027 17.5 16.5005ZM23 16.5005C23 16.7972 22.912 17.0872 22.7472 17.3338C22.5824 17.5805 22.3481 17.7728 22.074 17.8863C21.7999 17.9998 21.4983 18.0295 21.2074 17.9717C20.9164 17.9138 20.6491 17.7709 20.4393 17.5611C20.2296 17.3514 20.0867 17.0841 20.0288 16.7931C19.9709 16.5022 20.0007 16.2006 20.1142 15.9265C20.2277 15.6524 20.42 15.4181 20.6666 15.2533C20.9133 15.0885 21.2033 15.0005 21.5 15.0005C21.8978 15.0005 22.2794 15.1585 22.5607 15.4398C22.842 15.7211 23 16.1027 23 16.5005ZM12 21.5005C12 21.7972 11.912 22.0872 11.7472 22.3338C11.5824 22.5805 11.3481 22.7728 11.074 22.8863C10.7999 22.9998 10.4983 23.0295 10.2074 22.9717C9.91639 22.9138 9.64912 22.7709 9.43934 22.5611C9.22956 22.3514 9.0867 22.0841 9.02882 21.7931C8.97094 21.5022 9.00065 21.2006 9.11418 20.9265C9.22771 20.6524 9.41997 20.4181 9.66665 20.2533C9.91332 20.0885 10.2033 20.0005 10.5 20.0005C10.8978 20.0005 11.2794 20.1585 11.5607 20.4398C11.842 20.7211 12 21.1027 12 21.5005ZM17.5 21.5005C17.5 21.7972 17.412 22.0872 17.2472 22.3338C17.0824 22.5805 16.8481 22.7728 16.574 22.8863C16.2999 22.9998 15.9983 23.0295 15.7074 22.9717C15.4164 22.9138 15.1491 22.7709 14.9393 22.5611C14.7296 22.3514 14.5867 22.0841 14.5288 21.7931C14.4709 21.5022 14.5006 21.2006 14.6142 20.9265C14.7277 20.6524 14.92 20.4181 15.1666 20.2533C15.4133 20.0885 15.7033 20.0005 16 20.0005C16.3978 20.0005 16.7794 20.1585 17.0607 20.4398C17.342 20.7211 17.5 21.1027 17.5 21.5005ZM23 21.5005C23 21.7972 22.912 22.0872 22.7472 22.3338C22.5824 22.5805 22.3481 22.7728 22.074 22.8863C21.7999 22.9998 21.4983 23.0295 21.2074 22.9717C20.9164 22.9138 20.6491 22.7709 20.4393 22.5611C20.2296 22.3514 20.0867 22.0841 20.0288 21.7931C19.9709 21.5022 20.0007 21.2006 20.1142 20.9265C20.2277 20.6524 20.42 20.4181 20.6666 20.2533C20.9133 20.0885 21.2033 20.0005 21.5 20.0005C21.8978 20.0005 22.2794 20.1585 22.5607 20.4398C22.842 20.7211 23 21.1027 23 21.5005Z" fill="#434344" />
+                                    </svg>
+                                </div>
+                                <div className="empty-text">
+                                    <CustomText>No appointments for this day.</CustomText>
+                                </div>
+                                {/* <Button text="New Appointment" variant="primary" /> */}
+                            </li>
+                        )}
+                    </ul>
+                </div>
             </div>
         </div>
     );

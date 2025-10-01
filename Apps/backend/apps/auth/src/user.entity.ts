@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 export enum UserRole {
@@ -53,9 +54,24 @@ export class User {
   @Column({ nullable: true })
   refresh_token: string;
 
+  @Column({ type: 'date', nullable: true })
+  date_of_birth: Date;
+
+  @Column({ nullable: true })
+  gender: string;
+
+  @Column({ type: 'text', nullable: true })
+  medical_history: string;
+
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany('Address', 'user')
+  addresses: any[];
+
+  @OneToMany('Doctor', 'user')
+  doctors: any[];
 }

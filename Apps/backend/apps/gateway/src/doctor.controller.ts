@@ -90,22 +90,15 @@ export class DoctorController {
     );
   }
 
-  // Test endpoint to check if auth middleware is running
-  @Get('test-middleware')
-  async testMiddleware(@Req() req: AuthenticatedRequest) {
-    console.log('Test middleware route reached - req.user:', req.user);
-    console.log('Test middleware route reached - req.token:', req.token);
-    console.log(
-      'Test middleware route reached - req.headers.authorization:',
-      req.headers.authorization,
-    );
+
+  // Simple test endpoint without auth
+  @Get('test-simple')
+  async testSimple() {
+    console.log('=== SIMPLE TEST ENDPOINT REACHED ===');
     return {
       success: true,
-      message: 'Middleware test endpoint reached',
-      user: req.user,
-      hasToken: !!req.token,
-      hasAuthHeader: !!req.headers.authorization,
-      authHeader: req.headers.authorization ? 'Present' : 'Missing',
+      message: 'Simple test endpoint reached without auth',
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -859,13 +852,103 @@ export class DoctorController {
 
   @Get('workplaces/:workplaceId/appointment-slots')
   async getWorkplaceAppointmentSlots(
+    @Req() req: AuthenticatedRequest,
     @Param('workplaceId') workplaceId: string,
     @Query('date') date: string,
   ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
     return this.handleRequest(
       { cmd: 'get_workplace_appointment_slots' },
-      { workplaceId, date },
+      { token: req.token, workplaceId, date },
       'Failed to get workplace appointment slots',
     );
   }
+
+  // ==================== WORKPLACE ASSISTANT MANAGEMENT ====================
+
+  @Get('workplaces/:workplaceId/assistants')
+  async getWorkplaceAssistants(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_workplace_assistants' },
+      { token: req.token, workplaceId },
+      'Failed to get workplace assistants',
+    );
+  }
+
+  @Post('workplaces/:workplaceId/assistants')
+  async addWorkplaceAssistant(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body() body: { email: string },
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'invite_assistant' },
+      { token: req.token, workplaceId, assistantEmail: body.email },
+      'Failed to add workplace assistant',
+    );
+  }
+
+  @Delete('workplaces/:workplaceId/assistants/:assistantId')
+  async removeWorkplaceAssistant(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Param('assistantId') assistantId: string,
+  ) {
+    if (req.user.role !== 'doctor') {
+      throw new HttpException(
+        {
+          success: false,
+          status: 403,
+          message: 'Doctor access required',
+          error: 'Forbidden',
+        },
+        403,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'remove_workplace_assistant' },
+      { token: req.token, workplaceId, assistantId },
+      'Failed to remove workplace assistant',
+    );
+  }
+
 }

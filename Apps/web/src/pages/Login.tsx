@@ -10,18 +10,7 @@ import assistantSlide from '../assets/images/assistant-login-img.jpg';
 import pharmacySlide from '../assets/images/pharmacy-login-img.jpg';
 import { ReactComponent as ArrowUpRightIcon } from '../assets/svgs/ArrowUpRight.svg';
 
-const DEMO_PHARMACY = {
-    email: 'pharmacy@demo.com',
-    password: 'pharmacy123',
-    name: 'City Care Pharmacy',
-};
-
-const DEMO_DOCTOR = {
-    email: 'doctor@demo.com',
-    password: 'doctor123',
-    name: 'John Doe',
-    specialty: 'Cardiology',
-};
+// Demo credentials removed - all roles now use real API
 
 type Role = 'doctor' | 'assistant' | 'pharmacy';
 
@@ -53,46 +42,19 @@ export default function Login() {
         setLoading(true);
         setError('');
 
-        if (
-            email.trim().toLowerCase() === DEMO_PHARMACY.email &&
-            password === DEMO_PHARMACY.password
-        ) {
-            // set whatever your app expects
-            const role: Role = 'pharmacy';
-            localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
-            localStorage.setItem('userName', DEMO_PHARMACY.name);
-            localStorage.setItem('userRole', role);
-
-            login({ name: DEMO_PHARMACY.name, role });        // from your AuthContext
-            navigate('/pharmacy');
-            setLoading(false);
-            return;
-        } else if (
-            email.trim().toLowerCase() === DEMO_DOCTOR.email &&
-            password === DEMO_DOCTOR.password
-        ) {
-            // set whatever your app expects
-            const role: Role = 'doctor';
-            localStorage.setItem('token', 'demo-token');      // optional, if other pages check it
-            localStorage.setItem('userName', DEMO_DOCTOR.name);
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userSpecialty', DEMO_DOCTOR.specialty);
-
-            login({ name: DEMO_DOCTOR.name, role, specialty: DEMO_DOCTOR.specialty });        // from your AuthContext
-            navigate('/doctor');
-            setLoading(false);
-            return;
-        }
-
         try {
             const resp = await fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.message || `HTTP ${resp.status}`);
+            }
+            
             const data = await resp.json();
-
             console.log('Login API response:', data);
 
             const token = data?.data?.access_token || data?.access_token;
@@ -100,14 +62,25 @@ export default function Login() {
 
             const decoded: JwtPayload = decodeJwt(token);
             console.log("Decoded JWT:", decoded);
+            
+            // Store user data in localStorage
             localStorage.setItem('token', token);
             localStorage.setItem('userName', decoded.name);
             localStorage.setItem('userRole', decoded.role);
-            login({ name: decoded.name, role: decoded.role });
+            
+            // Update auth context
+            login({
+                sub: decoded.sub,
+                email: decoded.email,
+                name: decoded.name,
+                role: decoded.role,
+            });
+            
+            // Navigate to appropriate dashboard based on role
             navigate(`/${decoded.role}`);
         } catch (err: any) {
             console.error('Login error:', err);
-            setError('Invalid credentials. Please try again.');
+            setError(err.message || 'Invalid credentials. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -213,11 +186,11 @@ export default function Login() {
                     <CustomText variant='text-body-lg-r' as={'p'}>Login to access your dashboard and start your journey!</CustomText>
                 </div>
                 <form className="login-form" onSubmit={handleSubmit}>
-                    {error && (
+                    {/* {error && (
                         <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
                             {error}
                         </div>
-                    )}
+                    )} */}
                     <div className="">
                         <CustomInput
                             label="Email"
@@ -262,69 +235,3 @@ export default function Login() {
         </div >
     );
 }
-
-// import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext';
-
-// export default function Login() {
-//     const { login } = useAuth();
-//     const navigate = useNavigate();
-
-//     const [username, setUsername] = useState('');
-//     const [role, setRole] = useState('doctor'); // default selected role
-
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-
-//         // Simulate login by role
-//         login(role as 'doctor' | 'assistant' | 'pharmacy');
-
-//         // Redirect to the appropriate dashboard
-//         navigate(`/${role}`);
-//     };
-
-//     return (
-//         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-//             <h1 className="text-4xl font-bold mb-4">Login</h1>
-//             <form className="w-full max-w-sm" onSubmit={handleSubmit}>
-//                 <div className="mb-4">
-//                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-//                         Username
-//                     </label>
-//                     <input
-//                         type="text"
-//                         id="username"
-//                         value={username}
-//                         onChange={(e) => setUsername(e.target.value)}
-//                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-//                         placeholder="Username"
-//                     />
-//                 </div>
-
-//                 <div className="mb-6">
-//                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
-//                         Select Role
-//                     </label>
-//                     <select
-//                         id="role"
-//                         value={role}
-//                         onChange={(e) => setRole(e.target.value)}
-//                         className="shadow border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
-//                     >
-//                         <option value="doctor">Doctor</option>
-//                         <option value="assistant">Assistant</option>
-//                         <option value="pharmacy">Pharmacy</option>
-//                     </select>
-//                 </div>
-
-//                 <button
-//                     type="submit"
-//                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
-//                 >
-//                     Login
-//                 </button>
-//             </form>
-//         </div>
-//     );
-// }

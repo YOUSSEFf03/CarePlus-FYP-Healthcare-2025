@@ -202,18 +202,6 @@ export class DoctorController {
   // ==================== ASSISTANT MANAGEMENT ====================
 
   // Cancel Invite (Doctor only)
-  @UseGuards(MicroserviceAuthGuard, RoleGuard)
-  @RequireRoles(UserRole.DOCTOR)
-  @MessagePattern({ cmd: 'cancel_invite' })
-  async cancelInvite(
-    @Payload()
-    data: {
-      doctorUserId: string;
-      inviteId: string;
-    },
-  ) {
-    return this.doctorService.cancelInvite(data.doctorUserId, data.inviteId);
-  }
 
   // 7. Assistant Responds to Invite
   @UseGuards(MicroserviceAuthGuard, RoleGuard)
@@ -284,6 +272,7 @@ export class DoctorController {
     );
   }
 
+
   // Assistant gets their invites
   @UseGuards(MicroserviceAuthGuard, RoleGuard)
   @RequireRoles(UserRole.ASSISTANT)
@@ -298,6 +287,25 @@ export class DoctorController {
   @MessagePattern({ cmd: 'get_my_assistants' })
   async getMyAssistants(@CurrentUser() user: any) {
     return this.doctorService.getDoctorAssistants(user.id);
+  }
+
+  // Doctor gets pending invites
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_pending_invites' })
+  async getPendingInvites(@CurrentUser() user: any) {
+    return this.doctorService.getDoctorPendingInvites(user.id);
+  }
+
+  // Doctor cancels an invite
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'cancel_invite' })
+  async cancelInvite(
+    @Payload() data: { inviteId: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.doctorService.cancelInvite(user.id, data.inviteId);
   }
 
   // ==================== DOCTOR PENDING INVITES ====================

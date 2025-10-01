@@ -11,6 +11,7 @@ import { colors, fontFamily, fontSize, radius, shadow, spacing } from '@/styles/
 import { Ionicons } from '@expo/vector-icons';
 import type { RootStackParamList, AuthStackParamList } from '../../App';
 import { useUser } from '@/store/UserContext';
+import authService from '@/services/authService';
 
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -20,6 +21,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [remember, setRemember] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const { setUser } = useUser();
 
     const goBack = () => {
@@ -33,27 +35,51 @@ export default function LoginScreen() {
     };
 
     const goPhoneLogin = () => {
-        // Needs AuthStackParamList to contain `LoginPhone`
-        navigation.navigate('AuthStack', { screen: 'LoginPhone' } as any);
+        navigation.navigate('AuthStack', { screen: 'PhoneLogin' } as any);
     };
 
-    const onLogin = () => {
-        if (email === "patient@demo.com" && password === "patient123") {
-            // set demo patient profile
+    const onLogin = async () => {
+        if (!email.trim() || !password.trim()) {
+            Alert.alert('Error', 'Please enter both email and password');
+            return;
+        }
+
+        setIsLoggingIn(true);
+        try {
+            const response = await authService.login({ email, password });
+            
+            // Store auth data
+            await authService.storeAuthData(response);
+            
+            // Update user context
             setUser({
-                id: "demo-patient-001",
-                name: "Demo Patient",
-                age: 29,
-                sex: "female",
-                phone: "+96170000000"
+                id: response.data.user.id,
+                name: response.data.user.name,
+                age: response.data.user.date_of_birth 
+                    ? new Date().getFullYear() - new Date(response.data.user.date_of_birth).getFullYear()
+                    : 0,
+                sex: (response.data.user.gender as 'male' | 'female') || 'unknown',
+                phone: response.data.user.phone,
+                email: response.data.user.email,
+                dateOfBirth: response.data.user.date_of_birth,
+                medicalHistory: response.data.user.medical_history,
+                role: response.data.user.role,
             });
 
+            // Navigate to main app
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Tabs', params: { screen: 'Home' } }],
             });
-        } else {
-            Alert.alert("Login failed", "Invalid email or password");
+
+        } catch (error) {
+            console.error('Login error:', error);
+            Alert.alert(
+                'Login Failed', 
+                error instanceof Error ? error.message : 'Invalid email or password'
+            );
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -122,7 +148,13 @@ export default function LoginScreen() {
 
                     {/* Login CTA */}
                     <View style={{ height: spacing[8] }} />
-                    <Button text="Login" variant="primary" fullWidth onPress={onLogin} />
+                    <Button 
+                        text={isLoggingIn ? "Logging in..." : "Login"} 
+                        variant="primary" 
+                        fullWidth 
+                        onPress={onLogin}
+                        disabled={isLoggingIn}
+                    />
 
                     {/* Divider */}
                     <View style={styles.dividerRow}>
