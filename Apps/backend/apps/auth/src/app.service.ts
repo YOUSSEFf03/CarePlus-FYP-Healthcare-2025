@@ -261,10 +261,18 @@ export class AppService {
         });
       }
 
-      // Return user info (exclude sensitive fields)
-      const { password, refresh_token, otp_code, otp_expiry, ...safeUser } =
-        user;
-      return safeUser;
+      // Get user profile with role-specific data
+      const userProfile = await this.usersService.getUserProfile({ userId: user.id });
+
+      // Return user info with profile data (exclude sensitive fields)
+      const { password, refresh_token, otp_code, otp_expiry, ...safeUser } = user;
+      
+      return {
+        ...safeUser,
+        date_of_birth: userProfile?.date_of_birth,
+        gender: userProfile?.gender,
+        medical_history: userProfile?.medical_history,
+      };
     } catch (error) {
       console.error('Error verifying token:', error);
       if (error instanceof RpcException) {

@@ -59,6 +59,10 @@ export class DoctorWorkplace {
   @Column('json', { nullable: true })
   working_hours: any; // {"monday": {"start": "09:00", "end": "17:00"}, ...}
 
+  // Available days for this workplace
+  @Column('simple-array', { nullable: true })
+  available_days: string[]; // ["Monday", "Tuesday", "Friday"]
+
   @Column({ nullable: true })
   consultation_fee: number;
 

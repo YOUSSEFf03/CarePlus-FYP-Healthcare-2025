@@ -128,6 +128,10 @@ export class AppModule implements NestModule {
       { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.PUT },
       { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.DELETE },
       {
+        path: 'doctors/workplaces/:workplaceId/availability',
+        method: RequestMethod.PUT,
+      },
+      {
         path: 'doctors/workplaces/:workplaceId/assistants',
         method: RequestMethod.GET,
       },
@@ -147,8 +151,27 @@ export class AppModule implements NestModule {
         path: 'doctors/workplaces/:workplaceId/appointment-slots',
         method: RequestMethod.POST,
       },
+      {
+        path: 'doctors/workplaces/:workplaceId/appointment-slots',
+        method: RequestMethod.DELETE,
+      },
+      {
+        path: 'doctors/workplaces/:workplaceId/appointment-slots/status',
+        method: RequestMethod.PUT,
+      },
       { path: 'doctors/appointments', method: RequestMethod.GET },
       { path: 'doctors/appointments/me', method: RequestMethod.GET },
+      { path: 'doctors/appointments/my-bookings', method: RequestMethod.GET },
+      { path: 'doctors/appointments/next-upcoming', method: RequestMethod.GET },
+      { path: 'doctors/specializations', method: RequestMethod.GET },
+      { path: 'doctors/specializations/top', method: RequestMethod.GET },
+      { path: 'doctors/specializations/search', method: RequestMethod.GET },
+      { path: 'doctors/top-rated', method: RequestMethod.GET },
+      { path: 'doctors/most-popular', method: RequestMethod.GET },
+      { path: 'doctors/search', method: RequestMethod.GET },
+      { path: 'doctors/workplaces', method: RequestMethod.GET },
+      { path: 'doctors/:id', method: RequestMethod.GET },
+      { path: 'doctors/:id/workplaces', method: RequestMethod.GET },
       { path: 'doctors/analytics/monthly', method: RequestMethod.GET },
       { path: 'doctors/appointments/statistics', method: RequestMethod.GET },
       { path: 'doctors/profile/me', method: RequestMethod.GET },
@@ -178,29 +201,6 @@ export class AppModule implements NestModule {
       { path: 'pharmacy/dashboard/stats', method: RequestMethod.GET },
       { path: 'pharmacy/dashboard/top-products', method: RequestMethod.GET },
       { path: 'pharmacy/dashboard/recent-activity', method: RequestMethod.GET },
-      // Item management routes
-      { path: 'pharmacy/items', method: RequestMethod.POST },
-      { path: 'pharmacy/items/:itemId', method: RequestMethod.PUT },
-      { path: 'pharmacy/items/:itemId', method: RequestMethod.GET },
-      { path: 'pharmacy/items/:itemId/delete', method: RequestMethod.PUT },
-      // Medicine management routes
-      { path: 'pharmacy/medicines', method: RequestMethod.POST },
-      { path: 'pharmacy/medicines/:medicineId', method: RequestMethod.PUT },
-      {
-        path: 'pharmacy/medicines/:medicineId/delete',
-        method: RequestMethod.PUT,
-      },
-      // Stock management routes
-      { path: 'pharmacy/stock', method: RequestMethod.POST },
-      { path: 'pharmacy/stock/:stockId', method: RequestMethod.PUT },
-      { path: 'pharmacy/stock/branch/:branchId', method: RequestMethod.GET },
-      // Category management routes
-      { path: 'pharmacy/categories', method: RequestMethod.POST },
-      { path: 'pharmacy/categories/:categoryId', method: RequestMethod.PUT },
-      {
-        path: 'pharmacy/categories/:categoryId/delete',
-        method: RequestMethod.PUT,
-      },
     );
   }
 }

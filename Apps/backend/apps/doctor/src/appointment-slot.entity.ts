@@ -21,8 +21,8 @@ export class AppointmentSlot {
   @Column()
   workplace_id: string;
 
-  @Column({ type: 'date' })
-  slot_date: string;
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  day_of_week: string; // 'Monday', 'Tuesday', etc.
 
   @Column({ type: 'time' })
   start_time: string;

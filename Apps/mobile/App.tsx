@@ -31,6 +31,11 @@ import Home from './app/(tabs)/home';
 import TriageScreen1 from 'app/(tabs)/triageScreen';
 import Profile from './app/(tabs)/profile';
 import Notifications from './app/(tabs)/notifications';
+import Specializations from './app/(tabs)/specializations';
+import DoctorsList from './app/(tabs)/doctorsList';
+import Bookings from './app/(tabs)/bookings';
+import DoctorSearch from './app/(root)/DoctorSearch';
+import DoctorProfile from './app/(root)/DoctorProfile';
 // If you have more tab screens later, import them too, e.g.
 // import Appointments from '../app/(tabs)/appointments';
 // import Settings from '../app/(tabs)/settings';
@@ -41,6 +46,10 @@ export type RootStackParamList = {
     AuthStack: NavigatorScreenParams<AuthStackParamList>;
     Tabs: NavigatorScreenParams<TabsParamList>;
     Notifications: undefined;
+    Specializations: undefined;
+    DoctorsList: { specialization: string; doctorCount: number };
+    DoctorSearch: undefined;
+    DoctorProfile: { doctorId: string };
     // ModalExample?: { id: string }; // add if you have modals
 };
 
@@ -77,6 +86,7 @@ export type OnboardingStackParamList = {
 export type TabsParamList = {
     Home: undefined;
     VitaAI: undefined;
+    Bookings: undefined;
     Profile: undefined;
     Notifications: undefined;
     // Appointments: undefined;
@@ -133,6 +143,9 @@ function TabsNavigator() {
                         case 'VitaAI':
                             iconName = focused ? 'sparkles' : 'sparkles-outline';
                             break;
+                        case 'Bookings':
+                            iconName = focused ? 'calendar' : 'calendar-outline';
+                            break;
                         case 'Profile':
                             iconName = focused ? 'person' : 'person-outline';
                             break;
@@ -157,6 +170,11 @@ function TabsNavigator() {
                 name="VitaAI"
                 component={TriageScreen1}
                 options={{ title: 'Vita AI' }}
+            />
+            <Tab.Screen
+                name="Bookings"
+                component={Bookings}
+                options={{ title: 'Bookings' }}
             />
             <Tab.Screen
                 name="Profile"
@@ -232,6 +250,10 @@ function AppContent() {
                     <RootStack.Screen name="AuthStack" component={AuthNavigator} />
                     <RootStack.Screen name="Tabs" component={TabsNavigator} />
                     <RootStack.Screen name="Notifications" component={Notifications} />
+                    <RootStack.Screen name="Specializations" component={Specializations} />
+                    <RootStack.Screen name="DoctorsList" component={DoctorsList} />
+                    <RootStack.Screen name="DoctorSearch" component={DoctorSearch} />
+                    <RootStack.Screen name="DoctorProfile" component={DoctorProfile} />
                 </RootStack.Navigator>
             </View>
         </NavigationContainer>

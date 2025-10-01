@@ -25,6 +25,10 @@ export class DoctorController {
 
   async handleRequest(pattern: any, body: any, fallbackMsg: string) {
     try {
+      console.log('=== GATEWAY SENDING TO MICROSERVICE ===');
+      console.log('Pattern:', JSON.stringify(pattern, null, 2));
+      console.log('Body:', JSON.stringify(body, null, 2));
+      
       const result = await lastValueFrom(
         this.doctorServiceClient.send(pattern, body),
       );
@@ -90,6 +94,127 @@ export class DoctorController {
     );
   }
 
+  @Get('specializations')
+  async getSpecializations() {
+    return this.handleRequest(
+      { cmd: 'get_specializations' },
+      {},
+      'Failed to get specializations',
+    );
+  }
+
+  @Get('specializations/top')
+  async getTopSpecializations(@Query('limit') limit?: number) {
+    return this.handleRequest(
+      { cmd: 'get_top_specializations' },
+      { limit: limit || 6 },
+      'Failed to get top specializations',
+    );
+  }
+
+  @Get('specializations/search')
+  async searchSpecializations(@Query('q') searchTerm: string) {
+    if (!searchTerm) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 400,
+          message: 'Search term is required',
+          error: 'Bad Request',
+        },
+        400,
+      );
+    }
+    return this.handleRequest(
+      { cmd: 'search_specializations' },
+      { searchTerm },
+      'Failed to search specializations',
+    );
+  }
+
+  @Get('top-rated')
+  async getTopRatedDoctors(@Query('limit') limit?: number) {
+    return this.handleRequest(
+      { cmd: 'get_top_rated_doctors' },
+      { limit: limit || 6 },
+      'Failed to get top rated doctors',
+    );
+  }
+
+  @Get('most-popular')
+  async getMostPopularDoctors(@Query('limit') limit?: number) {
+    return this.handleRequest(
+      { cmd: 'get_most_popular_doctors' },
+      { limit: limit || 6 },
+      'Failed to get most popular doctors',
+    );
+  }
+
+  @Get('search')
+  async searchDoctors(
+    @Query('q') searchQuery: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    // Allow empty search query to get all doctors
+    const query = searchQuery || '';
+    
+    return this.handleRequest(
+      { cmd: 'search_doctors' },
+      { searchQuery: query },
+      'Failed to search doctors',
+    );
+  }
+
+  @Get('workplaces')
+  async getDoctorWorkplaces(@Req() req: AuthenticatedRequest) {
+    console.log('=== WORKPLACES ROUTE CALLED ===');
+    console.log('Gateway getDoctorWorkplaces called for authenticated doctor');
+    console.log('Full URL:', req?.url);
+    console.log('Original URL:', req?.originalUrl);
+    console.log('User info:', req?.user);
+    return this.handleRequest(
+      { cmd: 'get_doctor_workplaces' },
+      { token: req.token },
+      'Failed to get doctor workplaces',
+    );
+  }
+
+  @Get(':id')
+  async getDoctorById(
+    @Param('id') doctorId: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    console.log('Gateway getDoctorById called with doctorId:', doctorId);
+    console.log('doctorId type:', typeof doctorId);
+    console.log('Full URL:', req?.url);
+    console.log('Original URL:', req?.originalUrl);
+    
+    // Check if this is actually a workplaces request that should be handled differently
+    if (doctorId === 'workplaces') {
+      console.log('Detected workplaces request in :id route - this should not happen!');
+      console.log('This suggests the /workplaces route is not being matched properly');
+    }
+    
+    return this.handleRequest(
+      { cmd: 'get_doctor_by_id' },
+      { doctorId },
+      'Failed to get doctor details',
+    );
+  }
+
+  @Get(':id/workplaces')
+  async getDoctorWorkplacesById(
+    @Param('id') doctorId: string,
+    @Req() req?: AuthenticatedRequest,
+  ) {
+    console.log('Gateway getDoctorWorkplacesById called with doctorId:', doctorId);
+    console.log('doctorId type:', typeof doctorId);
+    return this.handleRequest(
+      { cmd: 'get_doctor_workplaces_by_id' },
+      { doctorId },
+      'Failed to get doctor workplaces',
+    );
+  }
 
   // Simple test endpoint without auth
   @Get('test-simple')
@@ -102,44 +227,6 @@ export class DoctorController {
     };
   }
 
-  @Get('workplaces')
-  async getDoctorWorkplaces(@Req() req: AuthenticatedRequest) {
-    // Debug: Log the request to see what's happening
-    console.log('getDoctorWorkplaces - req.user:', req.user);
-    console.log('getDoctorWorkplaces - req.token:', req.token);
-
-    // Check if user is authenticated (auth middleware should have set this)
-    if (!req.user) {
-      throw new HttpException(
-        {
-          success: false,
-          status: 401,
-          message: 'Authentication required. Please provide a valid token.',
-          error: 'Unauthorized',
-        },
-        401,
-      );
-    }
-
-    // Check if user has doctor role
-    if (req.user.role !== 'doctor') {
-      throw new HttpException(
-        {
-          success: false,
-          status: 403,
-          message: 'Doctor access required',
-          error: 'Forbidden',
-        },
-        403,
-      );
-    }
-
-    return this.handleRequest(
-      { cmd: 'get_doctor_workplaces' },
-      { token: req.token },
-      'Failed to get doctor workplaces',
-    );
-  }
 
   @Get('stats')
   async getGeneralStats() {
@@ -150,27 +237,6 @@ export class DoctorController {
     );
   }
 
-  @Get(':id')
-  async getDoctorById(@Param('id') id: string) {
-    // Basic validation - check if id looks like a UUID
-    if (!id || typeof id !== 'string' || id.length < 10) {
-      throw new HttpException(
-        {
-          success: false,
-          status: 400,
-          message: 'Invalid doctor ID format.',
-          error: 'Bad Request',
-        },
-        400,
-      );
-    }
-
-    return this.handleRequest(
-      { cmd: 'get_doctor_by_id' },
-      { id },
-      'Failed to get doctor',
-    );
-  }
 
   @Get(':doctorId/available-slots')
   async getDoctorAvailableSlots(
@@ -319,6 +385,15 @@ export class DoctorController {
       { cmd: 'get_appointments_by_patient' },
       { token: req.token },
       'Failed to get patient appointments',
+    );
+  }
+
+  @Get('appointments/next-upcoming')
+  async getNextUpcomingAppointment(@Req() req: AuthenticatedRequest) {
+    return this.handleRequest(
+      { cmd: 'get_next_upcoming_appointment' },
+      { token: req.token },
+      'Failed to get upcoming appointment',
     );
   }
 
@@ -819,6 +894,80 @@ export class DoctorController {
     );
   }
 
+  @Put('workplaces/:workplaceId/availability')
+  async updateWorkplaceAvailability(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body()
+    availabilityData: {
+      available_days: string[];
+      working_hours?: any;
+    },
+  ) {
+    return this.handleRequest(
+      { cmd: 'update_workplace' },
+      {
+        doctorUserId: req.user.id,
+        workplaceId,
+        updates: {
+          available_days: availabilityData.available_days,
+          working_hours: availabilityData.working_hours,
+        },
+        token: req.token,
+      },
+      'Failed to update workplace availability',
+    );
+  }
+
+  @Put('workplaces/:workplaceId/appointment-slots/status')
+  async updateAppointmentSlotsStatus(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+    @Body('is_available') isAvailable: boolean,
+  ) {
+    return this.handleRequest(
+      { cmd: 'update_appointment_slots_status' },
+      {
+        doctorUserId: req.user.id,
+        workplaceId,
+        is_available: isAvailable,
+        token: req.token,
+      },
+      'Failed to update appointment slots status',
+    );
+  }
+
+  @Get('workplaces/:workplaceId/appointment-slots')
+  async getAppointmentSlotsByWorkplace(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+  ) {
+    return this.handleRequest(
+      { cmd: 'get_appointment_slots_by_workplace' },
+      {
+        token: req.token,
+        doctorUserId: req.user.id,
+        workplaceId,
+      },
+      'Failed to fetch appointment slots',
+    );
+  }
+
+  @Delete('workplaces/:workplaceId/appointment-slots')
+  async clearAppointmentSlots(
+    @Req() req: AuthenticatedRequest,
+    @Param('workplaceId') workplaceId: string,
+  ) {
+    return this.handleRequest(
+      { cmd: 'clear_appointment_slots' },
+      {
+        doctorUserId: req.user.id,
+        workplaceId,
+      },
+      'Failed to clear appointment slots',
+    );
+  }
+
   @Post('workplaces/:workplaceId/appointment-slots')
   async createAppointmentSlots(
     @Req() req: AuthenticatedRequest,
@@ -829,6 +978,7 @@ export class DoctorController {
       start_time: string;
       end_time: string;
       slot_duration: number;
+      day_of_week?: string;
     },
   ) {
     if (req.user.role !== 'doctor') {
@@ -850,30 +1000,6 @@ export class DoctorController {
     );
   }
 
-  @Get('workplaces/:workplaceId/appointment-slots')
-  async getWorkplaceAppointmentSlots(
-    @Req() req: AuthenticatedRequest,
-    @Param('workplaceId') workplaceId: string,
-    @Query('date') date: string,
-  ) {
-    if (req.user.role !== 'doctor') {
-      throw new HttpException(
-        {
-          success: false,
-          status: 403,
-          message: 'Doctor access required',
-          error: 'Forbidden',
-        },
-        403,
-      );
-    }
-
-    return this.handleRequest(
-      { cmd: 'get_workplace_appointment_slots' },
-      { token: req.token, workplaceId, date },
-      'Failed to get workplace appointment slots',
-    );
-  }
 
   // ==================== WORKPLACE ASSISTANT MANAGEMENT ====================
 

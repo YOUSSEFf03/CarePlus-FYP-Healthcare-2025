@@ -54,6 +54,29 @@ export class DoctorController {
     return this.doctorService.getAllDoctors(data);
   }
 
+  // Public route to get top rated doctors
+  @MessagePattern({ cmd: 'get_top_rated_doctors' })
+  async getTopRatedDoctors(@Payload() data: { limit?: number }) {
+    return this.doctorService.getTopRatedDoctors(data.limit);
+  }
+
+  // Public route to get most popular doctors
+  @MessagePattern({ cmd: 'get_most_popular_doctors' })
+  async getMostPopularDoctors(@Payload() data: { limit?: number }) {
+    return this.doctorService.getMostPopularDoctors(data.limit);
+  }
+
+  // Public route to search doctors
+  @MessagePattern({ cmd: 'search_doctors' })
+  async searchDoctors(@Payload() data: { searchQuery: string }) {
+    return this.doctorService.searchDoctors(data.searchQuery);
+  }
+
+  @MessagePattern({ cmd: 'get_doctor_workplaces_by_id' })
+  async getDoctorWorkplacesById(@Payload() data: { doctorId: string }) {
+    return this.doctorService.getDoctorWorkplacesById(data.doctorId);
+  }
+
   // Public route to get doctor available slots
   @MessagePattern({ cmd: 'get_doctor_available_slots' })
   async getDoctorAvailableSlots(
@@ -70,8 +93,26 @@ export class DoctorController {
 
   // Public route to get doctor by ID (for viewing profile)
   @MessagePattern({ cmd: 'get_doctor_by_id' })
-  async getDoctorById(@Payload() data: { id: string }) {
-    return this.doctorService.getDoctorById(data.id);
+  async getDoctorById(@Payload() data: { doctorId: string }) {
+    return this.doctorService.getDoctorById(data.doctorId);
+  }
+
+  // Public route to get all specializations with doctor counts
+  @MessagePattern({ cmd: 'get_specializations' })
+  async getSpecializations() {
+    return this.doctorService.getSpecializationsWithCounts();
+  }
+
+  // Public route to get top specializations
+  @MessagePattern({ cmd: 'get_top_specializations' })
+  async getTopSpecializations(@Payload() data: { limit?: number }) {
+    return this.doctorService.getTopSpecializations(data.limit || 6);
+  }
+
+  // Public route to search specializations
+  @MessagePattern({ cmd: 'search_specializations' })
+  async searchSpecializations(@Payload() data: { searchTerm: string }) {
+    return this.doctorService.searchSpecializations(data.searchTerm);
   }
 
   // ==================== AUTHENTICATED ROUTES ====================
@@ -141,6 +182,17 @@ export class DoctorController {
   ) {
     // Patient can only see their own appointments
     return this.doctorService.getAppointmentsByPatient(user.id);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.PATIENT)
+  @MessagePattern({ cmd: 'get_next_upcoming_appointment' })
+  async getNextUpcomingAppointment(
+    @Payload() data: any,
+    @CurrentUser() user: any,
+  ) {
+    // Patient can only see their own upcoming appointment
+    return this.doctorService.getNextUpcomingAppointment(user.id);
   }
 
   @UseGuards(MicroserviceAuthGuard, RoleGuard)
@@ -435,6 +487,34 @@ export class DoctorController {
   @MessagePattern({ cmd: 'delete_workplace' })
   async deleteWorkplace(@Payload() data: any, @CurrentUser() user: any) {
     return this.doctorService.deleteWorkplace(user.id, data.workplaceId);
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'clear_appointment_slots' })
+  async clearAppointmentSlots(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.clearAppointmentSlots(
+      user.id,
+      data.workplaceId,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'update_appointment_slots_status' })
+  async updateAppointmentSlotsStatus(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.updateAppointmentSlotsStatus(
+      user.id,
+      data.workplaceId,
+      data.is_available,
+    );
+  }
+
+  @UseGuards(MicroserviceAuthGuard, RoleGuard)
+  @RequireRoles(UserRole.DOCTOR)
+  @MessagePattern({ cmd: 'get_appointment_slots_by_workplace' })
+  async getAppointmentSlotsByWorkplace(@Payload() data: any, @CurrentUser() user: any) {
+    return this.doctorService.getAppointmentSlotsByWorkplace(data.doctorUserId, data.workplaceId);
   }
 
   @UseGuards(MicroserviceAuthGuard, RoleGuard)

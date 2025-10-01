@@ -33,7 +33,8 @@ export class AuthMiddleware implements NestMiddleware {
   async use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     console.log('=== AUTH MIDDLEWARE CALLED ===', req.path, req.method);
     console.log('=== AUTH MIDDLEWARE - Full URL:', req.url);
-    console.log('=== AUTH MIDDLEWARE - Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('=== AUTH MIDDLEWARE - Authorization Header:', req.headers.authorization);
+    console.log('=== AUTH MIDDLEWARE - All Headers:', JSON.stringify(req.headers, null, 2));
 
     try {
       console.log('Auth middleware started for:', req.path);
@@ -88,7 +89,7 @@ export class AuthMiddleware implements NestMiddleware {
         // TEMPORARY FALLBACK: If auth service is not available, decode JWT locally
         console.log('Auth service unavailable, trying local JWT decode...');
         try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key') as JwtPayload;
+          const decoded = jwt.verify(token, 'fallback-secret-key') as JwtPayload;
           console.log('Local JWT decode successful:', decoded);
           
           req.user = {
