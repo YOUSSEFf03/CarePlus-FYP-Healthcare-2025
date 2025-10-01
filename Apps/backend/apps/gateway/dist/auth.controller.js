@@ -105,6 +105,15 @@ let AuthController = class AuthController {
     async resetPassword(body) {
         return this.handleRequest(this.authServiceClient, { cmd: 'reset_password' }, body, 'Failed to reset password');
     }
+    async sendPhoneOtp(body) {
+        return this.handleRequest(this.authServiceClient, { cmd: 'send_phone_otp' }, body, 'Failed to send phone OTP');
+    }
+    async verifyPhoneOtp(body) {
+        return this.handleRequest(this.authServiceClient, { cmd: 'verify_phone_otp' }, body, 'Failed to verify phone OTP');
+    }
+    async debugUsers() {
+        return this.handleRequest(this.authServiceClient, { cmd: 'debug_users' }, {}, 'Failed to get users');
+    }
     async getProfile(req) {
         return this.handleRequest(this.authServiceClient, { cmd: 'get_user_profile' }, { token: req.token }, 'Failed to get profile');
     }
@@ -190,6 +199,26 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "resetPassword", null);
+__decorate([
+    (0, common_1.Post)('send-phone-otp'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "sendPhoneOtp", null);
+__decorate([
+    (0, common_1.Post)('verify-phone-otp'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "verifyPhoneOtp", null);
+__decorate([
+    (0, common_1.Get)('debug-users'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "debugUsers", null);
 __decorate([
     (0, common_1.Get)('profile'),
     __param(0, (0, common_1.Req)()),

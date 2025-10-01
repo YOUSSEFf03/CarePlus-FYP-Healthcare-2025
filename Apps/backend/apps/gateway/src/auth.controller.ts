@@ -184,6 +184,36 @@ export class AuthController {
     );
   }
 
+  @Post('send-phone-otp')
+  async sendPhoneOtp(@Body() body: { phone: string }) {
+    return this.handleRequest(
+      this.authServiceClient,
+      { cmd: 'send_phone_otp' },
+      body,
+      'Failed to send phone OTP',
+    );
+  }
+
+  @Post('verify-phone-otp')
+  async verifyPhoneOtp(@Body() body: { phone: string; otp: string }) {
+    return this.handleRequest(
+      this.authServiceClient,
+      { cmd: 'verify_phone_otp' },
+      body,
+      'Failed to verify phone OTP',
+    );
+  }
+
+  @Get('debug-users')
+  async debugUsers() {
+    return this.handleRequest(
+      this.authServiceClient,
+      { cmd: 'debug_users' },
+      {},
+      'Failed to get users',
+    );
+  }
+
   // ==================== PROTECTED ROUTES ====================
   // These routes require authentication middleware
 

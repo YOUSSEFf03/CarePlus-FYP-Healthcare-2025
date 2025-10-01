@@ -322,7 +322,7 @@ export class UsersService {
 
   async getUserProfile(data: { userId: string }): Promise<any> {
     try {
-      const user = await this.userRepo.findOne({ 
+      const user = await this.userRepo.findOne({
         where: { id: data.userId }
       });
 
@@ -332,8 +332,8 @@ export class UsersService {
 
       // Get role-specific profile data by querying the respective tables
       if (user.role === UserRole.PATIENT) {
-        const patient = await this.patientRepo.findOne({ 
-          where: { user: { id: data.userId } } 
+        const patient = await this.patientRepo.findOne({
+          where: { user: { id: data.userId } }
         });
         if (patient) {
           return {
@@ -343,8 +343,8 @@ export class UsersService {
           };
         }
       } else if (user.role === UserRole.DOCTOR) {
-        const doctor = await this.doctorRepo.findOne({ 
-          where: { user: { id: data.userId } } 
+        const doctor = await this.doctorRepo.findOne({
+          where: { user: { id: data.userId } }
         });
         if (doctor) {
           return {
@@ -354,8 +354,8 @@ export class UsersService {
           };
         }
       } else if (user.role === UserRole.PHARMACY) {
-        const pharmacy = await this.pharmacyRepo.findOne({ 
-          where: { user: { id: data.userId } } 
+        const pharmacy = await this.pharmacyRepo.findOne({
+          where: { user: { id: data.userId } }
         });
         if (pharmacy) {
           return {
@@ -370,6 +370,170 @@ export class UsersService {
     } catch (error) {
       console.error('Error getting user profile:', error);
       throw this.rpcError('Failed to get user profile');
+    }
+  }
+
+  // Phone OTP methods
+  async sendPhoneOtp(phone: string): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('Sending phone OTP to:', phone);
+
+      // Debug: List all users to see what phone numbers exist
+      const allUsers = await this.userRepo.find({ select: ['id', 'name', 'email', 'phone'] });
+      console.log('All users in database:', allUsers);
+
+      // Find user by phone number
+      const user = await this.userRepo.findOne({
+        where: { phone: phone }
+      });
+
+      console.log('User found:', user ? 'Yes' : 'No');
+      if (user) {
+        console.log('User details:', { id: user.id, name: user.name, email: user.email, phone: user.phone });
+      }
+
+      if (!user) {
+        throw this.rpcError('No account found with this phone number', 404);
+      }
+
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Update user with OTP
+      user.otp_code = otp;
+      user.otp_expiry = otpExpiry;
+      await this.userRepo.save(user);
+
+      // Send OTP via WhatsApp
+      console.log('Sending WhatsApp OTP to:', user.phone);
+      await this.sendPhoneOtpNotification(user, otp);
+      console.log('WhatsApp OTP sent successfully');
+
+      return {
+        success: true,
+        message: 'OTP sent to your WhatsApp number'
+      };
+    } catch (error) {
+      console.error('Error sending phone OTP:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw this.rpcError('Failed to send OTP');
+    }
+  }
+
+  async verifyPhoneOtp(phone: string, otp: string): Promise<{ success: boolean; data?: any; message: string }> {
+    try {
+      console.log('Verifying phone OTP for:', phone);
+
+      // Find user by phone number
+      const user = await this.userRepo.findOne({
+        where: { phone: phone }
+      });
+
+      if (!user) {
+        throw this.rpcError('No account found with this phone number', 404);
+      }
+
+      // Check OTP
+      if (!user.otp_code || user.otp_code !== otp) {
+        throw this.rpcError('Invalid OTP code', 400);
+      }
+
+      if (!user.otp_expiry || new Date() > user.otp_expiry) {
+        throw this.rpcError('OTP code has expired', 400);
+      }
+
+      // Clear OTP
+      user.otp_code = null;
+      user.otp_expiry = null;
+      user.is_verified = true;
+      await this.userRepo.save(user);
+
+      // Generate JWT tokens
+      const payload = { sub: user.id, email: user.email, role: user.role };
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+      return {
+        success: true,
+        data: {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          expires_in: '15m',
+          token_type: 'Bearer',
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            role: user.role,
+            date_of_birth: user.date_of_birth,
+            gender: user.gender,
+            medical_history: user.medical_history,
+          }
+        },
+        message: 'Phone number verified successfully'
+      };
+    } catch (error) {
+      console.error('Error verifying phone OTP:', error);
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw this.rpcError('Failed to verify OTP');
+    }
+  }
+
+  private async sendPhoneOtpNotification(user: User, otp: string): Promise<void> {
+    try {
+      console.log('Sending notification to notification service...');
+      console.log('Notification payload:', {
+        userId: user.id,
+        type: 'WHATSAPP',
+        recipient: user.phone,
+        otp: otp,
+        userName: user.name,
+      });
+
+      // Send WhatsApp OTP
+      const whatsappResult = await firstValueFrom(
+        this.notificationClient.send(
+          { cmd: 'send_otp' },
+          {
+            userId: user.id,
+            type: 'WHATSAPP',
+            recipient: user.phone,
+            otp: otp,
+            userName: user.name,
+          },
+        ),
+      );
+
+      console.log('✅ WhatsApp OTP sent via notification service:', whatsappResult);
+    } catch (error) {
+      console.error('❌ Failed to send WhatsApp OTP via notification service:', error);
+      console.error('Error details:', error);
+      throw error;
+    }
+  }
+
+  async debugUsers(): Promise<any> {
+    try {
+      const users = await this.userRepo.find({ 
+        select: ['id', 'name', 'email', 'phone', 'role'] 
+      });
+      return {
+        success: true,
+        data: users,
+        count: users.length
+      };
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 

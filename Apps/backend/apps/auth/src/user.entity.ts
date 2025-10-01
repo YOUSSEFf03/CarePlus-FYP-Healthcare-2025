@@ -54,6 +54,15 @@ export class User {
   @Column({ nullable: true })
   refresh_token: string;
 
+  @Column({ type: 'date', nullable: true })
+  date_of_birth: Date;
+
+  @Column({ nullable: true })
+  gender: string;
+
+  @Column({ type: 'text', nullable: true })
+  medical_history: string;
+
   @CreateDateColumn()
   created_at: Date;
 

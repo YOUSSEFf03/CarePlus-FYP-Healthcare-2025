@@ -35,8 +35,7 @@ export default function LoginScreen() {
     };
 
     const goPhoneLogin = () => {
-        // Needs AuthStackParamList to contain `LoginPhone`
-        navigation.navigate('AuthStack', { screen: 'LoginPhone' } as any);
+        navigation.navigate('AuthStack', { screen: 'PhoneLogin' } as any);
     };
 
     const onLogin = async () => {
@@ -61,6 +60,10 @@ export default function LoginScreen() {
                     : 0,
                 sex: (response.data.user.gender as 'male' | 'female') || 'unknown',
                 phone: response.data.user.phone,
+                email: response.data.user.email,
+                dateOfBirth: response.data.user.date_of_birth,
+                medicalHistory: response.data.user.medical_history,
+                role: response.data.user.role,
             });
 
             // Navigate to main app

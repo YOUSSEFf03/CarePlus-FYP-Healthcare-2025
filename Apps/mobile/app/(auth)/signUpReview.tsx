@@ -85,6 +85,10 @@ export default function SignUpReviewScreen() {
                     : 0,
                 sex: (response.data.user.gender as 'male' | 'female') || 'unknown',
                 phone: response.data.user.phone,
+                email: response.data.user.email,
+                dateOfBirth: response.data.user.date_of_birth,
+                medicalHistory: response.data.user.medical_history,
+                role: response.data.user.role,
             });
 
             // Reset draft

@@ -144,4 +144,20 @@ export class AppController {
   handleUnknown(@Payload() data: any) {
     return this.appService.handleUnknown(data);
   }
+
+  // Phone OTP endpoints
+  @MessagePattern({ cmd: 'send_phone_otp' })
+  async sendPhoneOtp(@Payload() data: { phone: string }) {
+    return this.usersService.sendPhoneOtp(data.phone);
+  }
+
+  @MessagePattern({ cmd: 'verify_phone_otp' })
+  async verifyPhoneOtp(@Payload() data: { phone: string; otp: string }) {
+    return this.usersService.verifyPhoneOtp(data.phone, data.otp);
+  }
+
+  @MessagePattern({ cmd: 'debug_users' })
+  async debugUsers() {
+    return this.usersService.debugUsers();
+  }
 }

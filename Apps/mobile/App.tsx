@@ -21,12 +21,16 @@ import Signup from './app/(auth)/signup';
 import SignUpDetailsScreen from 'app/(auth)/signUpDetailsScreen';
 import SignUpReviewScreen from 'app/(auth)/signUpReview';
 import VerifyOtpScreen from 'app/(auth)/verifyOtp';
+import PhoneLoginScreen from './app/(auth)/phoneLogin';
+import VerifyPhoneOtpScreen from './app/(auth)/verifyPhoneOtp';
 
 import Welcome from './app/(onboarding)/welcome';
 import Onboarding from './app/(onboarding)/onboarding';
 
 import Home from './app/(tabs)/home';
 import TriageScreen1 from 'app/(tabs)/triageScreen';
+import Profile from './app/(tabs)/profile';
+import Notifications from './app/(tabs)/notifications';
 // If you have more tab screens later, import them too, e.g.
 // import Appointments from '../app/(tabs)/appointments';
 // import Settings from '../app/(tabs)/settings';
@@ -36,6 +40,7 @@ export type RootStackParamList = {
     OnboardingStack: undefined;
     AuthStack: NavigatorScreenParams<AuthStackParamList>;
     Tabs: NavigatorScreenParams<TabsParamList>;
+    Notifications: undefined;
     // ModalExample?: { id: string }; // add if you have modals
 };
 
@@ -60,6 +65,8 @@ export type AuthStackParamList = {
     | undefined;
     SignUpReview: { draft: SignupDraft };   // <— new
     VerifyOtp: { email: string; phone: string };
+    PhoneLogin: undefined;
+    VerifyPhoneOtp: { phone: string; loginType: string };
 };
 
 export type OnboardingStackParamList = {
@@ -70,6 +77,8 @@ export type OnboardingStackParamList = {
 export type TabsParamList = {
     Home: undefined;
     VitaAI: undefined;
+    Profile: undefined;
+    Notifications: undefined;
     // Appointments: undefined;
     // Settings: undefined;
 };
@@ -94,6 +103,8 @@ function AuthNavigator() {
             <AuthStack.Screen name="SignUpDetails" component={SignUpDetailsScreen} />
             <AuthStack.Screen name="SignUpReview" component={SignUpReviewScreen} />
             <AuthStack.Screen name="VerifyOtp" component={VerifyOtpScreen} />
+            <AuthStack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
+            <AuthStack.Screen name="VerifyPhoneOtp" component={VerifyPhoneOtpScreen} />
         </AuthStack.Navigator>
     );
 }
@@ -122,6 +133,9 @@ function TabsNavigator() {
                         case 'VitaAI':
                             iconName = focused ? 'sparkles' : 'sparkles-outline';
                             break;
+                        case 'Profile':
+                            iconName = focused ? 'person' : 'person-outline';
+                            break;
                         default:
                             iconName = 'ellipse';
                     }
@@ -143,6 +157,11 @@ function TabsNavigator() {
                 name="VitaAI"
                 component={TriageScreen1}
                 options={{ title: 'Vita AI' }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={Profile}
+                options={{ title: 'Profile' }}
             />
         </Tab.Navigator>
     );
@@ -177,6 +196,10 @@ function AppContent() {
                             : 0,
                         sex: (authData.user.gender as 'male' | 'female') || 'unknown',
                         phone: authData.user.phone,
+                        email: authData.user.email,
+                        dateOfBirth: authData.user.date_of_birth,
+                        medicalHistory: authData.user.medical_history,
+                        role: authData.user.role,
                     });
                 }
             } catch (error) {
@@ -208,6 +231,7 @@ function AppContent() {
                     <RootStack.Screen name="OnboardingStack" component={OnboardingNavigator} />
                     <RootStack.Screen name="AuthStack" component={AuthNavigator} />
                     <RootStack.Screen name="Tabs" component={TabsNavigator} />
+                    <RootStack.Screen name="Notifications" component={Notifications} />
                 </RootStack.Navigator>
             </View>
         </NavigationContainer>

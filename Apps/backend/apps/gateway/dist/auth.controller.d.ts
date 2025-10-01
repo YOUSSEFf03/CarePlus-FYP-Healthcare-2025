@@ -55,6 +55,26 @@ export declare class AuthController {
         data: any;
         message: string;
     }>;
+    sendPhoneOtp(body: {
+        phone: string;
+    }): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    verifyPhoneOtp(body: {
+        phone: string;
+        otp: string;
+    }): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
+    debugUsers(): Promise<{
+        success: boolean;
+        data: any;
+        message: string;
+    }>;
     getProfile(req: AuthenticatedRequest): Promise<{
         success: boolean;
         data: any;

@@ -197,6 +197,58 @@ const authService = {
       return { success: false, message: 'Network error. Please try again.' };
     }
   },
+
+  async sendPhoneOtp(phone: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      console.log('Sending phone OTP to:', phone);
+      const response = await fetch(`${API_BASE_URL}/auth/send-phone-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      console.log('Phone OTP response status:', response.status);
+      const data = await response.json();
+      console.log('Phone OTP response data:', data);
+
+      if (response.ok) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.message || 'Failed to send OTP' };
+      }
+    } catch (error) {
+      console.error('Phone OTP error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  },
+
+  async verifyPhoneOtp(phone: string, otp: string): Promise<{ success: boolean; data?: any; message?: string }> {
+    try {
+      console.log('Verifying phone OTP for:', phone);
+      const response = await fetch(`${API_BASE_URL}/auth/verify-phone-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone, otp }),
+      });
+
+      console.log('Phone OTP verification response status:', response.status);
+      const data = await response.json();
+      console.log('Phone OTP verification response data:', data);
+
+      if (response.ok) {
+        return { success: true, data: data.data, message: data.message };
+      } else {
+        return { success: false, message: data.message || 'Verification failed' };
+      }
+    } catch (error) {
+      console.error('Phone OTP verification error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  },
 };
 
 export default authService;
