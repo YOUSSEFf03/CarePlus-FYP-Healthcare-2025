@@ -25,7 +25,15 @@ import {
   CreateReservationDto,
   CreateOrderDto,
   GetOrdersDto,
-  GetPrescriptionsDto
+  GetPrescriptionsDto,
+  CreateItemDto,
+  UpdateItemDto,
+  CreateMedicineDto,
+  UpdateMedicineDto,
+  AddStockDto,
+  UpdateStockDto,
+  CreateCategoryDto,
+  UpdateCategoryDto
 } from './dto/pharmacy.dto';
 
 @Injectable()
@@ -883,6 +891,418 @@ export class PharmacyService {
     } catch (error) {
       console.error('Error getting recent activity:', error);
       throw new Error('Failed to get recent activity');
+    }
+  }
+
+  // ==================== ITEM MANAGEMENT APIs ====================
+
+  // Create new item
+  async createItem(dto: CreateItemDto) {
+    try {
+      // Check if category exists
+      const category = await this.categoryRepository.findOne({
+        where: { category_id: dto.category_id }
+      });
+
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Create new item
+      const item = this.itemRepository.create(dto);
+      const savedItem = await this.itemRepository.save(item);
+
+      return {
+        success: true,
+        message: 'Item created successfully',
+        item: savedItem
+      };
+    } catch (error) {
+      console.error('Error creating item:', error);
+      throw new Error('Failed to create item');
+    }
+  }
+
+  // Update item
+  async updateItem(itemId: number, dto: UpdateItemDto) {
+    try {
+      const item = await this.itemRepository.findOne({
+        where: { item_id: itemId }
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
+      }
+
+      // Check if category exists if provided
+      if (dto.category_id) {
+        const category = await this.categoryRepository.findOne({
+          where: { category_id: dto.category_id }
+        });
+
+        if (!category) {
+          throw new Error('Category not found');
+        }
+      }
+
+      // Update item
+      Object.assign(item, dto);
+      const updatedItem = await this.itemRepository.save(item);
+
+      return {
+        success: true,
+        message: 'Item updated successfully',
+        item: updatedItem
+      };
+    } catch (error) {
+      console.error('Error updating item:', error);
+      throw new Error('Failed to update item');
+    }
+  }
+
+  // Delete item
+  async deleteItem(itemId: number) {
+    try {
+      const item = await this.itemRepository.findOne({
+        where: { item_id: itemId },
+        relations: ['medicines', 'pharmacy_stock', 'order_items']
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
+      }
+
+      // Check if item has dependencies
+      if (item.medicines.length > 0 || item.pharmacy_stock.length > 0 || item.order_items.length > 0) {
+        throw new Error('Cannot delete item with existing medicines, stock, or orders');
+      }
+
+      await this.itemRepository.remove(item);
+
+      return {
+        success: true,
+        message: 'Item deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      throw new Error('Failed to delete item');
+    }
+  }
+
+  // Get item details
+  async getItemDetails(itemId: number) {
+    try {
+      const item = await this.itemRepository.findOne({
+        where: { item_id: itemId },
+        relations: ['category', 'medicines', 'pharmacy_stock', 'pharmacy_stock.pharmacy_branch']
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
+      }
+
+      return {
+        success: true,
+        item
+      };
+    } catch (error) {
+      console.error('Error getting item details:', error);
+      throw new Error('Failed to get item details');
+    }
+  }
+
+  // ==================== MEDICINE MANAGEMENT APIs ====================
+
+  // Create medicine
+  async createMedicine(dto: CreateMedicineDto) {
+    try {
+      // Check if item exists
+      const item = await this.itemRepository.findOne({
+        where: { item_id: dto.item_id }
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
+      }
+
+      // Create new medicine
+      const medicine = this.medicineRepository.create(dto);
+      const savedMedicine = await this.medicineRepository.save(medicine);
+
+      return {
+        success: true,
+        message: 'Medicine created successfully',
+        medicine: savedMedicine
+      };
+    } catch (error) {
+      console.error('Error creating medicine:', error);
+      throw new Error('Failed to create medicine');
+    }
+  }
+
+  // Update medicine
+  async updateMedicine(medicineId: number, dto: UpdateMedicineDto) {
+    try {
+      const medicine = await this.medicineRepository.findOne({
+        where: { medicine_id: medicineId }
+      });
+
+      if (!medicine) {
+        throw new Error('Medicine not found');
+      }
+
+      // Update medicine
+      Object.assign(medicine, dto);
+      const updatedMedicine = await this.medicineRepository.save(medicine);
+
+      return {
+        success: true,
+        message: 'Medicine updated successfully',
+        medicine: updatedMedicine
+      };
+    } catch (error) {
+      console.error('Error updating medicine:', error);
+      throw new Error('Failed to update medicine');
+    }
+  }
+
+  // Delete medicine
+  async deleteMedicine(medicineId: number) {
+    try {
+      const medicine = await this.medicineRepository.findOne({
+        where: { medicine_id: medicineId },
+        relations: ['reservations']
+      });
+
+      if (!medicine) {
+        throw new Error('Medicine not found');
+      }
+
+      // Check if medicine has reservations
+      if (medicine.reservations.length > 0) {
+        throw new Error('Cannot delete medicine with existing reservations');
+      }
+
+      await this.medicineRepository.remove(medicine);
+
+      return {
+        success: true,
+        message: 'Medicine deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting medicine:', error);
+      throw new Error('Failed to delete medicine');
+    }
+  }
+
+  // ==================== STOCK MANAGEMENT APIs ====================
+
+  // Add stock to pharmacy branch
+  async addStock(dto: AddStockDto) {
+    try {
+      // Check if pharmacy branch exists
+      const branch = await this.pharmacyBranchRepository.findOne({
+        where: { branch_id: dto.pharmacy_branch_id }
+      });
+
+      if (!branch) {
+        throw new Error('Pharmacy branch not found');
+      }
+
+      // Check if item exists
+      const item = await this.itemRepository.findOne({
+        where: { item_id: dto.item_id }
+      });
+
+      if (!item) {
+        throw new Error('Item not found');
+      }
+
+      // Check if stock already exists for this item in this branch
+      const existingStock = await this.stockRepository.findOne({
+        where: {
+          pharmacy_branch_id: dto.pharmacy_branch_id,
+          item_id: dto.item_id
+        }
+      });
+
+      if (existingStock) {
+        // Update existing stock
+        existingStock.quantity += dto.quantity;
+        existingStock.initial_price = dto.initial_price;
+        existingStock.sold_price = dto.sold_price;
+        if (dto.expiry_date) {
+          existingStock.expiry_date = dto.expiry_date;
+        }
+        
+        const updatedStock = await this.stockRepository.save(existingStock);
+        
+        return {
+          success: true,
+          message: 'Stock updated successfully',
+          stock: updatedStock
+        };
+      } else {
+        // Create new stock entry
+        const stock = this.stockRepository.create(dto);
+        const savedStock = await this.stockRepository.save(stock);
+        
+        return {
+          success: true,
+          message: 'Stock added successfully',
+          stock: savedStock
+        };
+      }
+    } catch (error) {
+      console.error('Error adding stock:', error);
+      throw new Error('Failed to add stock');
+    }
+  }
+
+  // Update stock
+  async updateStock(stockId: number, dto: UpdateStockDto) {
+    try {
+      const stock = await this.stockRepository.findOne({
+        where: { pharmacy_branch_stock_id: stockId }
+      });
+
+      if (!stock) {
+        throw new Error('Stock not found');
+      }
+
+      // Update stock
+      Object.assign(stock, dto);
+      const updatedStock = await this.stockRepository.save(stock);
+
+      return {
+        success: true,
+        message: 'Stock updated successfully',
+        stock: updatedStock
+      };
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      throw new Error('Failed to update stock');
+    }
+  }
+
+  // Get stock by pharmacy branch
+  async getStockByBranch(branchId: number, page: number = 1, limit: number = 10) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const [stock, total] = await this.stockRepository.findAndCount({
+        where: { pharmacy_branch_id: branchId },
+        relations: ['item', 'item.category'],
+        skip,
+        take: limit,
+        order: { last_updated: 'DESC' }
+      });
+
+      return {
+        success: true,
+        stock,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      };
+    } catch (error) {
+      console.error('Error getting stock by branch:', error);
+      throw new Error('Failed to get stock by branch');
+    }
+  }
+
+  // ==================== CATEGORY MANAGEMENT APIs ====================
+
+  // Create category
+  async createCategory(dto: CreateCategoryDto) {
+    try {
+      // Check if category already exists
+      const existingCategory = await this.categoryRepository.findOne({
+        where: { category_name: dto.category_name }
+      });
+
+      if (existingCategory) {
+        throw new Error('Category already exists');
+      }
+
+      const category = this.categoryRepository.create(dto);
+      const savedCategory = await this.categoryRepository.save(category);
+
+      return {
+        success: true,
+        message: 'Category created successfully',
+        category: savedCategory
+      };
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw new Error('Failed to create category');
+    }
+  }
+
+  // Update category
+  async updateCategory(categoryId: number, dto: UpdateCategoryDto) {
+    try {
+      const category = await this.categoryRepository.findOne({
+        where: { category_id: categoryId }
+      });
+
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Check if new name already exists
+      if (dto.category_name !== category.category_name) {
+        const existingCategory = await this.categoryRepository.findOne({
+          where: { category_name: dto.category_name }
+        });
+
+        if (existingCategory) {
+          throw new Error('Category name already exists');
+        }
+      }
+
+      // Update category
+      Object.assign(category, dto);
+      const updatedCategory = await this.categoryRepository.save(category);
+
+      return {
+        success: true,
+        message: 'Category updated successfully',
+        category: updatedCategory
+      };
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw new Error('Failed to update category');
+    }
+  }
+
+  // Delete category
+  async deleteCategory(categoryId: number) {
+    try {
+      const category = await this.categoryRepository.findOne({
+        where: { category_id: categoryId },
+        relations: ['items']
+      });
+
+      if (!category) {
+        throw new Error('Category not found');
+      }
+
+      // Check if category has items
+      if (category.items.length > 0) {
+        throw new Error('Cannot delete category with existing items');
+      }
+
+      await this.categoryRepository.remove(category);
+
+      return {
+        success: true,
+        message: 'Category deleted successfully'
+      };
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw new Error('Failed to delete category');
     }
   }
 }

@@ -144,11 +144,10 @@ export class UsersService {
       if (user.phone) {
         const whatsappResult = await firstValueFrom(
           this.notificationClient.send(
-            { cmd: 'send_otp' },
+            { cmd: 'send_whatsapp_otp' },
             {
               userId: user.id,
-              type: 'WHATSAPP',
-              recipient: user.phone,
+              phone: user.phone,
               otp: otp,
               userName: user.name,
             },
@@ -586,8 +585,7 @@ export class UsersService {
       console.log('Sending notification to notification service...');
       console.log('Notification payload:', {
         userId: user.id,
-        type: 'WHATSAPP',
-        recipient: user.phone,
+        phone: user.phone,
         otp: otp,
         userName: user.name,
       });
@@ -595,11 +593,10 @@ export class UsersService {
       // Send WhatsApp OTP
       const whatsappResult = await firstValueFrom(
         this.notificationClient.send(
-          { cmd: 'send_otp' },
+          { cmd: 'send_whatsapp_otp' },
           {
             userId: user.id,
-            type: 'WHATSAPP',
-            recipient: user.phone,
+            phone: user.phone,
             otp: otp,
             userName: user.name,
           },

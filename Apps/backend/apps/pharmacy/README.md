@@ -6,6 +6,9 @@ This microservice handles all pharmacy-related operations for the FYP Healthcare
 
 - **Pharmacy Management**: Get top pharmacies, search pharmacies
 - **Product Management**: Search products, get non-prescription products
+- **Item Management**: Create, update, delete items and medicines
+- **Category Management**: Manage product categories
+- **Stock Management**: Add and update inventory for pharmacy branches
 - **Prescription Integration**: Search medicines by prescription
 - **Order Management**: Create orders, get patient orders
 - **Reservation System**: Reserve prescription medicines
@@ -38,6 +41,22 @@ The service uses the following main entities:
 8. `create_order` - Create an order for non-prescription items
 9. `get_patient_orders` - Get all orders for a patient
 10. `get_categories` - Get all product categories
+
+### Item Management Message Patterns
+
+11. `create_item` - Create a new item
+12. `update_item` - Update an existing item
+13. `delete_item` - Delete an item
+14. `get_item_details` - Get detailed information about an item
+15. `create_medicine` - Create a new medicine
+16. `update_medicine` - Update an existing medicine
+17. `delete_medicine` - Delete a medicine
+18. `add_stock` - Add stock to a pharmacy branch
+19. `update_stock` - Update stock information
+20. `get_stock_by_branch` - Get stock information for a pharmacy branch
+21. `create_category` - Create a new product category
+22. `update_category` - Update an existing category
+23. `delete_category` - Delete a category
 
 ## Environment Variables
 

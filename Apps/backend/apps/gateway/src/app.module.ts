@@ -1,6 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthController } from './auth.controller';
 import { DoctorController } from './doctor.controller';
 import { AuthMiddleware } from './middleware/auth.middleware';
@@ -8,6 +9,7 @@ import { NotificationController } from './notification.controller';
 import { RequestMethod } from '@nestjs/common';
 import { AssistantController } from './assistant.controller';
 import { PharmacyController } from './pharmacy.controller';
+import { HealthController } from './health.controller';
 
 const AuthServiceClient = ClientsModule.register([
   {
@@ -89,6 +91,14 @@ const PharmacyServiceClient = ClientsModule.register([
       envFilePath: '.env',
     }),
 
+    // Rate limiting
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+    ]),
+
     // Import the client modules
     AuthServiceClient,
     DoctorServiceClient,
@@ -101,53 +111,96 @@ const PharmacyServiceClient = ClientsModule.register([
     NotificationController,
     AssistantController,
     PharmacyController,
+    HealthController,
   ],
   providers: [AuthMiddleware],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply auth middleware to specific protected routes
-    consumer
-      .apply(AuthMiddleware)
-      .forRoutes(
-        // Auth routes that need protection
-        { path: 'auth/profile', method: RequestMethod.GET },
-        { path: 'auth/profile', method: RequestMethod.PUT },
-        // Doctor routes that need protection
-        { path: 'doctors/workplaces', method: RequestMethod.GET },
-        { path: 'doctors/workplaces', method: RequestMethod.POST },
-        { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.PUT },
-        { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.DELETE },
-        { path: 'doctors/workplaces/:workplaceId/assistants', method: RequestMethod.GET },
-        { path: 'doctors/workplaces/:workplaceId/assistants', method: RequestMethod.POST },
-        { path: 'doctors/workplaces/:workplaceId/assistants/:assistantId', method: RequestMethod.DELETE },
-        { path: 'doctors/workplaces/:workplaceId/appointment-slots', method: RequestMethod.GET },
-        { path: 'doctors/workplaces/:workplaceId/appointment-slots', method: RequestMethod.POST },
-        { path: 'doctors/appointments', method: RequestMethod.GET },
-        { path: 'doctors/appointments/me', method: RequestMethod.GET },
-        { path: 'doctors/analytics/monthly', method: RequestMethod.GET },
-        { path: 'doctors/appointments/statistics', method: RequestMethod.GET },
-        { path: 'doctors/profile/me', method: RequestMethod.GET },
-        { path: 'doctors/profile/me', method: RequestMethod.PUT },
-        // Notification routes that need protection
-        { path: 'notifications', method: RequestMethod.GET },
-        { path: 'notifications', method: RequestMethod.POST },
-        // Assistant routes that need protection
-        { path: 'assistants', method: RequestMethod.GET },
-        { path: 'assistants', method: RequestMethod.POST },
-        { path: 'assistants/doctor/my-assistants', method: RequestMethod.GET },
-        { path: 'assistants/doctor/pending-invites', method: RequestMethod.GET },
-        { path: 'assistants/doctor/invite', method: RequestMethod.POST },
-        { path: 'assistants/doctor/invites/:inviteId', method: RequestMethod.DELETE },
-        { path: 'assistants/doctor/remove-assistant', method: RequestMethod.DELETE },
-        // Pharmacy routes that need protection
-        { path: 'pharmacy/orders', method: RequestMethod.GET },
-        { path: 'pharmacy/orders', method: RequestMethod.POST },
-        { path: 'pharmacy/profile', method: RequestMethod.GET },
-        { path: 'pharmacy/profile', method: RequestMethod.PUT },
-        { path: 'pharmacy/dashboard/stats', method: RequestMethod.GET },
-        { path: 'pharmacy/dashboard/top-products', method: RequestMethod.GET },
-        { path: 'pharmacy/dashboard/recent-activity', method: RequestMethod.GET },
-      );
+    consumer.apply(AuthMiddleware).forRoutes(
+      // Auth routes that need protection
+      { path: 'auth/profile', method: RequestMethod.GET },
+      { path: 'auth/profile', method: RequestMethod.PUT },
+      // Doctor routes that need protection
+      { path: 'doctors/workplaces', method: RequestMethod.GET },
+      { path: 'doctors/workplaces', method: RequestMethod.POST },
+      { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.PUT },
+      { path: 'doctors/workplaces/:workplaceId', method: RequestMethod.DELETE },
+      {
+        path: 'doctors/workplaces/:workplaceId/assistants',
+        method: RequestMethod.GET,
+      },
+      {
+        path: 'doctors/workplaces/:workplaceId/assistants',
+        method: RequestMethod.POST,
+      },
+      {
+        path: 'doctors/workplaces/:workplaceId/assistants/:assistantId',
+        method: RequestMethod.DELETE,
+      },
+      {
+        path: 'doctors/workplaces/:workplaceId/appointment-slots',
+        method: RequestMethod.GET,
+      },
+      {
+        path: 'doctors/workplaces/:workplaceId/appointment-slots',
+        method: RequestMethod.POST,
+      },
+      { path: 'doctors/appointments', method: RequestMethod.GET },
+      { path: 'doctors/appointments/me', method: RequestMethod.GET },
+      { path: 'doctors/analytics/monthly', method: RequestMethod.GET },
+      { path: 'doctors/appointments/statistics', method: RequestMethod.GET },
+      { path: 'doctors/profile/me', method: RequestMethod.GET },
+      { path: 'doctors/profile/me', method: RequestMethod.PUT },
+      // Notification routes that need protection
+      { path: 'notifications', method: RequestMethod.GET },
+      { path: 'notifications', method: RequestMethod.POST },
+      // Assistant routes that need protection
+      { path: 'assistants', method: RequestMethod.GET },
+      { path: 'assistants', method: RequestMethod.POST },
+      { path: 'assistants/doctor/my-assistants', method: RequestMethod.GET },
+      { path: 'assistants/doctor/pending-invites', method: RequestMethod.GET },
+      { path: 'assistants/doctor/invite', method: RequestMethod.POST },
+      {
+        path: 'assistants/doctor/invites/:inviteId',
+        method: RequestMethod.DELETE,
+      },
+      {
+        path: 'assistants/doctor/remove-assistant',
+        method: RequestMethod.DELETE,
+      },
+      // Pharmacy routes that need protection
+      { path: 'pharmacy/orders', method: RequestMethod.GET },
+      { path: 'pharmacy/orders', method: RequestMethod.POST },
+      { path: 'pharmacy/profile', method: RequestMethod.GET },
+      { path: 'pharmacy/profile', method: RequestMethod.PUT },
+      { path: 'pharmacy/dashboard/stats', method: RequestMethod.GET },
+      { path: 'pharmacy/dashboard/top-products', method: RequestMethod.GET },
+      { path: 'pharmacy/dashboard/recent-activity', method: RequestMethod.GET },
+      // Item management routes
+      { path: 'pharmacy/items', method: RequestMethod.POST },
+      { path: 'pharmacy/items/:itemId', method: RequestMethod.PUT },
+      { path: 'pharmacy/items/:itemId', method: RequestMethod.GET },
+      { path: 'pharmacy/items/:itemId/delete', method: RequestMethod.PUT },
+      // Medicine management routes
+      { path: 'pharmacy/medicines', method: RequestMethod.POST },
+      { path: 'pharmacy/medicines/:medicineId', method: RequestMethod.PUT },
+      {
+        path: 'pharmacy/medicines/:medicineId/delete',
+        method: RequestMethod.PUT,
+      },
+      // Stock management routes
+      { path: 'pharmacy/stock', method: RequestMethod.POST },
+      { path: 'pharmacy/stock/:stockId', method: RequestMethod.PUT },
+      { path: 'pharmacy/stock/branch/:branchId', method: RequestMethod.GET },
+      // Category management routes
+      { path: 'pharmacy/categories', method: RequestMethod.POST },
+      { path: 'pharmacy/categories/:categoryId', method: RequestMethod.PUT },
+      {
+        path: 'pharmacy/categories/:categoryId/delete',
+        method: RequestMethod.PUT,
+      },
+    );
   }
 }

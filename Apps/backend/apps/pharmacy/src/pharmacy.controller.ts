@@ -8,7 +8,15 @@ import {
   CreateReservationDto,
   CreateOrderDto,
   GetOrdersDto,
-  GetPrescriptionsDto
+  GetPrescriptionsDto,
+  CreateItemDto,
+  UpdateItemDto,
+  CreateMedicineDto,
+  UpdateMedicineDto,
+  AddStockDto,
+  UpdateStockDto,
+  CreateCategoryDto,
+  UpdateCategoryDto
 } from './dto/pharmacy.dto';
 
 @Controller()
@@ -150,5 +158,106 @@ export class PharmacyController {
   async getRecentActivity(@Payload() data: { pharmacyId: number; limit?: number }) {
     const { pharmacyId, limit = 10 } = data;
     return await this.pharmacyService.getRecentActivity(pharmacyId, limit);
+  }
+
+  // ==================== ITEM MANAGEMENT MESSAGE PATTERNS ====================
+
+  // Create item
+  @MessagePattern({ cmd: 'create_item' })
+  async createItem(@Payload() data: CreateItemDto) {
+    return await this.pharmacyService.createItem(data);
+  }
+
+  // Update item
+  @MessagePattern({ cmd: 'update_item' })
+  async updateItem(@Payload() data: { itemId: number; updateData: UpdateItemDto }) {
+    const { itemId, updateData } = data;
+    return await this.pharmacyService.updateItem(itemId, updateData);
+  }
+
+  // Delete item
+  @MessagePattern({ cmd: 'delete_item' })
+  async deleteItem(@Payload() data: { itemId: number }) {
+    return await this.pharmacyService.deleteItem(data.itemId);
+  }
+
+  // Get item details
+  @MessagePattern({ cmd: 'get_item_details' })
+  async getItemDetails(@Payload() data: { itemId: number }) {
+    return await this.pharmacyService.getItemDetails(data.itemId);
+  }
+
+  // ==================== MEDICINE MANAGEMENT MESSAGE PATTERNS ====================
+
+  // Create medicine
+  @MessagePattern({ cmd: 'create_medicine' })
+  async createMedicine(@Payload() data: CreateMedicineDto) {
+    return await this.pharmacyService.createMedicine(data);
+  }
+
+  // Update medicine
+  @MessagePattern({ cmd: 'update_medicine' })
+  async updateMedicine(@Payload() data: { medicineId: number; updateData: UpdateMedicineDto }) {
+    const { medicineId, updateData } = data;
+    return await this.pharmacyService.updateMedicine(medicineId, updateData);
+  }
+
+  // Delete medicine
+  @MessagePattern({ cmd: 'delete_medicine' })
+  async deleteMedicine(@Payload() data: { medicineId: number }) {
+    return await this.pharmacyService.deleteMedicine(data.medicineId);
+  }
+
+  // ==================== STOCK MANAGEMENT MESSAGE PATTERNS ====================
+
+  // Add stock
+  @MessagePattern({ cmd: 'add_stock' })
+  async addStock(@Payload() data: AddStockDto) {
+    return await this.pharmacyService.addStock(data);
+  }
+
+  // Update stock
+  @MessagePattern({ cmd: 'update_stock' })
+  async updateStock(@Payload() data: { stockId: number; updateData: UpdateStockDto }) {
+    const { stockId, updateData } = data;
+    return await this.pharmacyService.updateStock(stockId, updateData);
+  }
+
+  // Get stock by branch
+  @MessagePattern({ cmd: 'get_stock_by_branch' })
+  async getStockByBranch(@Payload() data: { branchId: number; page?: number; limit?: number }) {
+    const { branchId, page = 1, limit = 10 } = data;
+    return await this.pharmacyService.getStockByBranch(branchId, page, limit);
+  }
+
+  // ==================== CATEGORY MANAGEMENT MESSAGE PATTERNS ====================
+
+  // Create category
+  @MessagePattern({ cmd: 'create_category' })
+  async createCategory(@Payload() data: CreateCategoryDto) {
+    return await this.pharmacyService.createCategory(data);
+  }
+
+  // Update category
+  @MessagePattern({ cmd: 'update_category' })
+  async updateCategory(@Payload() data: { categoryId: number; updateData: UpdateCategoryDto }) {
+    const { categoryId, updateData } = data;
+    return await this.pharmacyService.updateCategory(categoryId, updateData);
+  }
+
+  // Delete category
+  @MessagePattern({ cmd: 'delete_category' })
+  async deleteCategory(@Payload() data: { categoryId: number }) {
+    return await this.pharmacyService.deleteCategory(data.categoryId);
+  }
+
+  // Health check
+  @MessagePattern({ cmd: 'health_check' })
+  async healthCheck() {
+    return {
+      status: 'healthy',
+      service: 'pharmacy',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

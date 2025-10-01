@@ -1,7 +1,24 @@
+import { IsOptional, IsNumber, IsString, IsBoolean, IsDate, IsArray, ValidateNested, Min, Max, Length, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
+
 export class GetPharmaciesDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
   page?: number = 1;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(100)
   limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
   sortBy?: 'rating' | 'total_sales' | 'name' = 'rating';
+
+  @IsOptional()
+  @IsString()
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
 }
 
@@ -53,6 +70,157 @@ export class GetPrescriptionsDto {
   limit?: number = 10;
   sortBy?: 'date_issued' = 'date_issued';
   sortOrder?: 'ASC' | 'DESC' = 'DESC';
+}
+
+// ==================== ITEM MANAGEMENT DTOs ====================
+
+export class CreateItemDto {
+  @IsNumber()
+  @IsPositive()
+  category_id: number;
+
+  @IsString()
+  @Length(1, 150)
+  name: string;
+
+  @IsString()
+  @Length(1, 150)
+  manufacturer: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  image_url?: string;
+}
+
+export class UpdateItemDto {
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  category_id?: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 150)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 150)
+  manufacturer?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  image_url?: string;
+}
+
+export class CreateMedicineDto {
+  @IsNumber()
+  @IsPositive()
+  item_id: number;
+
+  @IsBoolean()
+  prescription_required: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  requires_approval?: boolean;
+
+  @IsString()
+  @Length(1, 50)
+  type: string;
+
+  @IsString()
+  @Length(1, 50)
+  dosage: string;
+}
+
+export class UpdateMedicineDto {
+  @IsOptional()
+  @IsBoolean()
+  prescription_required?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  requires_approval?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 50)
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 50)
+  dosage?: string;
+}
+
+export class AddStockDto {
+  @IsNumber()
+  @IsPositive()
+  pharmacy_branch_id: number;
+
+  @IsNumber()
+  @IsPositive()
+  item_id: number;
+
+  @IsNumber()
+  @Min(0)
+  quantity: number;
+
+  @IsNumber()
+  @IsPositive()
+  initial_price: number;
+
+  @IsNumber()
+  @IsPositive()
+  sold_price: number;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  expiry_date?: Date;
+}
+
+export class UpdateStockDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  quantity?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  initial_price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  sold_price?: number;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  expiry_date?: Date;
+}
+
+export class CreateCategoryDto {
+  @IsString()
+  @Length(1, 100)
+  category_name: string;
+}
+
+export class UpdateCategoryDto {
+  @IsString()
+  @Length(1, 100)
+  category_name: string;
 }
 
 
