@@ -113,6 +113,9 @@ const authService = {
     try {
       await AsyncStorage.setItem('access_token', authResponse.data.access_token);
       await AsyncStorage.setItem('user_data', JSON.stringify(authResponse.data.user));
+      if (authResponse.data.refresh_token) {
+        await AsyncStorage.setItem('refresh_token', authResponse.data.refresh_token);
+      }
     } catch (error) {
       console.error('Error storing auth data:', error);
       throw error;
@@ -123,6 +126,13 @@ const authService = {
     try {
       const token = await AsyncStorage.getItem('access_token');
       const userData = await AsyncStorage.getItem('user_data');
+      
+      console.log('Retrieved from storage:', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+        hasUserData: !!userData,
+        userDataPreview: userData?.substring(0, 100) + '...'
+      });
       
       if (token && userData) {
         return {
@@ -143,6 +153,52 @@ const authService = {
       await AsyncStorage.removeItem('user_data');
     } catch (error) {
       console.error('Error clearing auth data:', error);
+    }
+  },
+
+  async refreshToken(): Promise<boolean> {
+    try {
+      console.log('Attempting to refresh token...');
+      const refreshToken = await AsyncStorage.getItem('refresh_token');
+      
+      if (!refreshToken) {
+        console.log('No refresh token found');
+        return false;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+
+      if (!response.ok) {
+        console.log('Token refresh failed:', response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // Store new tokens
+        await AsyncStorage.setItem('access_token', data.data.access_token);
+        if (data.data.refresh_token) {
+          await AsyncStorage.setItem('refresh_token', data.data.refresh_token);
+        }
+        if (data.data.user) {
+          await AsyncStorage.setItem('user_data', JSON.stringify(data.data.user));
+        }
+        
+        console.log('Token refreshed successfully');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return false;
     }
   },
 

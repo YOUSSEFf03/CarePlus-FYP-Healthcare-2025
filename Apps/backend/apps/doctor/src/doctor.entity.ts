@@ -79,4 +79,7 @@ export class Doctor {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => DoctorWorkplace, workplace => workplace.doctor)
+  workplaces: DoctorWorkplace[];
 }

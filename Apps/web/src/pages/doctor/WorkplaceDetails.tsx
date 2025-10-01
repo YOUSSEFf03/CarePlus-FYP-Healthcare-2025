@@ -13,6 +13,7 @@ import { ReactComponent as SaveIcon } from "../../assets/svgs/FloppyDisk.svg";
 import { ReactComponent as EditIcon } from "../../assets/svgs/Pencil.svg";
 import { ReactComponent as CancelIcon } from "../../assets/svgs/X.svg";
 import { ReactComponent as TrashIcon } from "../../assets/svgs/Trash.svg";
+import SimpleAvailability from "../../components/SimpleAvailability";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3000";
 
@@ -191,6 +192,11 @@ const fetchAppointmentSlots = async (workplaceId: string, date?: string): Promis
   }
 
   try {
+    console.log('=== FETCHING APPOINTMENT SLOTS ===');
+    console.log('Workplace ID:', workplaceId);
+    console.log('Token found:', !!token);
+    console.log('API URL:', `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`);
+    
     const params = date ? { date } : {};
     const response = await axios.get(
       `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`,
@@ -202,23 +208,161 @@ const fetchAppointmentSlots = async (workplaceId: string, date?: string): Promis
       }
     );
 
-    if (response.data.success) {
-      return response.data.data || [];
-    } else {
-      throw new Error(response.data.message || "Failed to fetch appointment slots");
+    console.log('Raw API response:', response.data);
+    console.log('Response status:', response.status);
+    
+    // Handle success wrapper format: {success: true, data: {...}, message: '...'}
+    if (response.data && response.data.success && response.data.data) {
+      console.log('Processing success wrapper format');
+      console.log('Success wrapper data:', response.data.data);
+      const data = response.data.data;
+      
+      // Check if data is already an array
+      if (Array.isArray(data)) {
+        console.log('Data is already an array:', data);
+        return data;
+      }
+      
+      // If data is grouped by day, convert to array format
+      if (typeof data === 'object') {
+        const slots: any[] = [];
+        Object.entries(data).forEach(([dayName, daySlots]: [string, any]) => {
+          if (Array.isArray(daySlots)) {
+            daySlots.forEach((slot: any) => {
+              slots.push({
+                day_of_week: dayName,
+                start_time: slot.start_time,
+                end_time: slot.end_time,
+                slot_duration: slot.slot_duration
+              });
+            });
+          }
+        });
+        console.log('Converted grouped data to array format:', slots);
+        return slots;
+      }
     }
+    
+    // Handle direct object format (no success wrapper)
+    if (response.data && typeof response.data === 'object' && !response.data.success) {
+      const slots: any[] = [];
+      Object.entries(response.data).forEach(([dayName, daySlots]: [string, any]) => {
+        if (Array.isArray(daySlots)) {
+          daySlots.forEach((slot: any) => {
+            slots.push({
+              day_of_week: dayName,
+              start_time: slot.start_time,
+              end_time: slot.end_time,
+              slot_duration: slot.slot_duration
+            });
+          });
+        }
+      });
+      console.log('Converted direct object to array format:', slots);
+      return slots;
+    }
+    
+    console.log('Unexpected response format:', response.data);
+    return [];
   } catch (error: any) {
-    console.error("Error fetching appointment slots:", error.response?.status, error.response?.data);
+    console.error("=== ERROR FETCHING APPOINTMENT SLOTS ===");
+    console.error("Error status:", error.response?.status);
+    console.error("Error data:", error.response?.data);
+    console.error("Error message:", error.message);
+    throw error;
+  }
+};
+
+// Clear existing appointment slots for a workplace
+const clearAppointmentSlots = async (workplaceId: string): Promise<any> => {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token") ||
+    sessionStorage.getItem("token") ||
+    sessionStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  try {
+    console.log('=== CLEARING APPOINTMENT SLOTS ===');
+    console.log('Workplace ID:', workplaceId);
+    
+    const response = await axios.delete(
+      `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    console.log('Appointment slots cleared successfully:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("=== ERROR CLEARING APPOINTMENT SLOTS ===");
+    console.error("Error status:", error.response?.status);
+    console.error("Error data:", error.response?.data);
+    console.error("Error message:", error.message);
+    // Don't throw here - continue with creating new slots
+    return null;
+  }
+};
+
+
+// Update appointment slots status (mark as available/unavailable)
+const updateAppointmentSlotsStatus = async (workplaceId: string, isAvailable: boolean): Promise<any> => {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("access_token") ||
+    sessionStorage.getItem("token") ||
+    sessionStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+
+  try {
+    console.log('=== UPDATING APPOINTMENT SLOTS STATUS ===');
+    console.log('Workplace ID:', workplaceId);
+    console.log('Setting is_available to:', isAvailable);
+    console.log('Token found:', !!token);
+    console.log('Token length:', token?.length);
+    console.log('Token (first 20 chars):', token?.substring(0, 20) + '...');
+    console.log('API URL:', `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots/status`);
+    
+    const response = await axios.put(
+      `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots/status`,
+      { is_available: isAvailable },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    
+    console.log('Appointment slots status updated successfully:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("=== ERROR UPDATING APPOINTMENT SLOTS STATUS ===");
+    console.error("Error status:", error.response?.status);
+    console.error("Error data:", error.response?.data);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
     throw error;
   }
 };
 
 // Create appointment slots for a workplace
 const createAppointmentSlots = async (workplaceId: string, slotsData: {
-  date: string;
   start_time: string;
   end_time: string;
   slot_duration: number;
+  day_of_week: string;
+  is_available?: boolean;
 }): Promise<any> => {
   const token =
     localStorage.getItem("token") ||
@@ -231,6 +375,11 @@ const createAppointmentSlots = async (workplaceId: string, slotsData: {
   }
 
   try {
+    console.log('=== CREATING APPOINTMENT SLOTS ===');
+    console.log('Workplace ID:', workplaceId);
+    console.log('Slots Data:', slotsData);
+    console.log('API URL:', `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`);
+    
     const response = await axios.post(
       `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`,
       slotsData,
@@ -241,6 +390,8 @@ const createAppointmentSlots = async (workplaceId: string, slotsData: {
         },
       }
     );
+    
+    console.log('Appointment slots created successfully:', response.data);
 
     if (response.data.success) {
       return response.data.data;
@@ -248,7 +399,11 @@ const createAppointmentSlots = async (workplaceId: string, slotsData: {
       throw new Error(response.data.message || "Failed to create appointment slots");
     }
   } catch (error: any) {
-    console.error("Error creating appointment slots:", error.response?.status, error.response?.data);
+    console.error("=== ERROR CREATING APPOINTMENT SLOTS ===");
+    console.error("Error status:", error.response?.status);
+    console.error("Error data:", error.response?.data);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
     throw error;
   }
 };
@@ -412,22 +567,20 @@ function AvailabilityManager({
   workplaceId?: string;
     workingHours?: any;
 }) {
-  const { isAuthenticated, user } = useAuth();
-    const [slotMinutes, setSlotMinutes] = useState<number>(30);
+  const { isAuthenticated } = useAuth();
+  const [slotMinutes, setSlotMinutes] = useState<number>(30);
   const [startTime, setStartTime] = useState<string>("09:00");
   const [endTime, setEndTime] = useState<string>("17:00");
-
-    const [availability, setAvailability] = useState<AvailabilityMap>({});
+  const [availability, setAvailability] = useState<AvailabilityMap>({});
   const [selectedDay, setSelectedDay] = useState<Weekday>("MON");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-    const readOnly = !editable;
+  const readOnly = !editable;
 
   // Load availability from appointment slots API
-    useEffect(() => {
+  useEffect(() => {
     const loadAvailability = async () => {
       if (!workplaceId) return;
       
@@ -435,63 +588,48 @@ function AvailabilityManager({
       setError(null);
       
       try {
-        let finalAvailability: AvailabilityMap = {};
-
-        // 1. First priority: Load from appointment slots API
-        try {
-          const slots = await fetchAppointmentSlots(workplaceId);
-          console.log('Loaded appointment slots from API:', slots);
-          
-          // Convert appointment slots to availability format
-          const apiAvailability: AvailabilityMap = {};
-          
-          // Group slots by day and time
-          slots.forEach((slot: any) => {
-            const day = slot.day_of_week?.toUpperCase() as Weekday;
-            if (day && DAYS.includes(day)) {
-              if (!apiAvailability[day]) {
-                apiAvailability[day] = {
-                  start: slot.start_time || '09:00',
-                  end: slot.end_time || '17:00',
-                  slotMinutes: slot.slot_duration || 30,
-                  slots: []
-                };
-              }
-              if (slot.time_slot && apiAvailability[day]) {
-                apiAvailability[day]!.slots.push(slot.time_slot);
-              }
-            }
-          });
-
-          finalAvailability = apiAvailability;
-        } catch (apiErr: any) {
-          console.warn('API loading failed, trying working hours:', apiErr);
-          
-          // 2. Second priority: Convert from working hours if available
-          if (workingHours) {
-            console.log('Converting working hours to availability:', workingHours);
-            const workingHoursAvailability = convertWorkingHoursToAvailability(workingHours);
-            finalAvailability = { ...workingHoursAvailability };
-            console.log('Converted availability from working hours:', finalAvailability);
-          }
-        }
-
-        // 3. Third priority: Fallback to localStorage if no other data
-        if (Object.keys(finalAvailability).length === 0) {
-          try {
-            const raw = localStorage.getItem(storageKey);
-            if (raw) {
-              const parsed: AvailabilityMap = JSON.parse(raw);
-              finalAvailability = parsed;
-            }
-          } catch (localErr) {
-            console.warn('localStorage loading failed:', localErr);
-          }
+        console.log('=== SIMPLE LOAD AVAILABILITY ===');
+        
+        // Simple approach: Load from workplace data
+        const token = localStorage.getItem("access_token") || 
+                     localStorage.getItem("token") || 
+                     sessionStorage.getItem("access_token") || 
+                     sessionStorage.getItem("token");
+        
+        if (!token) {
+          throw new Error("No authentication token found");
         }
         
-        setAvailability(finalAvailability);
-        const firstWithData = DAYS.find((d) => finalAvailability[d]?.slots?.length);
-        if (firstWithData) setSelectedDay(firstWithData);
+        const response = await axios.get(
+          `${API_BASE}/doctors/workplaces/${workplaceId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        console.log('Workplace data:', response.data);
+        
+        if (response.data.success && response.data.data) {
+          const workplace = response.data.data;
+          
+          // Use working_hours if available, otherwise create empty availability
+          if (workplace.working_hours && typeof workplace.working_hours === 'object') {
+            console.log('Using existing working_hours:', workplace.working_hours);
+            setAvailability(workplace.working_hours);
+          } else {
+            console.log('No working_hours found, starting with empty availability');
+            setAvailability({});
+          }
+        } else {
+          console.log('No workplace data found, starting with empty availability');
+          setAvailability({});
+        }
+        
+        // Select first day with data or default to Monday
+        const firstWithData = DAYS.find((d) => availability[d]?.slots?.length);
+        setSelectedDay(firstWithData || 'MON');
         
       } catch (err: any) {
         console.error('Error loading availability:', err);
@@ -503,7 +641,7 @@ function AvailabilityManager({
     };
 
     loadAvailability();
-  }, [storageKey, workplaceId, workingHours, isAuthenticated, user]);
+  }, [workplaceId]);
 
   // When switching day, reflect existing config into the controls
   useEffect(() => {
@@ -555,6 +693,88 @@ function AvailabilityManager({
     });
   }
 
+  const handleAddDay = (day: Weekday) => {
+    if (readOnly) return;
+    setAvailability((prev) => ({
+      ...prev,
+      [day]: {
+        start: '09:00',
+        end: '17:00',
+        slotMinutes: 30,
+        slots: []
+      }
+    }));
+    setSelectedDay(day);
+  }
+
+  const handleRemoveDay = (day: Weekday) => {
+    if (readOnly) return;
+    setAvailability((prev) => {
+      const next = { ...prev };
+      delete next[day];
+      return next;
+    });
+    // If we removed the selected day, select another one
+    if (selectedDay === day) {
+      const remainingDays = Object.keys(availability).filter(d => d !== day) as Weekday[];
+      if (remainingDays.length > 0) {
+        setSelectedDay(remainingDays[0]);
+      } else {
+        setSelectedDay('MON');
+      }
+    }
+  }
+
+  const handleAddSlot = (timeSlot: string) => {
+    if (readOnly) return;
+    setAvailability((prev) => ({
+      ...prev,
+      [selectedDay]: {
+        ...prev[selectedDay],
+        slots: [...(prev[selectedDay]?.slots || []), timeSlot].sort()
+      }
+    }));
+  }
+
+  const handleRemoveSlot = (timeSlot: string) => {
+    if (readOnly) return;
+    setAvailability((prev) => ({
+      ...prev,
+      [selectedDay]: {
+        ...prev[selectedDay],
+        slots: (prev[selectedDay]?.slots || []).filter(slot => slot !== timeSlot)
+      }
+    }));
+  }
+
+  // Function to remove slot from database when deselected
+  const removeSlotFromDatabase = async (day: Weekday, timeSlot: string) => {
+    try {
+      const dayMap: { [key in Weekday]: string } = {
+        'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday',
+        'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'
+      };
+      
+      const dayOfWeek = dayMap[day];
+      console.log(`Removing slot from database: ${dayOfWeek} ${timeSlot}`);
+      
+      // For now, we'll just mark it as unavailable instead of deleting
+      // This is safer and maintains data integrity
+      const token = localStorage.getItem("access_token") || 
+                   localStorage.getItem("token") || 
+                   sessionStorage.getItem("access_token") || 
+                   sessionStorage.getItem("token");
+      
+      if (token) {
+        // We could add an API endpoint to mark specific slots as unavailable
+        // For now, we'll just log it
+        console.log(`Would mark slot as unavailable: ${dayOfWeek} ${timeSlot}`);
+      }
+    } catch (error) {
+      console.error('Error removing slot from database:', error);
+    }
+  }
+
   const handleSaveAvailability = useCallback(async () => {
     if (readOnly || !workplaceId) return;
     
@@ -563,60 +783,56 @@ function AvailabilityManager({
     setSuccess(null);
     
     try {
-      console.log('Saving availability to appointment slots API:', availability);
+      console.log('=== SIMPLE SAVE AVAILABILITY ===');
       
-      // Save each day's availability as appointment slots
-      const savePromises = Object.entries(availability).map(async ([day, dayData]) => {
-        if (!dayData || !dayData.slots || dayData.slots.length === 0) {
-          console.log(`Skipping ${day} - no slots to save`);
-          return;
-        }
-        
-        console.log(`Saving ${day} availability as appointment slots:`, dayData);
-        
-        // Create individual slot entries for each time slot
-        const slotPromises = dayData.slots.map(async (timeSlot) => {
-          const slotsData = {
-            date: new Date().toISOString().split('T')[0], // Today's date as placeholder
-            start_time: timeSlot,
-            end_time: addMinutesToTime(timeSlot, dayData.slotMinutes),
-            slot_duration: dayData.slotMinutes,
-          };
-          
-          try {
-            return await createAppointmentSlots(workplaceId, slotsData);
-          } catch (error: any) {
-            // If slot already exists, that's okay - just log and continue
-            if (error.message?.includes('already exists') || error.response?.status === 409) {
-              console.log(`Slot ${timeSlot} already exists, skipping...`);
-              return null;
-            }
-            throw error;
-          }
-        });
-        
-        return Promise.all(slotPromises);
+      const token = localStorage.getItem("access_token") || 
+                   localStorage.getItem("token") || 
+                   sessionStorage.getItem("access_token") || 
+                   sessionStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+      
+      // Simple approach: Just save the working hours to the workplace
+      const availableDays = (Object.keys(availability) as Weekday[]).filter(day => {
+        const dayData = availability[day];
+        return dayData && dayData.slots && dayData.slots.length > 0;
+      }).map(day => {
+        const dayMap: { [key in Weekday]: string } = {
+          'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday',
+          'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'
+        };
+        return dayMap[day];
       });
       
-      const results = await Promise.all(savePromises.filter(Boolean));
-      console.log('Appointment slots save results:', results);
+      console.log('Saving available days:', availableDays);
       
-      // Also save to localStorage as backup
-      localStorage.setItem(storageKey, JSON.stringify(availability));
+      // Save to workplace
+      await axios.put(
+        `${API_BASE}/doctors/workplaces/${workplaceId}`,
+        {
+          available_days: availableDays,
+          working_hours: availability
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       
       setSuccess('Availability saved successfully!');
       setTimeout(() => setSuccess(null), 3000);
       
     } catch (err: any) {
-      console.error('Error saving availability:', err);
+      console.error('❌ Error saving availability:', err);
       setError(err.message || 'Failed to save availability');
-      
-      // Fallback to localStorage only
-      localStorage.setItem(storageKey, JSON.stringify(availability));
     } finally {
       setSaving(false);
     }
-  }, [readOnly, workplaceId, availability, storageKey]);
+  }, [readOnly, workplaceId, availability]);
 
   // No auto-save - user must manually save changes
 
@@ -628,9 +844,7 @@ function AvailabilityManager({
     <div className="wpd-card">
       <div className="wpd-section-header">
         <h2>Availability</h2>
-        <p>
-          Choose slot duration and working hours, then pick available times.
-        </p>
+        <p>Select days and time slots when you're available for appointments.</p>
       </div>
 
       {error && (
@@ -646,9 +860,14 @@ function AvailabilityManager({
       )}
 
       {loading && (
-        <div className="wpd-loading">
-          <div className="wpd-loading-spinner"></div>
-          <span>Loading availability data...</span>
+        <div className="wpd-alert wpd-alert-info">
+          Loading availability data...
+        </div>
+      )}
+
+      {saving && (
+        <div className="wpd-alert wpd-alert-info">
+          Saving availability... Please wait.
         </div>
       )}
 
@@ -708,6 +927,18 @@ function AvailabilityManager({
             onClick={handleClearDay}
             disabled={!editable}
           />
+          <Button
+            variant="secondary"
+            text="Clear all"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to clear all availability? This will remove all slots from all days.')) {
+                setAvailability({});
+                setSelectedDay('MON');
+              }
+            }}
+            disabled={!editable}
+            style={{ backgroundColor: '#dc2626', color: 'white', border: 'none' }}
+          />
         </div>
       </div>
 
@@ -715,51 +946,96 @@ function AvailabilityManager({
         {DAYS.map((d) => {
           const hasData = Boolean(availability[d]?.slots?.length);
           const isActive = selectedDay === d;
-          const isFromWorkingHours = workingHours && workingHours[d.toLowerCase()]?.is_open;
           return (
-            <button
-              key={d}
-              type="button"
-              className={[
-                "wpd-day",
-                isActive ? "is-selected" : "",
-                hasData ? "has-data" : "",
-                isFromWorkingHours ? "from-working-hours" : "",
-              ].join(" ")}
-              onClick={() => setSelectedDay(d)}
-              title={isFromWorkingHours ? "Pre-configured from workplace working hours" : hasData ? "Has availability slots" : "No availability set"}
-            >
-              <span className="wpd-day-name">{d}</span>
-              {isFromWorkingHours && (
-                <span className="wpd-day-badge" title="From working hours">⚡</span>
+            <div key={d} className="wpd-day-container">
+              <button
+                type="button"
+                className={[
+                  "wpd-day",
+                  isActive ? "is-selected" : "",
+                  hasData ? "has-data" : "",
+                ].join(" ")}
+                onClick={() => setSelectedDay(d)}
+                title={hasData ? "Has availability slots" : "No availability set"}
+              >
+                <span className="wpd-day-name">{d}</span>
+                {hasData && (
+                  <span className="wpd-day-badge" title="Has availability">✓</span>
+                )}
+              </button>
+              {!readOnly && (
+                <div className="wpd-day-actions">
+                  {!hasData ? (
+                    <button
+                      className="wpd-day-add"
+                      onClick={() => handleAddDay(d)}
+                      title={`Add ${d}`}
+                    >
+                      +
+                    </button>
+                  ) : (
+                    <button
+                      className="wpd-day-remove"
+                      onClick={() => handleRemoveDay(d)}
+                      title={`Remove ${d}`}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               )}
-              {hasData && !isFromWorkingHours && (
-                <span className="wpd-day-badge" title="Custom availability">✓</span>
-              )}
-            </button>
+            </div>
           );
         })}
       </div>
 
             <div className="wpd-slots">
                 {allSlots.length === 0 ? (
-                    <div className="wpd-empty">No slots generated yet.</div>
+                    <div className="wpd-empty">No slots generated yet. Use "Generate slots" to create time slots.</div>
                 ) : (
-                    allSlots.map((t) => (
-                        <button
-                            key={t}
-                            type="button"
-              className={[
-                "wpd-chip",
-                isSelected(t) ? "wpd-chip-selected" : "wpd-chip-unselected",
-                readOnly ? "is-readonly" : "",
-              ].join(" ")}
-                            onClick={() => handleToggleSlot(t)}
-                            disabled={!editable}
-                        >
-                            {t}
-                        </button>
-                    ))
+                    allSlots.map((t) => {
+                        const isSlotSelected = isSelected(t);
+                        const isExistingSlot = day?.slots?.includes(t) || false;
+                        return (
+                            <div key={t} className="wpd-slot-container">
+                                <button
+                                    type="button"
+                                    className={[
+                                        "wpd-chip",
+                                        isSlotSelected ? "wpd-chip-selected" : "wpd-chip-unselected",
+                                        isExistingSlot ? "wpd-chip-existing" : "",
+                                        readOnly ? "is-readonly" : "",
+                                    ].join(" ")}
+                                    onClick={() => handleToggleSlot(t)}
+                                    disabled={!editable}
+                                >
+                                    {t}
+                                    {isExistingSlot && <span className="wpd-existing-indicator">●</span>}
+                                </button>
+                                {!readOnly && (
+                                    <div className="wpd-slot-actions">
+                                        {!isSlotSelected ? (
+                                            <button
+                                                className="wpd-slot-add"
+                                                onClick={() => handleAddSlot(t)}
+                                                title={`Add ${t}`}
+                                            >
+                                                +
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="wpd-slot-remove"
+                                                onClick={() => handleRemoveSlot(t)}
+                                                title={`Remove ${t}`}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
                 )}
             </div>
 
@@ -1922,11 +2198,9 @@ export default function WorkplaceDetails() {
             )}
           </>
         ) : (
-          <AvailabilityManager
-            storageKey={`availability:${draft.id || draft.workplace_name}`}
-            editable={edit}
+          <SimpleAvailability
             workplaceId={draft.id}
-            workingHours={draft.working_hours}
+            editable={edit}
           />
         )}
       </div>
@@ -1946,3 +2220,4 @@ export default function WorkplaceDetails() {
     </div>
   );
 }
+

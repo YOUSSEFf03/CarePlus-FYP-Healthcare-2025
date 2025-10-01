@@ -8,16 +8,29 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, fontFamily, fontSize, spacing, radius, shadow } from '../../src/styles/tokens';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { TabsParamList, RootStackParamList } from '../../App';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../App';
 import { useUser } from '@/store/UserContext';
 import locationService from '@/services/locationService';
 import notificationService from '@/services/notificationService';
+import doctorService, { Specialization } from '@/services/doctorService';
+import { getSpecializationIcon } from '@/utils/specializationIcons';
+import appointmentService, { AppointmentWithDetails } from '@/services/appointmentService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const FRAME_HORIZONTAL = spacing[16];
 const FRAME_WIDTH = SCREEN_WIDTH - FRAME_HORIZONTAL * 2;
 const FRAME_HEIGHT = 172;
+
+// Helper function to check if profile picture should be shown
+const shouldShowProfilePicture = (profilePictureUrl: string | null | undefined): boolean => {
+    if (!profilePictureUrl) return false;
+    if (profilePictureUrl.trim() === '') return false;
+    if (profilePictureUrl.includes('example.com')) return false;
+    if (profilePictureUrl === 'null' || profilePictureUrl === 'undefined') return false;
+    return true;
+};
 
 const BANNERS = [
     { id: 'b1', image: require('../../assets/images/AD21-10.png') },
@@ -25,14 +38,6 @@ const BANNERS = [
     { id: 'b3', image: require('../../assets/images/AD21-10.png') },
 ];
 
-const SPECIALITIES = [
-    { id: 's1', label: 'General Physician', count: 108, icon: 'stethoscope' },
-    { id: 's2', label: 'Neurologist', count: 53, icon: 'brain' },
-    { id: 's3', label: 'Dentist', count: 86, icon: 'tooth-outline' },
-    { id: 's4', label: 'Cardiologist', count: 41, icon: 'heart-pulse' },
-    { id: 's5', label: 'Orthopedist', count: 90, icon: 'bone' },
-    { id: 's6', label: 'Pediatrician', count: 67, icon: 'baby-face-outline' },
-];
 
 const APPOINTMENTS = [
     {
@@ -48,68 +53,13 @@ const APPOINTMENTS = [
     },
 ];
 
-/* ---- Doctors data ---- */
-const TOP_RATED_DOCTORS = [
-    {
-        id: 'tr1',
-        name: 'Dr. Sophia Harris',
-        specialization: 'Cardiologist',
-        rating: 4.9,
-        avatar: { uri: 'https://images.unsplash.com/photo-1550831107-1553da8c8464?q=80&w=256' },
-        region: 'NY',
-    },
-    {
-        id: 'tr2',
-        name: 'Dr. Andrew Hecht',
-        specialization: 'Orthopedist',
-        rating: 4.8,
-        avatar: { uri: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=256' },
-        region: 'NY',
-    },
-    {
-        id: 'tr3',
-        name: 'Dr. Amelia Reed',
-        specialization: 'Neurologist',
-        rating: 4.8,
-        avatar: { uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256' },
-        region: 'NY',
-    },
-];
 
-const POPULAR_DOCTORS = [
-    {
-        id: 'pd1',
-        name: 'Dr. Ryan Blake',
-        specialization: 'General Physician',
-        rating: 4.7,
-        appointmentsThisMonth: 128,
-        avatar: { uri: 'https://images.unsplash.com/photo-1531123414780-f742cbf7db3b?q=80&w=256' },
-        region: 'NY',
-    },
-    {
-        id: 'pd2',
-        name: 'Dr. Maya Patel',
-        specialization: 'Dermatologist',
-        rating: 4.6,
-        appointmentsThisMonth: 103,
-        avatar: { uri: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=256' },
-        region: 'NY',
-    },
-    {
-        id: 'pd3',
-        name: 'Dr. Oliver Grant',
-        specialization: 'Pediatrician',
-        rating: 4.7,
-        appointmentsThisMonth: 97,
-        avatar: { uri: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256' },
-        region: 'NY',
-    },
-];
-
-type RootNav = NativeStackNavigationProp<RootStackParamList>;
+type RootNav = BottomTabNavigationProp<TabsParamList>;
+type RootStackNav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function Home() {
     const navigation = useNavigation<RootNav>();
+    const rootNavigation = useNavigation<RootStackNav>();
     const { user } = useUser();
     const [query, setQuery] = useState('');
     const insets = useSafeAreaInsets();
@@ -121,6 +71,20 @@ export default function Home() {
     const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+    
+    // Specializations state
+    const [specializations, setSpecializations] = useState<Specialization[]>([]);
+    const [isLoadingSpecializations, setIsLoadingSpecializations] = useState(true);
+    
+    // Appointments state
+    const [upcomingAppointment, setUpcomingAppointment] = useState<AppointmentWithDetails | null>(null);
+    const [isLoadingAppointment, setIsLoadingAppointment] = useState(true);
+    
+    // Doctors state
+    const [topRatedDoctors, setTopRatedDoctors] = useState<any[]>([]);
+    const [isLoadingTopRated, setIsLoadingTopRated] = useState(true);
+    const [mostPopularDoctors, setMostPopularDoctors] = useState<any[]>([]);
+    const [isLoadingMostPopular, setIsLoadingMostPopular] = useState(true);
 
     const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
         const x = e.nativeEvent.contentOffset.x;
@@ -128,10 +92,14 @@ export default function Home() {
         if (p !== page) setPage(p);
     }, [page]);
 
-    // Initialize location and notifications
+    // Initialize location, notifications, specializations, and appointments
     useEffect(() => {
         initializeLocation();
         loadNotifications();
+        loadSpecializations();
+        loadUpcomingAppointment();
+        loadTopRatedDoctors();
+        loadMostPopularDoctors();
     }, []);
 
     const initializeLocation = async () => {
@@ -186,6 +154,59 @@ export default function Home() {
         }
     };
 
+    const loadSpecializations = async () => {
+        try {
+            setIsLoadingSpecializations(true);
+            const data = await doctorService.getTopSpecializations(6);
+            setSpecializations(data);
+        } catch (error) {
+            console.error('Error loading specializations:', error);
+            // Fallback to empty array if API fails
+            setSpecializations([]);
+        } finally {
+            setIsLoadingSpecializations(false);
+        }
+    };
+
+    const loadUpcomingAppointment = async () => {
+        try {
+            setIsLoadingAppointment(true);
+            const appointment = await appointmentService.getNextUpcomingAppointment();
+            setUpcomingAppointment(appointment);
+        } catch (error) {
+            console.error('Error loading upcoming appointment:', error);
+            setUpcomingAppointment(null);
+        } finally {
+            setIsLoadingAppointment(false);
+        }
+    };
+
+    const loadTopRatedDoctors = async () => {
+        try {
+            setIsLoadingTopRated(true);
+            const doctors = await doctorService.getTopRatedDoctors(6);
+            setTopRatedDoctors(doctors);
+        } catch (error) {
+            console.error('Error loading top rated doctors:', error);
+            setTopRatedDoctors([]);
+        } finally {
+            setIsLoadingTopRated(false);
+        }
+    };
+
+    const loadMostPopularDoctors = async () => {
+        try {
+            setIsLoadingMostPopular(true);
+            const doctors = await doctorService.getMostPopularDoctors(6);
+            setMostPopularDoctors(doctors);
+        } catch (error) {
+            console.error('Error loading most popular doctors:', error);
+            setMostPopularDoctors([]);
+        } finally {
+            setIsLoadingMostPopular(false);
+        }
+    };
+
     const handleLocationPermissionRequest = () => {
         Alert.alert(
             'Location Permission Required',
@@ -204,7 +225,58 @@ export default function Home() {
     };
 
     const handleNotificationPress = () => {
-        navigation.navigate('Notifications' as any);
+        rootNavigation.navigate('Notifications' as any);
+    };
+
+    const handleSpecializationPress = (specialization: Specialization) => {
+        rootNavigation.navigate('DoctorsList' as any, { 
+            specialization: specialization.specialization,
+            doctorCount: specialization.count
+        });
+    };
+
+    const handleSeeAllSpecializations = () => {
+        rootNavigation.navigate('Specializations' as any);
+    };
+
+    const handleSeeAllAppointments = () => {
+        // Navigate to Bookings tab
+        navigation.navigate('Bookings' as any);
+    };
+
+    const handleDoctorPress = (doctor: any) => {
+        rootNavigation.navigate('DoctorProfile', { doctorId: doctor.id });
+    };
+
+    const handleSeeAllTopRated = () => {
+        // Navigate to Doctors screen with top rated filter
+        rootNavigation.navigate('DoctorsList' as any, { 
+            filter: 'top-rated'
+        });
+    };
+
+    const handleSeeAllMostPopular = () => {
+        // Navigate to Doctors screen with most popular filter
+        rootNavigation.navigate('DoctorsList' as any, { 
+            filter: 'most-popular'
+        });
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
+    const formatTime = (timeString: string) => {
+        const [hours, minutes] = timeString.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
     };
 
     const refreshLocation = async () => {
@@ -215,7 +287,9 @@ export default function Home() {
 
         try {
             setIsLoadingLocation(true);
-            const location = await locationService.refreshLocation();
+            await locationService.refreshLocation();
+            // Get the updated location after refresh
+            const location = await locationService.getStoredLocation();
             if (location && location.address) {
                 setCurrentAddress(location.address);
             }
@@ -302,7 +376,11 @@ export default function Home() {
                             style={{ marginRight: spacing[8] }}
                         />
 
-                        <View style={{ flex: 1 }}>
+                        <TouchableOpacity 
+                            style={{ flex: 1 }} 
+                            onPress={() => rootNavigation.navigate('DoctorSearch' as any)}
+                            activeOpacity={0.7}
+                        >
                             <TextInput
                                 value={query}
                                 onChangeText={setQuery}
@@ -310,12 +388,11 @@ export default function Home() {
                                 placeholderTextColor={colors.neutral500}
                                 style={styles.searchInput}
                                 returnKeyType="search"
-                                onSubmitEditing={() => {
-                                    /* handle search */
-                                }}
+                                editable={false}
+                                pointerEvents="none"
                                 accessibilityLabel="Search doctors"
                             />
-                        </View>
+                        </TouchableOpacity>
 
                         {/* circular search button on the right */}
                         <TouchableOpacity activeOpacity={0.85} style={styles.searchIconBtn}>
@@ -370,51 +447,62 @@ export default function Home() {
                 <View style={styles.specialsSection}>
                     <View style={styles.specialsHeader}>
                         <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Specialities</CustomText>
-                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={() => { /* navigate to all */ }}>
+                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={handleSeeAllSpecializations}>
                             <CustomText variant="text-body-md-sb" style={styles.seeAll}>See All</CustomText>
                             <Ionicons name="chevron-forward" size={16} />
                         </TouchableOpacity>
                     </View>
 
-                    <FlatList
-                        data={SPECIALITIES}
-                        keyExtractor={(i) => i.id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing[16] }}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity activeOpacity={0.8} style={styles.specCard} onPress={() => { /* open list */ }}>
-                                <View style={styles.specIconWrap}>
-                                    <MaterialCommunityIcons name={item.icon as any} size={22} color={colors.primary ?? '#0f172a'} />
-                                </View>
-                                <CustomText numberOfLines={2} variant="text-body-md-sb" style={styles.specTitle}>
-                                    {item.label}
-                                </CustomText>
-                                <CustomText variant="text-body-sm-r" style={styles.specCount}>
-                                    {item.count} Doctors
-                                </CustomText>
-                            </TouchableOpacity>
-                        )}
-                    />
+                    {isLoadingSpecializations ? (
+                        <View style={styles.loadingContainer}>
+                            <CustomText variant="text-body-sm-r" style={styles.loadingText}>
+                                Loading specializations...
+                            </CustomText>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={specializations}
+                            keyExtractor={(item) => item.specialization}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingHorizontal: spacing[16] }}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity 
+                                    activeOpacity={0.8} 
+                                    style={styles.specCard} 
+                                    onPress={() => handleSpecializationPress(item)}
+                                >
+                                    <View style={styles.specIconWrap}>
+                                        <MaterialCommunityIcons 
+                                            name={getSpecializationIcon(item.specialization) as any} 
+                                            size={22} 
+                                            color={colors.primary ?? '#0f172a'} 
+                                        />
+                                    </View>
+                                    <CustomText numberOfLines={2} variant="text-body-md-sb" style={styles.specTitle}>
+                                        {item.specialization}
+                                    </CustomText>
+                                    <CustomText variant="text-body-sm-r" style={styles.specCount}>
+                                        {`${item.count} Doctor${item.count !== 1 ? 's' : ''}`}
+                                    </CustomText>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    )}
                 </View>
 
                 {/* ---------- UPCOMING APPOINTMENT ---------- */}
-                <View style={styles.upcomingSection}>
-                    <View style={styles.sectionHeaderRow}>
-                        <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Upcoming Appointment</CustomText>
-                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={() => { /* navigate to all */ }}>
-                            <CustomText variant="text-body-md-sb" style={styles.seeAll}>See All</CustomText>
-                            <Ionicons name="chevron-forward" size={16} />
-                        </TouchableOpacity>
-                    </View>
+                {upcomingAppointment && (
+                    <View style={styles.upcomingSection}>
+                        <View style={styles.sectionHeaderRow}>
+                            <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Upcoming Appointment</CustomText>
+                            <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={handleSeeAllAppointments}>
+                                <CustomText variant="text-body-md-sb" style={styles.seeAll}>See All</CustomText>
+                                <Ionicons name="chevron-forward" size={16} />
+                            </TouchableOpacity>
+                        </View>
 
-                    <FlatList
-                        data={APPOINTMENTS}
-                        keyExtractor={(i) => i.id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing[16] }}
-                        renderItem={({ item }) => (
+                        <View style={{ paddingHorizontal: spacing[16] }}>
                             <LinearGradient
                                 colors={[colors.primary ?? '#1780df', colors.secondary30 ?? '#48c2c3']}
                                 start={{ x: 0, y: 0 }}
@@ -422,19 +510,37 @@ export default function Home() {
                                 style={styles.upCard}
                             >
                                 {/* left: avatar */}
-                                <Image source={item.avatar} style={styles.upAvatar} />
+                                <View style={styles.upAvatar}>
+                                    <MaterialCommunityIcons 
+                                        name={getSpecializationIcon(upcomingAppointment.doctor?.specialization || '') as any} 
+                                        size={24} 
+                                        color="white" 
+                                    />
+                                </View>
 
                                 {/* middle: text */}
                                 <View style={styles.upContent}>
-                                    <CustomText variant="text-heading-H4" style={styles.upName}>{item.doctorName}</CustomText>
-                                    <CustomText variant="text-body-sm-r" style={styles.upSpec}>{item.speciality}</CustomText>
-
-                                    <View style={styles.upRatingRow}>
-                                        <Ionicons name="star" size={12} color="#FACC15" />
-                                        <CustomText variant="text-body-xs-r" style={styles.upRatingText}>
-                                            {item.rating}
+                                    <CustomText variant="text-heading-H4" style={styles.upName}>
+                                        Dr. {upcomingAppointment.doctor?.specialization || 'Unknown Doctor'}
+                                    </CustomText>
+                                    <CustomText variant="text-body-sm-r" style={styles.upSpec}>
+                                        {upcomingAppointment.doctor?.specialization || 'Unknown Specialization'}
+                                    </CustomText>
+                                    
+                                    {upcomingAppointment.workplace && (
+                                        <CustomText variant="text-body-xs-r" style={styles.upWorkplace}>
+                                            {upcomingAppointment.workplace.workplace_name}
                                         </CustomText>
-                                    </View>
+                                    )}
+
+                                    {upcomingAppointment.doctor?.rating && (
+                                        <View style={styles.upRatingRow}>
+                                            <Ionicons name="star" size={12} color="#FACC15" />
+                                            <CustomText variant="text-body-xs-r" style={styles.upRatingText}>
+                                                {upcomingAppointment.doctor.rating.toFixed(1)}
+                                            </CustomText>
+                                        </View>
+                                    )}
 
                                     {/* divider */}
                                     <View style={styles.upDivider} />
@@ -443,7 +549,7 @@ export default function Home() {
                                     <View style={styles.upTimeRow}>
                                         <Ionicons name="time-outline" size={14} color="white" style={{ marginRight: 6 }} />
                                         <CustomText variant="text-body-sm-r" style={styles.upTimeText}>
-                                            {item.time}  |  {item.date}
+                                            {formatTime(upcomingAppointment.appointment_time)}  |  {formatDate(upcomingAppointment.appointment_date)}
                                         </CustomText>
                                     </View>
                                 </View>
@@ -451,92 +557,165 @@ export default function Home() {
                                 {/* right: action + status pill */}
                                 <View style={styles.upRightCol}>
                                     <TouchableOpacity style={styles.upGhostBtn} activeOpacity={0.85}>
-                                        <Ionicons name={item.mode === 'online' ? 'videocam-outline' : 'navigate-outline'} size={18} color={colors.black} />
+                                        <Ionicons name="videocam-outline" size={18} color={colors.black} />
                                     </TouchableOpacity>
 
                                     <View style={styles.upStatusPill}>
-                                        <CustomText variant="text-body-xs-r" style={styles.upStatusText}>{item.status}</CustomText>
+                                        <CustomText variant="text-body-xs-r" style={styles.upStatusText}>
+                                            {upcomingAppointment.status}
+                                        </CustomText>
                                     </View>
                                 </View>
                             </LinearGradient>
-                        )}
-                    />
-                </View>
+                        </View>
+                    </View>
+                )}
+
+                {isLoadingAppointment && (
+                    <View style={styles.upcomingSection}>
+                        <View style={styles.sectionHeaderRow}>
+                            <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Upcoming Appointment</CustomText>
+                        </View>
+                        <View style={styles.loadingContainer}>
+                            <CustomText variant="text-body-sm-r" style={styles.loadingText}>
+                                Loading appointment...
+                            </CustomText>
+                        </View>
+                    </View>
+                )}
 
                 {/* ---------- TOP RATED DOCTORS ---------- */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionHeaderRow}>
                         <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Top Rated Doctors</CustomText>
-                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8}>
+                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={handleSeeAllTopRated}>
                             <CustomText variant="text-body-md-sb" style={styles.seeAll}>See All</CustomText>
                             <Ionicons name="chevron-forward" size={16} />
                         </TouchableOpacity>
                     </View>
 
-                    <FlatList
-                        data={TOP_RATED_DOCTORS}
-                        keyExtractor={(i) => i.id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing[16] }}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity activeOpacity={0.9} style={styles.docCard}>
-                                <Image source={item.avatar} style={styles.docAvatar} />
-                                <View style={styles.docInfo}>
-                                    <CustomText numberOfLines={1} variant="text-body-md-sb" style={styles.docName}>
-                                        {item.name}
-                                    </CustomText>
-                                    <CustomText numberOfLines={1} variant="text-body-sm-r" style={styles.docSpec}>
-                                        {item.specialization}
-                                    </CustomText>
-                                    <View style={styles.docRatingRow}>
-                                        <Ionicons name="star" size={14} color="#FACC15" />
-                                        <CustomText variant="text-body-sm-r" style={styles.docRatingText}>
-                                            {item.rating.toFixed(1)}
-                                        </CustomText>
+                    {isLoadingTopRated ? (
+                        <View style={styles.loadingContainer}>
+                            <CustomText variant="text-body-sm-r" style={styles.loadingText}>
+                                Loading top rated doctors...
+                            </CustomText>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={topRatedDoctors}
+                            keyExtractor={(item) => item.id}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingHorizontal: spacing[16] }}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity 
+                                    activeOpacity={0.9} 
+                                    style={styles.docCard}
+                                    onPress={() => handleDoctorPress(item)}
+                                >
+                                    <View style={styles.docAvatar}>
+                                        {shouldShowProfilePicture(item.user?.profile_picture_url) ? (
+                                            <Image 
+                                                source={{ uri: item.user.profile_picture_url }} 
+                                                style={styles.docAvatarImage}
+                                            />
+                                        ) : (
+                                            <View style={styles.defaultAvatarContainer}>
+                                                <MaterialCommunityIcons 
+                                                    name="account-circle" 
+                                                    size={40} 
+                                                    color={colors.neutral500} 
+                                                />
+                                            </View>
+                                        )}
                                     </View>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                                    <View style={styles.docInfo}>
+                                        <CustomText numberOfLines={1} variant="text-body-md-sb" style={styles.docName}>
+                                            {item.user?.name ? `Dr. ${item.user.name}` : `Dr. ${item.specialization || 'Unknown Doctor'}`}
+                                        </CustomText>
+                                        <CustomText numberOfLines={1} variant="text-body-sm-r" style={styles.docSpec}>
+                                            {item.specialization || 'Unknown Specialization'}
+                                        </CustomText>
+                                        {item.rating && (
+                                            <View style={styles.docRatingRow}>
+                                                <Ionicons name="star" size={14} color="#FACC15" />
+                                                <CustomText variant="text-body-sm-r" style={styles.docRatingText}>
+                                                    {item.rating.toFixed(1)}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    )}
                 </View>
 
                 {/* ---------- MOST POPULAR DOCTORS ---------- */}
                 <View style={styles.sectionBlock}>
                     <View style={styles.sectionHeaderRow}>
                         <CustomText variant="text-heading-H3" style={styles.sectionTitle}>Most Popular Doctors</CustomText>
-                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8}>
+                        <TouchableOpacity style={styles.seeAllBtn} hitSlop={8} onPress={handleSeeAllMostPopular}>
                             <CustomText variant="text-body-md-sb" style={styles.seeAll}>See All</CustomText>
                             <Ionicons name="chevron-forward" size={16} />
                         </TouchableOpacity>
                     </View>
 
-                    <FlatList
-                        data={POPULAR_DOCTORS}
-                        keyExtractor={(i) => i.id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing[16] }}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity activeOpacity={0.9} style={styles.docCard}>
-                                <Image source={item.avatar} style={styles.docAvatar} />
-                                <View style={styles.docInfo}>
-                                    <CustomText numberOfLines={1} variant="text-body-md-sb" style={styles.docName}>
-                                        {item.name}
-                                    </CustomText>
-                                    <CustomText numberOfLines={1} variant="text-body-sm-r" style={styles.docSpec}>
-                                        {item.specialization}
-                                    </CustomText>
-                                    <View style={styles.docRatingRow}>
-                                        <Ionicons name="star" size={14} color="#FACC15" />
-                                        <CustomText variant="text-body-sm-r" style={styles.docRatingText}>
-                                            {item.rating.toFixed(1)}
-                                        </CustomText>
+                    {isLoadingMostPopular ? (
+                        <View style={styles.loadingContainer}>
+                            <CustomText variant="text-body-sm-r" style={styles.loadingText}>
+                                Loading most popular doctors...
+                            </CustomText>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={mostPopularDoctors}
+                            keyExtractor={(item) => item.id}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingHorizontal: spacing[16] }}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity 
+                                    activeOpacity={0.9} 
+                                    style={styles.docCard}
+                                    onPress={() => handleDoctorPress(item)}
+                                >
+                                    <View style={styles.docAvatar}>
+                                        {shouldShowProfilePicture(item.user?.profile_picture_url) ? (
+                                            <Image 
+                                                source={{ uri: item.user.profile_picture_url }} 
+                                                style={styles.docAvatarImage}
+                                            />
+                                        ) : (
+                                            <View style={styles.defaultAvatarContainer}>
+                                                <MaterialCommunityIcons 
+                                                    name="account-circle" 
+                                                    size={40} 
+                                                    color={colors.neutral500} 
+                                                />
+                                            </View>
+                                        )}
                                     </View>
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                                    <View style={styles.docInfo}>
+                                        <CustomText numberOfLines={1} variant="text-body-md-sb" style={styles.docName}>
+                                            {item.user?.name ? `Dr. ${item.user.name}` : `Dr. ${item.specialization || 'Unknown Doctor'}`}
+                                        </CustomText>
+                                        <CustomText numberOfLines={1} variant="text-body-sm-r" style={styles.docSpec}>
+                                            {item.specialization || 'Unknown Specialization'}
+                                        </CustomText>
+                                        {item.rating && (
+                                            <View style={styles.docRatingRow}>
+                                                <Ionicons name="star" size={14} color="#FACC15" />
+                                                <CustomText variant="text-body-sm-r" style={styles.docRatingText}>
+                                                    {item.rating.toFixed(1)}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    )}
                 </View>
             </ScrollView>
         </SafeAreaView >
@@ -832,6 +1011,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.6)',
         marginRight: spacing[12],
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
     },
 
     upContent: {
@@ -844,6 +1026,11 @@ const styles = StyleSheet.create({
     upSpec: {
         color: 'rgba(255,255,255,0.9)',
         marginTop: 2,
+    },
+    upWorkplace: {
+        color: 'rgba(255,255,255,0.8)',
+        marginTop: 2,
+        fontSize: fontSize[10],
     },
     upRatingRow: {
         flexDirection: 'row',
@@ -926,11 +1113,36 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginRight: spacing[12],
         backgroundColor: colors.neutral100,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    docAvatarImage: {
+        width: 64,
+        height: 64,
+        borderRadius: 12,
+    },
+    defaultAvatarContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 12,
+        backgroundColor: colors.neutral100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.neutral300,
     },
     docInfo: { flex: 1 },
     docName: { color: colors.black, marginBottom: -2 },
     docSpec: { color: colors.neutral600, marginBottom: -2 },
     docRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     docRatingText: { color: colors.neutral700 },
+
+    loadingContainer: {
+        paddingVertical: spacing[24],
+        alignItems: 'center',
+    },
+    loadingText: {
+        color: colors.neutral600,
+    },
 
 });

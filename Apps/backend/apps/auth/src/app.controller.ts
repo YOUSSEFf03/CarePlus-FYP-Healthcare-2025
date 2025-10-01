@@ -96,6 +96,21 @@ export class AppController {
     return safeUser;
   }
 
+  // Public method for microservices to get basic user info
+  @MessagePattern({ cmd: 'get_user_basic_info' })
+  async getUserBasicInfo(@Payload() data: { userId: string }) {
+    const targetUser = await this.usersService.findById(data.userId);
+    if (!targetUser) return null;
+
+    // Return only basic public information
+    return {
+      id: targetUser.id,
+      name: targetUser.name,
+      email: targetUser.email,
+      profile_picture_url: targetUser.profile_picture_url,
+    };
+  }
+
   @UseGuards(MicroserviceAuthGuard)
   @MessagePattern({ cmd: 'get_user_profile' })
   async getUserProfile(
@@ -137,7 +152,19 @@ export class AppController {
 
   @MessagePattern({ cmd: 'verify_token' })
   async verifyToken(@Payload() data: { token: string }) {
-    return this.appService.verifyToken(data);
+    console.log('=== AUTH SERVICE - verify_token called ===');
+    console.log('Data received:', JSON.stringify(data, null, 2));
+    console.log('Token present:', !!data.token);
+    console.log('Token length:', data.token?.length || 0);
+    
+    try {
+      const result = await this.appService.verifyToken(data);
+      console.log('Auth service verification successful:', result);
+      return result;
+    } catch (error) {
+      console.log('Auth service verification failed:', error);
+      throw error;
+    }
   }
 
   @MessagePattern()

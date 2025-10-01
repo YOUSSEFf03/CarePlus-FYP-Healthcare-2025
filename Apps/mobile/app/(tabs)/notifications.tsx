@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
         borderBottomColor: colors.neutral100,
     },
     unreadNotification: {
-        backgroundColor: colors.primary5,
+        backgroundColor: colors.primary05,
     },
     notificationContent: {
         padding: spacing[16],
