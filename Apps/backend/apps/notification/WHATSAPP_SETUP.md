@@ -5,6 +5,7 @@
 Your WhatsApp OTP service is now configured with the following credentials:
 
 ### UltraMsg API Credentials:
+
 - **Instance ID**: `instance121402`
 - **Token**: `wahyyiw8jz96mkyi`
 - **WhatsApp Number**: `+96171247781`
@@ -20,7 +21,7 @@ ULTRA_TOKEN=wahyyiw8jz96mkyi
 
 # Email Configuration (for fallback)
 EMAIL_USER=fyphealthcare2025@gmail.com
-EMAIL_PASS=your_app_password_here
+EMAIL_PASS=zyfc akaa yfkr wmlv
 
 # Database Configuration
 DB_HOST=localhost
@@ -40,12 +41,14 @@ NODE_ENV=development
 ## 🚀 How to Start
 
 1. **Install Dependencies:**
+
    ```bash
    cd Apps/backend/apps/notification
    npm install
    ```
 
 2. **Start the Service:**
+
    ```bash
    npm run start:dev
    ```
@@ -57,6 +60,7 @@ NODE_ENV=development
 ## 📱 Testing WhatsApp OTP
 
 ### Send Test OTP:
+
 ```bash
 curl -X POST http://localhost:3001/notification/send-whatsapp-otp \
   -H "Content-Type: application/json" \
@@ -69,12 +73,14 @@ curl -X POST http://localhost:3001/notification/send-whatsapp-otp \
 ```
 
 ### Message Format:
+
 - **Simple**: `"Your OTP is: 123456"`
 - **With Name**: `"Hello John, your OTP is: 123456"`
 
 ## 🔄 Integration with Other Services
 
 ### From Auth Service:
+
 ```typescript
 // Send WhatsApp OTP
 await this.notificationClient.send(
@@ -83,18 +89,19 @@ await this.notificationClient.send(
     userId: 'user123',
     phone: '+96171247781',
     otp: '123456',
-    userName: 'John Doe'
-  }
+    userName: 'John Doe',
+  },
 );
 ```
 
 ### From Gateway:
+
 ```typescript
 // REST API endpoint
 POST /notification/send-whatsapp-otp
 {
   "userId": "user123",
-  "phone": "+96171247781", 
+  "phone": "+96171247781",
   "otp": "123456",
   "userName": "John Doe"
 }
@@ -118,6 +125,7 @@ POST /notification/send-whatsapp-otp
    - Check UltraMsg account limits
 
 ### Debug Logs:
+
 ```bash
 # Check notification logs
 tail -f logs/notification.log
@@ -129,12 +137,15 @@ curl http://localhost:3001/health
 ## 📊 Monitoring
 
 ### Database Logs:
+
 All OTP attempts are logged in the `notification_logs` table:
+
 - **Status**: PENDING → SENT → DELIVERED/FAILED
 - **Retry Count**: Automatic retry on failure
 - **Error Messages**: Detailed error logging
 
 ### Health Check:
+
 ```bash
 GET /health
 ```
