@@ -40,7 +40,7 @@ let AuthController = class AuthController {
     }
     async handleRequest(client, pattern, body, fallbackMsg) {
         try {
-            const result = await (0, rxjs_1.lastValueFrom)(client.send(pattern, body));
+            const result = await (0, rxjs_1.lastValueFrom)(client.send(pattern, body).pipe((0, rxjs_1.timeout)(15000)));
             return {
                 success: true,
                 data: result,
@@ -52,6 +52,13 @@ let AuthController = class AuthController {
             let status = err?.status || common_1.HttpStatus.BAD_REQUEST;
             if (typeof status !== 'number' || isNaN(status)) {
                 status = common_1.HttpStatus.BAD_REQUEST;
+            }
+            if (err.name === 'TimeoutError' || err.message.includes('timeout')) {
+                status = common_1.HttpStatus.GATEWAY_TIMEOUT;
+            }
+            if (err.message.includes('ECONNREFUSED') ||
+                err.message.includes('connection')) {
+                status = common_1.HttpStatus.SERVICE_UNAVAILABLE;
             }
             const message = err?.response?.message || err?.message || fallbackMsg;
             throw new common_1.HttpException({
@@ -74,6 +81,10 @@ let AuthController = class AuthController {
                 return 'Not Found';
             case common_1.HttpStatus.CONFLICT:
                 return 'Conflict';
+            case common_1.HttpStatus.GATEWAY_TIMEOUT:
+                return 'Gateway Timeout';
+            case common_1.HttpStatus.SERVICE_UNAVAILABLE:
+                return 'Service Unavailable';
             default:
                 return 'Internal Server Error';
         }

@@ -21,6 +21,7 @@ import { AppointmentSlot } from './appointment-slot.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
 import { DoctorAnalytics } from './doctor-analytics.entity'; // Add this import
 import { Repository, Not, Between, LessThan, In } from 'typeorm';
+import { Repository, Not, Between } from 'typeorm'; // Ensure Between is imported
 
 // Define interfaces for type safety
 interface UserInfo {
@@ -40,8 +41,6 @@ export class DoctorService {
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(DoctorReview)
     private readonly reviewRepo: Repository<DoctorReview>,
-    @InjectRepository(DoctorAnalytics)
-    private readonly analyticsRepo: Repository<DoctorAnalytics>, // Fixed syntax
     @InjectRepository(DoctorWorkplaceAssistant)
     private readonly doctorWorkplaceAssistantRepo: Repository<DoctorWorkplaceAssistant>,
     @InjectRepository(DoctorWorkplace)
@@ -64,11 +63,14 @@ export class DoctorService {
 
   // ==================== DOCTOR MANAGEMENT ====================
   async createDoctor(data: CreateDoctorDto): Promise<Doctor> {
+    console.log('🏥 Doctor service: Creating doctor with data:', data);
+
     const existing = await this.doctorRepo.findOne({
       where: [{ userId: data.userId }, { license_number: data.license_number }],
     });
 
     if (existing) {
+      console.log('❌ Doctor already exists:', existing);
       throw this.rpcError(
         'Doctor already exists or license number already in use',
         409,
@@ -82,7 +84,11 @@ export class DoctorService {
         VerificationStatus.PENDING,
     });
 
-    return await this.doctorRepo.save(doctor);
+    console.log('📝 Created doctor entity:', doctor);
+    const savedDoctor = await this.doctorRepo.save(doctor);
+    console.log('✅ Doctor saved successfully:', savedDoctor);
+
+    return savedDoctor;
   }
 
   async getDoctorByUserId(userId: string): Promise<Doctor> {
@@ -102,12 +108,13 @@ export class DoctorService {
     console.log('getDoctorById called with id:', id);
     console.log('id type:', typeof id);
     console.log('id length:', id?.length);
-    
+
     // More flexible UUID validation
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const isValidUuid = uuidRegex.test(id);
     console.log('UUID validation result:', isValidUuid);
-    
+
     if (!isValidUuid) {
       console.log('UUID validation failed for:', id);
       throw this.rpcError(
@@ -119,7 +126,9 @@ export class DoctorService {
     const doctor = await this.doctorRepo
       .createQueryBuilder('doctor')
       .where('doctor.id = :id', { id })
-      .andWhere('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .andWhere('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .getOne();
 
@@ -129,17 +138,20 @@ export class DoctorService {
 
     try {
       const userInfo = await firstValueFrom(
-        this.authClient.send({ cmd: 'get_user_basic_info' }, { userId: doctor.userId })
+        this.authClient.send(
+          { cmd: 'get_user_basic_info' },
+          { userId: doctor.userId },
+        ),
       );
       return {
         ...doctor,
-        user: userInfo
+        user: userInfo,
       };
     } catch (error) {
       console.error(`Error fetching user info for doctor ${doctor.id}:`, error);
       return {
         ...doctor,
-        user: null
+        user: null,
       };
     }
   }
@@ -196,7 +208,9 @@ export class DoctorService {
   async getTopRatedDoctors(limit: number = 6): Promise<any[]> {
     const doctors = await this.doctorRepo
       .createQueryBuilder('doctor')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .andWhere('doctor.rating IS NOT NULL')
       .orderBy('doctor.rating', 'DESC')
@@ -209,20 +223,26 @@ export class DoctorService {
       doctors.map(async (doctor) => {
         try {
           const userInfo = await firstValueFrom(
-            this.authClient.send({ cmd: 'get_user_basic_info' }, { userId: doctor.userId })
+            this.authClient.send(
+              { cmd: 'get_user_basic_info' },
+              { userId: doctor.userId },
+            ),
           );
           return {
             ...doctor,
-            user: userInfo
+            user: userInfo,
           };
         } catch (error) {
-          console.error(`Error fetching user info for doctor ${doctor.id}:`, error);
+          console.error(
+            `Error fetching user info for doctor ${doctor.id}:`,
+            error,
+          );
           return {
             ...doctor,
-            user: null
+            user: null,
           };
         }
-      })
+      }),
     );
 
     return doctorsWithUsers;
@@ -231,7 +251,9 @@ export class DoctorService {
   async getMostPopularDoctors(limit: number = 6): Promise<any[]> {
     const doctors = await this.doctorRepo
       .createQueryBuilder('doctor')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .orderBy('doctor.total_patients', 'DESC') // Sort by total patients (popularity)
       .addOrderBy('doctor.rating', 'DESC') // Secondary sort by rating
@@ -243,20 +265,26 @@ export class DoctorService {
       doctors.map(async (doctor) => {
         try {
           const userInfo = await firstValueFrom(
-            this.authClient.send({ cmd: 'get_user_basic_info' }, { userId: doctor.userId })
+            this.authClient.send(
+              { cmd: 'get_user_basic_info' },
+              { userId: doctor.userId },
+            ),
           );
           return {
             ...doctor,
-            user: userInfo
+            user: userInfo,
           };
         } catch (error) {
-          console.error(`Error fetching user info for doctor ${doctor.id}:`, error);
+          console.error(
+            `Error fetching user info for doctor ${doctor.id}:`,
+            error,
+          );
           return {
             ...doctor,
-            user: null
+            user: null,
           };
         }
-      })
+      }),
     );
 
     return doctorsWithUsers;
@@ -265,7 +293,9 @@ export class DoctorService {
   async searchDoctors(searchQuery: string): Promise<any[]> {
     const doctors = await this.doctorRepo
       .createQueryBuilder('doctor')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .getMany();
 
@@ -274,20 +304,26 @@ export class DoctorService {
       doctors.map(async (doctor) => {
         try {
           const userInfo = await firstValueFrom(
-            this.authClient.send({ cmd: 'get_user_basic_info' }, { userId: doctor.userId })
+            this.authClient.send(
+              { cmd: 'get_user_basic_info' },
+              { userId: doctor.userId },
+            ),
           );
           return {
             ...doctor,
-            user: userInfo
+            user: userInfo,
           };
         } catch (error) {
-          console.error(`Error fetching user info for doctor ${doctor.id}:`, error);
+          console.error(
+            `Error fetching user info for doctor ${doctor.id}:`,
+            error,
+          );
           return {
             ...doctor,
-            user: null
+            user: null,
           };
         }
-      })
+      }),
     );
 
     // Filter doctors based on search criteria
@@ -296,13 +332,15 @@ export class DoctorService {
     }
 
     const query = searchQuery.toLowerCase().trim();
-    
-    const filtered = doctorsWithUsers.filter(doctor => {
+
+    const filtered = doctorsWithUsers.filter((doctor) => {
       // Search by doctor name
       const nameMatch = doctor.user?.name?.toLowerCase().includes(query);
-      
+
       // Search by specialization
-      const specializationMatch = doctor.specialization?.toLowerCase().includes(query);
+      const specializationMatch = doctor.specialization
+        ?.toLowerCase()
+        .includes(query);
 
       return nameMatch || specializationMatch;
     });
@@ -526,12 +564,13 @@ export class DoctorService {
     console.log('getDoctorWorkplacesById called with doctorId:', doctorId);
     console.log('doctorId type:', typeof doctorId);
     console.log('doctorId length:', doctorId?.length);
-    
+
     // Validate that id is a valid UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const isValidUuid = uuidRegex.test(doctorId);
     console.log('UUID validation result for workplaces:', isValidUuid);
-    
+
     if (!isValidUuid) {
       console.log('UUID validation failed for workplaces:', doctorId);
       throw this.rpcError(
@@ -542,7 +581,7 @@ export class DoctorService {
 
     const doctor = await this.doctorRepo.findOne({
       where: { id: doctorId },
-      relations: ['workplaces']
+      relations: ['workplaces'],
     });
 
     if (!doctor) {
@@ -550,95 +589,138 @@ export class DoctorService {
     }
 
     // Filter active workplaces and extract real availability data
-    const activeWorkplaces = doctor.workplaces.filter(workplace => workplace.is_active);
-    
+    const activeWorkplaces = doctor.workplaces.filter(
+      (workplace) => workplace.is_active,
+    );
+
     console.log('Found active workplaces:', activeWorkplaces.length);
     console.log('Doctor available_days:', doctor.available_days);
-    
+
     // Use the dedicated available_days field for each workplace
-    const processedWorkplaces = await Promise.all(activeWorkplaces.map(async (workplace) => {
-      console.log('Processing workplace:', workplace.workplace_name);
-      console.log('Workplace available_days:', workplace.available_days);
-      console.log('Workplace working_hours:', workplace.working_hours);
-      
-      let availableDays = [];
-      
-      // Primary: Use workplace's available_days field
-      if (workplace.available_days && Array.isArray(workplace.available_days) && workplace.available_days.length > 0) {
-        console.log('Using workplace available_days field:', workplace.available_days);
-        availableDays = workplace.available_days;
-      }
-      // Secondary: Extract from appointment slots (most reliable)
-      else {
-        console.log('Extracting days from appointment slots...');
-        const appointmentSlots = await this.appointmentSlotRepo.find({
-          where: {
-            doctor_id: doctor.id,
-            workplace_id: workplace.id,
-            is_available: true
-          },
-          select: ['day_of_week']
-        });
-        
-        if (appointmentSlots.length > 0) {
-          const uniqueDays = [...new Set(appointmentSlots.map(slot => slot.day_of_week).filter(Boolean))];
-          console.log('Found days from appointment slots:', uniqueDays);
-          availableDays = uniqueDays;
+    const processedWorkplaces = await Promise.all(
+      activeWorkplaces.map(async (workplace) => {
+        console.log('Processing workplace:', workplace.workplace_name);
+        console.log('Workplace available_days:', workplace.available_days);
+        console.log('Workplace working_hours:', workplace.working_hours);
+
+        let availableDays = [];
+
+        // Primary: Use workplace's available_days field
+        if (
+          workplace.available_days &&
+          Array.isArray(workplace.available_days) &&
+          workplace.available_days.length > 0
+        ) {
+          console.log(
+            'Using workplace available_days field:',
+            workplace.available_days,
+          );
+          availableDays = workplace.available_days;
         }
-      }
-      
-      // Fallback: Extract from working_hours if no appointment slots
-      if (availableDays.length === 0 && workplace.working_hours && typeof workplace.working_hours === 'object') {
-        console.log('Extracting days from working_hours as fallback...');
-        const workingHoursKeys = Object.keys(workplace.working_hours);
-        console.log('Working hours keys:', workingHoursKeys);
-        
-        // Filter days that have actual time slots
-        availableDays = workingHoursKeys.filter(day => {
-          const dayData = workplace.working_hours[day];
-          return dayData && 
-                 dayData !== null && 
-                 dayData !== undefined && 
-                 dayData !== '' &&
-                 (Array.isArray(dayData) ? dayData.length > 0 : 
-                  typeof dayData === 'object' ? Object.keys(dayData).length > 0 : 
-                  true);
-        }).map(day => {
-          const dayMap = {
-            'monday': 'Monday',
-            'tuesday': 'Tuesday', 
-            'wednesday': 'Wednesday',
-            'thursday': 'Thursday',
-            'friday': 'Friday',
-            'saturday': 'Saturday',
-            'sunday': 'Sunday'
-          };
-          return dayMap[day.toLowerCase()] || day;
-        });
-        
-        console.log('Extracted days from working_hours:', availableDays);
-      }
-      
-      // Last fallback: Use doctor's available_days
-      if (availableDays.length === 0 && doctor.available_days && Array.isArray(doctor.available_days) && doctor.available_days.length > 0) {
-        console.log('Using doctor available_days as last fallback:', doctor.available_days);
-        availableDays = doctor.available_days;
-      }
-      
-      // If still no days, use empty array (no availability)
-      if (availableDays.length === 0) {
-        console.log('No available days found for workplace:', workplace.workplace_name);
-        availableDays = [];
-      }
-      
-      const result = {
-        ...workplace,
-        available_days: availableDays
-      };
-      
-      console.log('Final available_days for', workplace.workplace_name, ':', availableDays);
-      return result;
-    }));
+        // Secondary: Extract from appointment slots (most reliable)
+        else {
+          console.log('Extracting days from appointment slots...');
+          const appointmentSlots = await this.appointmentSlotRepo.find({
+            where: {
+              doctor_id: doctor.id,
+              workplace_id: workplace.id,
+              is_available: true,
+            },
+            select: ['day_of_week'],
+          });
+
+          if (appointmentSlots.length > 0) {
+            const uniqueDays = [
+              ...new Set(
+                appointmentSlots
+                  .map((slot) => slot.day_of_week)
+                  .filter(Boolean),
+              ),
+            ];
+            console.log('Found days from appointment slots:', uniqueDays);
+            availableDays = uniqueDays;
+          }
+        }
+
+        // Fallback: Extract from working_hours if no appointment slots
+        if (
+          availableDays.length === 0 &&
+          workplace.working_hours &&
+          typeof workplace.working_hours === 'object'
+        ) {
+          console.log('Extracting days from working_hours as fallback...');
+          const workingHoursKeys = Object.keys(workplace.working_hours);
+          console.log('Working hours keys:', workingHoursKeys);
+
+          // Filter days that have actual time slots
+          availableDays = workingHoursKeys
+            .filter((day) => {
+              const dayData = workplace.working_hours[day];
+              return (
+                dayData &&
+                dayData !== null &&
+                dayData !== undefined &&
+                dayData !== '' &&
+                (Array.isArray(dayData)
+                  ? dayData.length > 0
+                  : typeof dayData === 'object'
+                    ? Object.keys(dayData).length > 0
+                    : true)
+              );
+            })
+            .map((day) => {
+              const dayMap = {
+                monday: 'Monday',
+                tuesday: 'Tuesday',
+                wednesday: 'Wednesday',
+                thursday: 'Thursday',
+                friday: 'Friday',
+                saturday: 'Saturday',
+                sunday: 'Sunday',
+              };
+              return dayMap[day.toLowerCase()] || day;
+            });
+
+          console.log('Extracted days from working_hours:', availableDays);
+        }
+
+        // Last fallback: Use doctor's available_days
+        if (
+          availableDays.length === 0 &&
+          doctor.available_days &&
+          Array.isArray(doctor.available_days) &&
+          doctor.available_days.length > 0
+        ) {
+          console.log(
+            'Using doctor available_days as last fallback:',
+            doctor.available_days,
+          );
+          availableDays = doctor.available_days;
+        }
+
+        // If still no days, use empty array (no availability)
+        if (availableDays.length === 0) {
+          console.log(
+            'No available days found for workplace:',
+            workplace.workplace_name,
+          );
+          availableDays = [];
+        }
+
+        const result = {
+          ...workplace,
+          available_days: availableDays,
+        };
+
+        console.log(
+          'Final available_days for',
+          workplace.workplace_name,
+          ':',
+          availableDays,
+        );
+        return result;
+      }),
+    );
 
     return processedWorkplaces;
   }
@@ -801,9 +883,11 @@ export class DoctorService {
     });
   }
 
-  async getNextUpcomingAppointment(patientId: string): Promise<Appointment | null> {
+  async getNextUpcomingAppointment(
+    patientId: string,
+  ): Promise<Appointment | null> {
     const today = new Date().toISOString().split('T')[0];
-    
+
     const appointment = await this.appointmentRepo.findOne({
       where: {
         patientId,
@@ -1159,21 +1243,37 @@ export class DoctorService {
     inviteId: string,
     response: 'accept' | 'reject',
   ): Promise<{ message: string }> {
+    console.log(
+      `📨 Assistant ${assistantUserId} responding to invite ${inviteId} with: ${response}`,
+    );
+
     try {
-      // Get invite
+      // Get invite with relations
       const invite = await this.assistantInviteRepo.findOne({
         where: { id: inviteId, assistantId: assistantUserId },
+        relations: ['doctor', 'workplace'],
       });
 
       if (!invite) {
+        console.log('❌ Invite not found for assistant');
         throw this.rpcError('Invite not found', 404);
       }
 
+      console.log('📋 Invite details:', {
+        id: invite.id,
+        status: invite.status,
+        expires_at: invite.expires_at,
+        doctorId: invite.doctorId,
+        workplaceId: invite.workplaceId,
+      });
+
       if (invite.status !== InviteStatus.PENDING) {
+        console.log('❌ Invite already responded to');
         throw this.rpcError('Invite already responded to', 400);
       }
 
-      if (invite.expires_at < new Date()) {
+      if (invite.expires_at && invite.expires_at < new Date()) {
+        console.log('❌ Invite has expired');
         invite.status = InviteStatus.EXPIRED;
         await this.assistantInviteRepo.save(invite);
         throw this.rpcError('Invite has expired', 400);
@@ -1184,33 +1284,106 @@ export class DoctorService {
         response === 'accept' ? InviteStatus.ACCEPTED : InviteStatus.REJECTED;
       await this.assistantInviteRepo.save(invite);
 
+      console.log(`✅ Invite ${response}ed successfully`);
+
       if (response === 'accept') {
         // Add assistant to workplace
         await this.addAssistantToWorkplace(invite);
 
         // Send acceptance notification to doctor
-        await this.sendInviteResponseNotification(invite, 'accepted');
+        try {
+          await this.sendInviteResponseNotification(invite, 'accepted');
+        } catch (notificationError) {
+          console.error(
+            'Failed to send acceptance notification:',
+            notificationError,
+          );
+          // Don't throw error, continue with success response
+        }
 
-        return { message: 'Invite accepted successfully' };
+        return {
+          message: 'Invite accepted successfully',
+        };
       } else {
         // Send rejection notification to doctor
-        await this.sendInviteResponseNotification(invite, 'rejected');
+        try {
+          await this.sendInviteResponseNotification(invite, 'rejected');
+        } catch (notificationError) {
+          console.error(
+            'Failed to send rejection notification:',
+            notificationError,
+          );
+          // Don't throw error, continue with success response
+        }
 
-        return { message: 'Invite rejected' };
+        return {
+          message: 'Invite rejected',
+        };
       }
     } catch (error) {
-      console.error('Error responding to invite:', error);
+      console.error('❌ Error responding to invite:', error);
       throw error;
     }
   }
 
-  async getAssistantInvites(
-    assistantUserId: string,
-  ): Promise<AssistantInvite[]> {
-    return this.assistantInviteRepo.find({
-      where: { assistantId: assistantUserId },
-      order: { created_at: 'DESC' },
-    });
+  async getAssistantInvites(assistantUserId: string): Promise<any[]> {
+    console.log('📨 Getting invites for assistant:', assistantUserId);
+
+    try {
+      const invites = await this.assistantInviteRepo.find({
+        where: { assistantId: assistantUserId },
+        relations: ['doctor', 'workplace'],
+        order: { created_at: 'DESC' },
+      });
+
+      // Enhance invites with additional information
+      const enhancedInvites = [];
+      for (const invite of invites) {
+        // Get doctor user details from auth service
+        const doctorUser = (await firstValueFrom(
+          this.authClient.send(
+            { cmd: 'get_user_by_id' },
+            { userId: invite.doctor.userId },
+          ),
+        )) as UserInfo;
+
+        // Check if invite is expired
+        const isExpired = invite.expires_at && invite.expires_at < new Date();
+        if (isExpired && invite.status === InviteStatus.PENDING) {
+          invite.status = InviteStatus.EXPIRED;
+          await this.assistantInviteRepo.save(invite);
+        }
+
+        enhancedInvites.push({
+          id: invite.id,
+          status: invite.status,
+          message: invite.message,
+          expires_at: invite.expires_at,
+          created_at: invite.created_at,
+          updated_at: invite.updated_at,
+          isExpired: isExpired,
+          doctor: {
+            id: invite.doctor.id,
+            name: doctorUser.name,
+            email: doctorUser.email,
+            specialization: invite.doctor.specialization,
+            verification_status: invite.doctor.verification_status,
+          },
+          workplace: {
+            id: invite.workplace.id,
+            name: invite.workplace.workplace_name,
+            type: invite.workplace.workplace_type,
+            addresses: invite.workplace.addresses,
+          },
+        });
+      }
+
+      console.log(`✅ Found ${enhancedInvites.length} invites for assistant`);
+      return enhancedInvites;
+    } catch (error) {
+      console.error('❌ Error getting assistant invites:', error);
+      throw this.rpcError('Failed to get assistant invites');
+    }
   }
 
   async getDoctorAssistants(doctorUserId: string): Promise<any[]> {
@@ -1220,10 +1393,10 @@ export class DoctorService {
     // First get all workplaces for this doctor
     const workplaces = await this.workplaceRepo.find({
       where: { doctorId: doctor.id },
-      select: ['id']
+      select: ['id'],
     });
 
-    const workplaceIds = workplaces.map(w => w.id);
+    const workplaceIds = workplaces.map((w) => w.id);
 
     if (workplaceIds.length === 0) {
       return [];
@@ -1233,8 +1406,8 @@ export class DoctorService {
     const assistants = await this.doctorWorkplaceAssistantRepo.find({
       where: {
         doctorWorkplaceId: In(workplaceIds),
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     // Get user details for each assistant
@@ -1256,14 +1429,19 @@ export class DoctorService {
         assistantDetails.push({
           ...assistant,
           userInfo,
-          workplaceInfo: workplace ? {
-            id: workplace.id,
-            workplace_name: workplace.workplace_name,
-            workplace_type: workplace.workplace_type,
-          } : null,
+          workplaceInfo: workplace
+            ? {
+                id: workplace.id,
+                workplace_name: workplace.workplace_name,
+                workplace_type: workplace.workplace_type,
+              }
+            : null,
         });
       } catch (error) {
-        console.error(`Error fetching user info for assistant ${assistant.assistantId}:`, error);
+        console.error(
+          `Error fetching user info for assistant ${assistant.assistantId}:`,
+          error,
+        );
         // Continue with other assistants even if one fails
       }
     }
@@ -1278,10 +1456,10 @@ export class DoctorService {
     // First get all workplaces for this doctor
     const workplaces = await this.workplaceRepo.find({
       where: { doctorId: doctor.id },
-      select: ['id']
+      select: ['id'],
     });
 
-    const workplaceIds = workplaces.map(w => w.id);
+    const workplaceIds = workplaces.map((w) => w.id);
 
     if (workplaceIds.length === 0) {
       return [];
@@ -1291,9 +1469,9 @@ export class DoctorService {
     const invites = await this.assistantInviteRepo.find({
       where: {
         workplaceId: In(workplaceIds),
-        status: InviteStatus.PENDING
+        status: InviteStatus.PENDING,
       },
-      order: { created_at: 'DESC' }
+      order: { created_at: 'DESC' },
     });
 
     // Get workplace info for each invite
@@ -1306,14 +1484,19 @@ export class DoctorService {
 
         inviteDetails.push({
           ...invite,
-          workplaceInfo: workplace ? {
-            id: workplace.id,
-            workplace_name: workplace.workplace_name,
-            workplace_type: workplace.workplace_type,
-          } : null,
+          workplaceInfo: workplace
+            ? {
+                id: workplace.id,
+                workplace_name: workplace.workplace_name,
+                workplace_type: workplace.workplace_type,
+              }
+            : null,
         });
       } catch (error) {
-        console.error(`Error fetching workplace info for invite ${invite.id}:`, error);
+        console.error(
+          `Error fetching workplace info for invite ${invite.id}:`,
+          error,
+        );
         // Continue with other invites even if one fails
       }
     }
@@ -1542,7 +1725,7 @@ export class DoctorService {
       console.log('Doctor User ID:', doctorUserId);
       console.log('Workplace ID:', workplaceId);
       console.log('Updates:', JSON.stringify(updates, null, 2));
-      
+
       const doctor = await this.getDoctorByUserId(doctorUserId);
 
       // Verify workplace belongs to doctor
@@ -1568,10 +1751,10 @@ export class DoctorService {
       // Update workplace
       Object.assign(workplace, updates);
       const savedWorkplace = await this.workplaceRepo.save(workplace);
-      
+
       console.log('Workplace updated successfully');
       console.log('New available_days:', savedWorkplace.available_days);
-      
+
       return savedWorkplace;
     } catch (error) {
       console.error('Error updating workplace:', error);
@@ -1642,7 +1825,7 @@ export class DoctorService {
       console.log('Doctor User ID:', doctorUserId);
       console.log('Workplace ID:', workplaceId);
       console.log('Setting is_available to:', isAvailable);
-      
+
       const doctor = await this.getDoctorByUserId(doctorUserId);
 
       // Verify workplace belongs to doctor
@@ -1661,9 +1844,9 @@ export class DoctorService {
       );
 
       console.log('Appointment slots status updated:', updateResult.affected);
-      return { 
-        message: 'Appointment slots status updated successfully', 
-        updatedCount: updateResult.affected || 0 
+      return {
+        message: 'Appointment slots status updated successfully',
+        updatedCount: updateResult.affected || 0,
       };
     } catch (error) {
       console.error('Error updating appointment slots status:', error);
@@ -1674,12 +1857,15 @@ export class DoctorService {
     }
   }
 
-  async getAppointmentSlotsByWorkplace(doctorUserId: string, workplaceId: string): Promise<Record<string, any[]>> {
+  async getAppointmentSlotsByWorkplace(
+    doctorUserId: string,
+    workplaceId: string,
+  ): Promise<Record<string, any[]>> {
     try {
       console.log('=== FETCHING APPOINTMENT SLOTS BY WORKPLACE ===');
       console.log('Doctor User ID:', doctorUserId);
       console.log('Workplace ID:', workplaceId);
-      
+
       const doctor = await this.getDoctorByUserId(doctorUserId);
 
       // Verify workplace belongs to doctor
@@ -1690,34 +1876,40 @@ export class DoctorService {
       if (!workplace) {
         throw this.rpcError('Workplace not found or access denied', 403);
       }
-      
+
       const slots = await this.appointmentSlotRepo.find({
         where: {
           workplace_id: workplaceId,
-          is_available: true
+          is_available: true,
         },
         order: {
           day_of_week: 'ASC',
-          start_time: 'ASC'
-        }
+          start_time: 'ASC',
+        },
       });
 
       console.log('Found appointment slots:', slots.length);
-      
+
       // Group slots by day of week
-      const groupedSlots: Record<string, any[]> = slots.reduce((acc, slot) => {
-        const day = slot.day_of_week;
-        if (!acc[day]) {
-          acc[day] = [];
-        }
-        acc[day].push({
-          start_time: slot.start_time,
-          end_time: slot.end_time,
-          // Calculate slot duration from start and end times
-          slot_duration: this.calculateSlotDuration(slot.start_time, slot.end_time)
-        });
-        return acc;
-      }, {} as Record<string, any[]>);
+      const groupedSlots: Record<string, any[]> = slots.reduce(
+        (acc, slot) => {
+          const day = slot.day_of_week;
+          if (!acc[day]) {
+            acc[day] = [];
+          }
+          acc[day].push({
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            // Calculate slot duration from start and end times
+            slot_duration: this.calculateSlotDuration(
+              slot.start_time,
+              slot.end_time,
+            ),
+          });
+          return acc;
+        },
+        {} as Record<string, any[]>,
+      );
 
       console.log('Grouped slots by day:', Object.keys(groupedSlots));
       return groupedSlots;
@@ -1750,7 +1942,7 @@ export class DoctorService {
       console.log('=== CLEARING APPOINTMENT SLOTS ===');
       console.log('Doctor User ID:', doctorUserId);
       console.log('Workplace ID:', workplaceId);
-      
+
       const doctor = await this.getDoctorByUserId(doctorUserId);
 
       // Verify workplace belongs to doctor
@@ -1769,7 +1961,7 @@ export class DoctorService {
       });
 
       console.log('Cleared appointment slots:', result.affected);
-      
+
       return {
         message: `Cleared ${result.affected || 0} appointment slots`,
         deletedCount: result.affected || 0,
@@ -1818,7 +2010,9 @@ export class DoctorService {
           where: {
             doctor_id: doctor.id,
             workplace_id: workplaceId,
-            day_of_week: slotsData.day_of_week || this.getDayOfWeekFromDate(slotsData.date),
+            day_of_week:
+              slotsData.day_of_week ||
+              this.getDayOfWeekFromDate(slotsData.date),
             start_time: slot.start,
             end_time: slot.end,
           },
@@ -1826,8 +2020,9 @@ export class DoctorService {
 
         if (!existingSlot) {
           // Get day of week from date if not provided
-          const dayOfWeek = slotsData.day_of_week || this.getDayOfWeekFromDate(slotsData.date);
-          
+          const dayOfWeek =
+            slotsData.day_of_week || this.getDayOfWeekFromDate(slotsData.date);
+
           console.log(`Creating appointment slot for ${dayOfWeek}:`, {
             doctor_id: doctor.id,
             workplace_id: workplaceId,
@@ -1836,7 +2031,7 @@ export class DoctorService {
             end_time: slot.end,
             is_available: true,
           });
-          
+
           const appointmentSlot = this.appointmentSlotRepo.create({
             doctor_id: doctor.id,
             workplace_id: workplaceId,
@@ -1863,7 +2058,15 @@ export class DoctorService {
 
   private getDayOfWeekFromDate(dateString: string): string {
     const date = new Date(dateString);
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     return days[date.getDay()];
   }
 
@@ -2159,56 +2362,70 @@ export class DoctorService {
 
   // ==================== SPECIALIZATION MANAGEMENT ====================
 
-  async getSpecializationsWithCounts(): Promise<{ specialization: string; count: number }[]> {
+  async getSpecializationsWithCounts(): Promise<
+    { specialization: string; count: number }[]
+  > {
     const result = await this.doctorRepo
       .createQueryBuilder('doctor')
       .select('doctor.specialization', 'specialization')
       .addSelect('COUNT(doctor.id)', 'count')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .groupBy('doctor.specialization')
       .orderBy('count', 'DESC')
       .getRawMany();
 
-    return result.map(item => ({
+    return result.map((item) => ({
       specialization: item.specialization,
-      count: parseInt(item.count)
+      count: parseInt(item.count),
     }));
   }
 
-  async getTopSpecializations(limit: number = 6): Promise<{ specialization: string; count: number }[]> {
+  async getTopSpecializations(
+    limit: number = 6,
+  ): Promise<{ specialization: string; count: number }[]> {
     const result = await this.doctorRepo
       .createQueryBuilder('doctor')
       .select('doctor.specialization', 'specialization')
       .addSelect('COUNT(doctor.id)', 'count')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
       .groupBy('doctor.specialization')
       .orderBy('count', 'DESC')
       .limit(limit)
       .getRawMany();
 
-    return result.map(item => ({
+    return result.map((item) => ({
       specialization: item.specialization,
-      count: parseInt(item.count)
+      count: parseInt(item.count),
     }));
   }
 
-  async searchSpecializations(searchTerm: string): Promise<{ specialization: string; count: number }[]> {
+  async searchSpecializations(
+    searchTerm: string,
+  ): Promise<{ specialization: string; count: number }[]> {
     const result = await this.doctorRepo
       .createQueryBuilder('doctor')
       .select('doctor.specialization', 'specialization')
       .addSelect('COUNT(doctor.id)', 'count')
-      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .where('doctor.verification_status = :status', {
+        status: VerificationStatus.APPROVED,
+      })
       .andWhere('doctor.is_active = :active', { active: true })
-      .andWhere('doctor.specialization ILIKE :searchTerm', { searchTerm: `%${searchTerm}%` })
+      .andWhere('doctor.specialization ILIKE :searchTerm', {
+        searchTerm: `%${searchTerm}%`,
+      })
       .groupBy('doctor.specialization')
       .orderBy('count', 'DESC')
       .getRawMany();
 
-    return result.map(item => ({
+    return result.map((item) => ({
       specialization: item.specialization,
-      count: parseInt(item.count)
+      count: parseInt(item.count),
     }));
   }
 

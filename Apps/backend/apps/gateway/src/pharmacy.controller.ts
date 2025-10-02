@@ -477,4 +477,371 @@ export class PharmacyController {
       'Failed to get recent activity',
     );
   }
+
+  // ==================== ITEM MANAGEMENT ROUTES ====================
+
+  @Post('items')
+  async createItem(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      category_id: number;
+      name: string;
+      manufacturer: string;
+      description?: string;
+      image_url?: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_item' },
+      body,
+      'Failed to create item',
+    );
+  }
+
+  @Put('items/:itemId')
+  async updateItem(
+    @Req() req: AuthenticatedRequest,
+    @Param('itemId') itemId: string,
+    @Body()
+    updateData: {
+      category_id?: number;
+      name?: string;
+      manufacturer?: string;
+      description?: string;
+      image_url?: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_item' },
+      { itemId: parseInt(itemId), updateData },
+      'Failed to update item',
+    );
+  }
+
+  @Get('items/:itemId')
+  async getItemDetails(
+    @Req() req: AuthenticatedRequest,
+    @Param('itemId') itemId: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_item_details' },
+      { itemId: parseInt(itemId) },
+      'Failed to get item details',
+    );
+  }
+
+  @Put('items/:itemId/delete')
+  async deleteItem(
+    @Req() req: AuthenticatedRequest,
+    @Param('itemId') itemId: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'delete_item' },
+      { itemId: parseInt(itemId) },
+      'Failed to delete item',
+    );
+  }
+
+  // ==================== MEDICINE MANAGEMENT ROUTES ====================
+
+  @Post('medicines')
+  async createMedicine(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      item_id: number;
+      prescription_required: boolean;
+      requires_approval?: boolean;
+      type: string;
+      dosage: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_medicine' },
+      body,
+      'Failed to create medicine',
+    );
+  }
+
+  @Put('medicines/:medicineId')
+  async updateMedicine(
+    @Req() req: AuthenticatedRequest,
+    @Param('medicineId') medicineId: string,
+    @Body()
+    updateData: {
+      prescription_required?: boolean;
+      requires_approval?: boolean;
+      type?: string;
+      dosage?: string;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_medicine' },
+      { medicineId: parseInt(medicineId), updateData },
+      'Failed to update medicine',
+    );
+  }
+
+  @Put('medicines/:medicineId/delete')
+  async deleteMedicine(
+    @Req() req: AuthenticatedRequest,
+    @Param('medicineId') medicineId: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'delete_medicine' },
+      { medicineId: parseInt(medicineId) },
+      'Failed to delete medicine',
+    );
+  }
+
+  // ==================== STOCK MANAGEMENT ROUTES ====================
+
+  @Post('stock')
+  async addStock(
+    @Req() req: AuthenticatedRequest,
+    @Body()
+    body: {
+      pharmacy_branch_id: number;
+      item_id: number;
+      quantity: number;
+      initial_price: number;
+      sold_price: number;
+      expiry_date?: Date;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'add_stock' },
+      body,
+      'Failed to add stock',
+    );
+  }
+
+  @Put('stock/:stockId')
+  async updateStock(
+    @Req() req: AuthenticatedRequest,
+    @Param('stockId') stockId: string,
+    @Body()
+    updateData: {
+      quantity?: number;
+      initial_price?: number;
+      sold_price?: number;
+      expiry_date?: Date;
+    },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_stock' },
+      { stockId: parseInt(stockId), updateData },
+      'Failed to update stock',
+    );
+  }
+
+  @Get('stock/branch/:branchId')
+  async getStockByBranch(
+    @Req() req: AuthenticatedRequest,
+    @Param('branchId') branchId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_stock_by_branch' },
+      { branchId: parseInt(branchId), page, limit },
+      'Failed to get stock by branch',
+    );
+  }
+
+  // ==================== CATEGORY MANAGEMENT ROUTES ====================
+
+  @Post('categories')
+  async createCategory(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { category_name: string },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'create_category' },
+      body,
+      'Failed to create category',
+    );
+  }
+
+  @Put('categories/:categoryId')
+  async updateCategory(
+    @Req() req: AuthenticatedRequest,
+    @Param('categoryId') categoryId: string,
+    @Body() updateData: { category_name: string },
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'update_category' },
+      { categoryId: parseInt(categoryId), updateData },
+      'Failed to update category',
+    );
+  }
+
+  @Put('categories/:categoryId/delete')
+  async deleteCategory(
+    @Req() req: AuthenticatedRequest,
+    @Param('categoryId') categoryId: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'delete_category' },
+      { categoryId: parseInt(categoryId) },
+      'Failed to delete category',
+    );
+  }
 }

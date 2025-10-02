@@ -7,10 +7,11 @@ import { Patient } from './patient.entity';
 import { Pharmacy } from './pharmacy.entity';
 import { Doctor } from './doctor.entity';
 import { Address } from './address.entity';
+import { Assistant } from './assistant.entity';
 import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -26,9 +27,6 @@ export class UsersService {
 
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
-
-    @InjectRepository(Address)
-    private readonly addressRepo: Repository<Address>,
 
     private readonly jwtService: JwtService,
 
@@ -107,11 +105,12 @@ export class UsersService {
         console.log('Creating patient profile...');
         await this.createPatientProfile(savedUser, data);
       } else if (data.role === UserRole.DOCTOR) {
-        console.log('Creating doctor profile...');
         await this.createDoctorProfile(savedUser, data);
       } else if (data.role === UserRole.PHARMACY) {
         console.log('Creating pharmacy profile...');
         await this.createPharmacyProfile(savedUser, data);
+      } else if (data.role === UserRole.ASSISTANT) {
+        await this.createAssistantProfile(savedUser, data);
       }
 
       return savedUser;
@@ -145,11 +144,10 @@ export class UsersService {
       if (user.phone) {
         const whatsappResult = await firstValueFrom(
           this.notificationClient.send(
-            { cmd: 'send_otp' },
+            { cmd: 'send_whatsapp_otp' },
             {
               userId: user.id,
-              type: 'WHATSAPP',
-              recipient: user.phone,
+              phone: user.phone,
               otp: otp,
               userName: user.name,
             },
@@ -200,7 +198,7 @@ export class UsersService {
     console.log('Creating patient profile with data:', {
       date_of_birth: data.date_of_birth,
       gender: data.gender,
-      medical_history: data.medical_history
+      medical_history: data.medical_history,
     });
 
     if (!data.date_of_birth || !data.gender) {
@@ -208,7 +206,7 @@ export class UsersService {
         hasDateOfBirth: !!data.date_of_birth,
         hasGender: !!data.gender,
         dateOfBirth: data.date_of_birth,
-        gender: data.gender
+        gender: data.gender,
       });
       throw this.rpcError(
         'Missing required patient details: date_of_birth and gender are required',
@@ -231,6 +229,15 @@ export class UsersService {
   }
 
   private async createDoctorProfile(user: User, data: any): Promise<void> {
+    console.log('🏥 Creating doctor profile for user:', user.id);
+    console.log('📋 Doctor data received:', {
+      specialization: data.specialization,
+      license_number: data.license_number,
+      has_idCard: !!data.dr_idCard_url,
+      has_biography: !!data.biography,
+      has_license: !!data.medical_license_url,
+    });
+
     if (
       !data.specialization ||
       !data.license_number ||
@@ -238,8 +245,15 @@ export class UsersService {
       !data.biography ||
       !data.medical_license_url
     ) {
+      const missingFields = [];
+      if (!data.specialization) missingFields.push('specialization');
+      if (!data.license_number) missingFields.push('license_number');
+      if (!data.dr_idCard_url) missingFields.push('dr_idCard_url');
+      if (!data.biography) missingFields.push('biography');
+      if (!data.medical_license_url) missingFields.push('medical_license_url');
+
       throw this.rpcError(
-        'Missing required doctor details: specialization, license_number, dr_idCard_url, biography, and medical_license_url are required',
+        `Missing required doctor details: ${missingFields.join(', ')} are required`,
       );
     }
 
@@ -255,12 +269,43 @@ export class UsersService {
         verification_status: data.verification_status || 'pending',
       };
 
-      // Use emit instead of send for fire-and-forget
-      this.doctorClient.emit('create_doctor', doctorData);
-      console.log('Doctor profile creation sent to doctor service');
+      console.log('📤 Sending doctor data to doctor service:', doctorData);
+
+      // Use send() instead of emit() to wait for response with timeout
+      const result = await firstValueFrom(
+        this.doctorClient.send('create_doctor', doctorData).pipe(
+          timeout(10000), // 10 second timeout
+        ),
+      );
+      console.log('✅ Doctor profile created successfully:', result);
     } catch (error) {
-      console.error('Error sending doctor data to microservice:', error);
-      throw this.rpcError('Failed to create doctor profile');
+      console.error('❌ Error creating doctor profile:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        stack: error.stack,
+      });
+
+      // Check if it's a timeout error
+      if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+        throw this.rpcError(
+          'Doctor service is not responding. Please try again later.',
+          503,
+        );
+      }
+
+      // Check if it's a connection error
+      if (
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('connection')
+      ) {
+        throw this.rpcError(
+          'Doctor service is unavailable. Please try again later.',
+          503,
+        );
+      }
+
+      throw this.rpcError(`Failed to create doctor profile: ${error.message}`);
     }
   }
 
@@ -276,9 +321,11 @@ export class UsersService {
       state: data.state,
       country: data.country,
     });
-    
+
     if (!data.pharmacy_owner || !data.pharmacy_name) {
-      console.log('Missing pharmacy details, skipping pharmacy profile creation');
+      console.log(
+        'Missing pharmacy details, skipping pharmacy profile creation',
+      );
       return; // Don't throw error, just skip
     }
 
@@ -293,12 +340,45 @@ export class UsersService {
       console.log('Pharmacy created successfully:', savedPharmacy.id);
 
       // Address creation completely disabled to prevent RLS errors
-      console.log('Pharmacy profile created successfully, skipping address creation');
+      console.log(
+        'Pharmacy profile created successfully, skipping address creation',
+      );
     } catch (error) {
       console.error('Error creating pharmacy profile:', error);
       // Don't throw error for pharmacy profile creation failure
       // The user is already created, so we can continue
       console.log('Continuing without pharmacy profile creation...');
+    }
+  }
+
+  private async createAssistantProfile(user: User, data: any): Promise<void> {
+    console.log('👥 Creating assistant profile for user:', user.id);
+    console.log('📋 Assistant data received:', {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+    });
+
+    try {
+      const assistant = this.assistantRepo.create({
+        user: user,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        status: 'pending', // Default status for new assistants
+      });
+
+      const savedAssistant = await this.assistantRepo.save(assistant);
+      console.log('✅ Assistant profile created successfully:', savedAssistant);
+    } catch (error) {
+      console.error('❌ Error creating assistant profile:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+      });
+      throw this.rpcError(
+        `Failed to create assistant profile: ${error.message}`,
+      );
     }
   }
 
@@ -323,7 +403,7 @@ export class UsersService {
   async getUserProfile(data: { userId: string }): Promise<any> {
     try {
       const user = await this.userRepo.findOne({
-        where: { id: data.userId }
+        where: { id: data.userId },
       });
 
       if (!user) {
@@ -333,7 +413,7 @@ export class UsersService {
       // Get role-specific profile data by querying the respective tables
       if (user.role === UserRole.PATIENT) {
         const patient = await this.patientRepo.findOne({
-          where: { user: { id: data.userId } }
+          where: { user: { id: data.userId } },
         });
         if (patient) {
           return {
@@ -344,7 +424,7 @@ export class UsersService {
         }
       } else if (user.role === UserRole.DOCTOR) {
         const doctor = await this.doctorRepo.findOne({
-          where: { user: { id: data.userId } }
+          where: { user: { id: data.userId } },
         });
         if (doctor) {
           return {
@@ -355,7 +435,7 @@ export class UsersService {
         }
       } else if (user.role === UserRole.PHARMACY) {
         const pharmacy = await this.pharmacyRepo.findOne({
-          where: { user: { id: data.userId } }
+          where: { user: { id: data.userId } },
         });
         if (pharmacy) {
           return {
@@ -374,22 +454,31 @@ export class UsersService {
   }
 
   // Phone OTP methods
-  async sendPhoneOtp(phone: string): Promise<{ success: boolean; message: string }> {
+  async sendPhoneOtp(
+    phone: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       console.log('Sending phone OTP to:', phone);
 
       // Debug: List all users to see what phone numbers exist
-      const allUsers = await this.userRepo.find({ select: ['id', 'name', 'email', 'phone'] });
+      const allUsers = await this.userRepo.find({
+        select: ['id', 'name', 'email', 'phone'],
+      });
       console.log('All users in database:', allUsers);
 
       // Find user by phone number
       const user = await this.userRepo.findOne({
-        where: { phone: phone }
+        where: { phone: phone },
       });
 
       console.log('User found:', user ? 'Yes' : 'No');
       if (user) {
-        console.log('User details:', { id: user.id, name: user.name, email: user.email, phone: user.phone });
+        console.log('User details:', {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+        });
       }
 
       if (!user) {
@@ -412,7 +501,7 @@ export class UsersService {
 
       return {
         success: true,
-        message: 'OTP sent to your WhatsApp number'
+        message: 'OTP sent to your WhatsApp number',
       };
     } catch (error) {
       console.error('Error sending phone OTP:', error);
@@ -423,13 +512,16 @@ export class UsersService {
     }
   }
 
-  async verifyPhoneOtp(phone: string, otp: string): Promise<{ success: boolean; data?: any; message: string }> {
+  async verifyPhoneOtp(
+    phone: string,
+    otp: string,
+  ): Promise<{ success: boolean; data?: any; message: string }> {
     try {
       console.log('Verifying phone OTP for:', phone);
 
       // Find user by phone number
       const user = await this.userRepo.findOne({
-        where: { phone: phone }
+        where: { phone: phone },
       });
 
       if (!user) {
@@ -472,9 +564,9 @@ export class UsersService {
             date_of_birth: user.date_of_birth,
             gender: user.gender,
             medical_history: user.medical_history,
-          }
+          },
         },
-        message: 'Phone number verified successfully'
+        message: 'Phone number verified successfully',
       };
     } catch (error) {
       console.error('Error verifying phone OTP:', error);
@@ -485,13 +577,15 @@ export class UsersService {
     }
   }
 
-  private async sendPhoneOtpNotification(user: User, otp: string): Promise<void> {
+  private async sendPhoneOtpNotification(
+    user: User,
+    otp: string,
+  ): Promise<void> {
     try {
       console.log('Sending notification to notification service...');
       console.log('Notification payload:', {
         userId: user.id,
-        type: 'WHATSAPP',
-        recipient: user.phone,
+        phone: user.phone,
         otp: otp,
         userName: user.name,
       });
@@ -499,20 +593,25 @@ export class UsersService {
       // Send WhatsApp OTP
       const whatsappResult = await firstValueFrom(
         this.notificationClient.send(
-          { cmd: 'send_otp' },
+          { cmd: 'send_whatsapp_otp' },
           {
             userId: user.id,
-            type: 'WHATSAPP',
-            recipient: user.phone,
+            phone: user.phone,
             otp: otp,
             userName: user.name,
           },
         ),
       );
 
-      console.log('✅ WhatsApp OTP sent via notification service:', whatsappResult);
+      console.log(
+        '✅ WhatsApp OTP sent via notification service:',
+        whatsappResult,
+      );
     } catch (error) {
-      console.error('❌ Failed to send WhatsApp OTP via notification service:', error);
+      console.error(
+        '❌ Failed to send WhatsApp OTP via notification service:',
+        error,
+      );
       console.error('Error details:', error);
       throw error;
     }
@@ -520,19 +619,19 @@ export class UsersService {
 
   async debugUsers(): Promise<any> {
     try {
-      const users = await this.userRepo.find({ 
-        select: ['id', 'name', 'email', 'phone', 'role'] 
+      const users = await this.userRepo.find({
+        select: ['id', 'name', 'email', 'phone', 'role'],
       });
       return {
         success: true,
         data: users,
-        count: users.length
+        count: users.length,
       };
     } catch (error) {
       console.error('Error getting users:', error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

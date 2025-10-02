@@ -71,6 +71,10 @@ import { AuthMiddleware } from './middleware/auth.middleware';
           queueOptions: {
             durable: false,
           },
+          socketOptions: {
+            heartbeatIntervalInSeconds: 60,
+            reconnectTimeInSeconds: 5,
+          },
         },
       },
       {
@@ -81,6 +85,10 @@ import { AuthMiddleware } from './middleware/auth.middleware';
           queue: 'notification_queue',
           queueOptions: {
             durable: false,
+          },
+          socketOptions: {
+            heartbeatIntervalInSeconds: 60,
+            reconnectTimeInSeconds: 5,
           },
         },
       },

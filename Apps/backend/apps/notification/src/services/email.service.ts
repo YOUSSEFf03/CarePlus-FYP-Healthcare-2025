@@ -9,7 +9,7 @@ export class EmailService {
     service: 'gmail',
     auth: {
       user: 'fyphealthcare2025@gmail.com',
-      pass: process.env.EMAIL_PASS || 'your_app_password_here', // You need to set this in your environment
+      pass: process.env.EMAIL_PASS || 'zyfc akaa yfkr wmlv', // Your Gmail App Password
     },
   });
 
@@ -21,7 +21,7 @@ export class EmailService {
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: process.env.EMAIL_USER || 'fyphealthcare2025@gmail.com',
         to,
         subject,
         [isHtml ? 'html' : 'text']: content,
