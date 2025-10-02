@@ -21,7 +21,6 @@ import { AppointmentSlot } from './appointment-slot.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
 import { DoctorAnalytics } from './doctor-analytics.entity'; // Add this import
 import { Repository, Not, Between, LessThan, In } from 'typeorm';
-import { Repository, Not, Between } from 'typeorm'; // Ensure Between is imported
 
 // Define interfaces for type safety
 interface UserInfo {

@@ -28,6 +28,9 @@ export class UsersService {
     @InjectRepository(Pharmacy)
     private readonly pharmacyRepo: Repository<Pharmacy>,
 
+    @InjectRepository(Assistant)
+    private readonly assistantRepo: Repository<Assistant>,
+
     private readonly jwtService: JwtService,
 
     @Inject('DOCTOR_SERVICE')

@@ -1102,7 +1102,7 @@ export class PharmacyService {
     try {
       // Check if pharmacy branch exists
       const branch = await this.pharmacyBranchRepository.findOne({
-        where: { branch_id: dto.pharmacy_branch_id }
+        where: { pharmacy_branch_id: dto.pharmacy_branch_id }
       });
 
       if (!branch) {

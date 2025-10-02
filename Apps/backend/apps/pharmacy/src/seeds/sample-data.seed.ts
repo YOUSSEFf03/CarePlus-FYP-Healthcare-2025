@@ -151,8 +151,8 @@ export async function seedSampleData(dataSource: DataSource) {
     branch = branchRepository.create({
       pharmacy_id: pharmacy.pharmacy_id,
       branch_name: 'Main Branch',
-      address: '123 Main Street, City, State',
       phone: '+1234567890',
+      branch_manager: 'John Doe',
       is_active: true
     });
     branch = await branchRepository.save(branch);

@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { AppModule } from './app.module';
@@ -20,8 +19,7 @@ async function bootstrap() {
     }),
   );
 
-  // Global rate limiting
-  app.useGlobalGuards(new ThrottlerGuard());
+  // Global rate limiting is configured via ThrottlerModule in app.module.ts
 
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
