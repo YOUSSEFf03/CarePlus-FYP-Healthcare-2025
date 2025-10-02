@@ -164,8 +164,10 @@ export default function DoctorProfile() {
       return;
     }
     // Navigate to booking screen
-    // navigation.navigate('Booking', { doctorId, workplaceId: selectedWorkplace.id });
-    Alert.alert('Booking', `Booking appointment at ${selectedWorkplace.workplace_name}`);
+    navigation.navigate('BookAppointment', { 
+      doctorId, 
+      workplaceId: selectedWorkplace.id 
+    });
   };
 
   const renderRatingSection = () => {

@@ -229,9 +229,8 @@ export default function Home() {
     };
 
     const handleSpecializationPress = (specialization: Specialization) => {
-        rootNavigation.navigate('DoctorsList' as any, { 
-            specialization: specialization.specialization,
-            doctorCount: specialization.count
+        rootNavigation.navigate('DoctorsBySpecialization', { 
+            specialization: specialization.specialization
         });
     };
 
@@ -763,10 +762,10 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.white,
-        borderRadius: radius.r12,
-        padding: spacing[12],
-        ...shadow(1),
+        backgroundColor: "transparent",
+        // borderRadius: radius.r12,
+        // padding: spacing[12],
+        // ...shadow(1),
     },
 
     addressContainer: {

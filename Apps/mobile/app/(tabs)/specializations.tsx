@@ -77,9 +77,8 @@ export default function SpecializationsScreen() {
 
     const handleSpecializationPress = (specialization: Specialization) => {
         // Navigate to doctors list for this specialization
-        navigation.navigate('DoctorsList' as any, { 
-            specialization: specialization.specialization,
-            doctorCount: specialization.count
+        navigation.navigate('DoctorsBySpecialization' as any, { 
+            specialization: specialization.specialization
         });
     };
 

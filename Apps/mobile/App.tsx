@@ -36,6 +36,8 @@ import DoctorsList from './app/(tabs)/doctorsList';
 import Bookings from './app/(tabs)/bookings';
 import DoctorSearch from './app/(root)/DoctorSearch';
 import DoctorProfile from './app/(root)/DoctorProfile';
+import DoctorsBySpecialization from './app/(root)/DoctorsBySpecialization';
+import BookAppointment from './app/(root)/BookAppointment';
 // If you have more tab screens later, import them too, e.g.
 // import Appointments from '../app/(tabs)/appointments';
 // import Settings from '../app/(tabs)/settings';
@@ -50,6 +52,8 @@ export type RootStackParamList = {
     DoctorsList: { specialization: string; doctorCount: number };
     DoctorSearch: undefined;
     DoctorProfile: { doctorId: string };
+    DoctorsBySpecialization: { specialization: string };
+    BookAppointment: { doctorId: string; workplaceId: string };
     // ModalExample?: { id: string }; // add if you have modals
 };
 
@@ -254,6 +258,8 @@ function AppContent() {
                     <RootStack.Screen name="DoctorsList" component={DoctorsList} />
                     <RootStack.Screen name="DoctorSearch" component={DoctorSearch} />
                     <RootStack.Screen name="DoctorProfile" component={DoctorProfile} />
+                    <RootStack.Screen name="DoctorsBySpecialization" component={DoctorsBySpecialization} />
+                    <RootStack.Screen name="BookAppointment" component={BookAppointment} />
                 </RootStack.Navigator>
             </View>
         </NavigationContainer>

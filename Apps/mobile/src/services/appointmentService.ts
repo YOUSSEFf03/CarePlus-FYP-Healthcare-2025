@@ -75,7 +75,7 @@ const appointmentService = {
       console.log('Fetching next upcoming appointment...');
       
       // Get stored auth data
-      const authData = await this.getAuthData();
+      const authData = await appointmentService.getAuthData();
       if (!authData) {
         throw new Error('User not authenticated');
       }
@@ -112,12 +112,12 @@ const appointmentService = {
       }
 
       // Fetch doctor details
-      const doctorDetails = await this.getDoctorDetails(appointment.doctorId);
+      const doctorDetails = await appointmentService.getDoctorDetails(appointment.doctorId);
       appointment.doctor = doctorDetails;
 
       // Fetch workplace details if available
       if (doctorDetails) {
-        const workplaceDetails = await this.getDoctorWorkplace(doctorDetails.id);
+        const workplaceDetails = await appointmentService.getDoctorWorkplace(doctorDetails.id);
         appointment.workplace = workplaceDetails;
       }
 
@@ -136,7 +136,7 @@ const appointmentService = {
       console.log('Fetching all appointments...');
       
       // Get stored auth data
-      const authData = await this.getAuthData();
+      const authData = await appointmentService.getAuthData();
       if (!authData) {
         throw new Error('User not authenticated');
       }
@@ -169,11 +169,11 @@ const appointmentService = {
       const appointmentsWithDetails = await Promise.all(
         appointments.map(async (appointment: Appointment) => {
           try {
-            const doctorDetails = await this.getDoctorDetails(appointment.doctorId);
+            const doctorDetails = await appointmentService.getDoctorDetails(appointment.doctorId);
             let workplaceDetails = null;
             
             if (doctorDetails) {
-              workplaceDetails = await this.getDoctorWorkplace(doctorDetails.id);
+              workplaceDetails = await appointmentService.getDoctorWorkplace(doctorDetails.id);
             }
 
             return {
@@ -221,7 +221,7 @@ const appointmentService = {
 
   async getDoctorWorkplace(doctorId: string): Promise<Workplace | null> {
     try {
-      const authData = await this.getAuthData();
+      const authData = await appointmentService.getAuthData();
       if (!authData) {
         return null;
       }
@@ -284,6 +284,42 @@ const appointmentService = {
     } catch (error) {
       console.error('Error getting auth data:', error);
       return null;
+    }
+  },
+
+  async createAppointment(appointmentData: any) {
+    try {
+      const authData = await appointmentService.getAuthData();
+      if (!authData) {
+        throw new Error('Authentication required. Please login again.');
+      }
+
+      console.log('Creating appointment:', appointmentData);
+
+      const response = await fetch(`${API_BASE_URL}/doctors/appointments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authData.token}`,
+        },
+        body: JSON.stringify(appointmentData),
+      });
+
+      console.log('Create appointment response status:', response.status);
+      const data = await response.json();
+      console.log('Create appointment response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create appointment');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      if (error instanceof TypeError && error.message === 'Network request failed') {
+        throw new Error('Cannot connect to server. Please check your internet connection and make sure the backend is running.');
+      }
+      throw error;
     }
   },
 };
