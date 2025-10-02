@@ -165,6 +165,84 @@ export class DoctorController {
     );
   }
 
+  @Get('specializations/:specialization')
+  async getDoctorsBySpecialization(@Param('specialization') specialization: string) {
+    try {
+      console.log('Gateway: Getting doctors by specialization:', specialization);
+      
+      // Use the existing handleRequest method for consistency
+      return this.handleRequest(
+        { cmd: 'get_doctors_by_specialization' },
+        { specialization },
+        'Failed to get doctors by specialization',
+      );
+    } catch (error) {
+      console.error('Gateway: Error getting doctors by specialization:', error);
+      return {
+        success: false,
+        status: 500,
+        message: 'Internal server error',
+        error: error.message
+      };
+    }
+  }
+
+  @Get('specializations/debug/all')
+  async getAllSpecializations() {
+    try {
+      console.log('Gateway: Getting all specializations for debugging');
+      
+      const result = await this.doctorServiceClient.send({ cmd: 'get_all_specializations' }, {});
+      console.log('Gateway: All specializations result:', result);
+      
+      return {
+        success: true,
+        data: result,
+        message: 'All specializations retrieved successfully'
+      };
+    } catch (error) {
+      console.error('Gateway: Error getting all specializations:', error);
+      return {
+        success: false,
+        status: 500,
+        message: 'Internal server error',
+        error: error.message
+      };
+    }
+  }
+
+  @Get('workplaces/:workplaceId/available-slots')
+  async getAvailableSlots(
+    @Param('workplaceId') workplaceId: string,
+    @Query('date') date: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    try {
+      console.log('Gateway: Getting available slots for workplace:', workplaceId, 'date:', date);
+      
+      const result = await this.doctorServiceClient.send({ cmd: 'get_available_slots' }, {
+        workplaceId,
+        date,
+        token: req.token,
+      });
+      console.log('Gateway: Available slots result:', result);
+      
+      return {
+        success: true,
+        data: result,
+        message: 'Available slots retrieved successfully'
+      };
+    } catch (error) {
+      console.error('Gateway: Error getting available slots:', error);
+      return {
+        success: false,
+        status: 500,
+        message: 'Internal server error',
+        error: error.message
+      };
+    }
+  }
+
   @Get('workplaces')
   async getDoctorWorkplaces(@Req() req: AuthenticatedRequest) {
     console.log('=== WORKPLACES ROUTE CALLED ===');

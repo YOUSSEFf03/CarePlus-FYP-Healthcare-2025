@@ -21,8 +21,8 @@ export interface Doctor {
 }
 
 const doctorService = {
-  async getAuthHeaders() {
-    const authData = await this.getStoredAuthData();
+  async getAuthHeaders(): Promise<Record<string, string>> {
+    const authData = await doctorService.getStoredAuthData();
     if (!authData || !authData.token) {
       throw new Error('User not authenticated');
     }
@@ -55,7 +55,7 @@ const doctorService = {
   async getTopSpecializations(limit: number = 6): Promise<Specialization[]> {
     try {
       console.log('Fetching top specializations...');
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/doctors/specializations/top?limit=${limit}`, {
         method: 'GET',
         headers,
@@ -82,7 +82,7 @@ const doctorService = {
   async getAllSpecializations(): Promise<Specialization[]> {
     try {
       console.log('Fetching all specializations...');
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/doctors/specializations`, {
         method: 'GET',
         headers,
@@ -109,7 +109,7 @@ const doctorService = {
   async searchSpecializations(searchTerm: string): Promise<Specialization[]> {
     try {
       console.log('Searching specializations for:', searchTerm);
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/doctors/specializations/search?q=${encodeURIComponent(searchTerm)}`, {
         method: 'GET',
         headers,
@@ -133,26 +133,26 @@ const doctorService = {
     }
   },
 
-  async getDoctorsBySpecialization(specialization: string, page: number = 1, limit: number = 10): Promise<{ doctors: Doctor[]; total: number }> {
+  async getDoctorsBySpecialization(specialization: string): Promise<any> {
     try {
       console.log('Fetching doctors for specialization:', specialization);
-      const headers = await this.getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}/doctors?specialization=${encodeURIComponent(specialization)}&page=${page}&limit=${limit}&verification_status=approved&is_active=true`, {
+      const headers = await doctorService.getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}/doctors/specializations/${encodeURIComponent(specialization)}`, {
         method: 'GET',
         headers,
       });
 
-      console.log('Doctors response status:', response.status);
+      console.log('Doctors by specialization response status:', response.status);
       const data = await response.json();
-      console.log('Doctors response data:', data);
+      console.log('Doctors by specialization response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch doctors');
+        throw new Error(data.message || 'Failed to fetch doctors by specialization');
       }
 
-      return data.data || data;
+      return data;
     } catch (error) {
-      console.error('Error fetching doctors:', error);
+      console.error('Error fetching doctors by specialization:', error);
       if (error instanceof TypeError && error.message === 'Network request failed') {
         throw new Error('Cannot connect to server. Please check your internet connection and make sure the backend is running.');
       }
@@ -163,7 +163,7 @@ const doctorService = {
   async getTopRatedDoctors(limit: number = 6): Promise<Doctor[]> {
     try {
       console.log('Fetching top rated doctors...');
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/doctors/top-rated?limit=${limit}`, {
         method: 'GET',
         headers,
@@ -190,7 +190,7 @@ const doctorService = {
   async getMostPopularDoctors(limit: number = 6): Promise<Doctor[]> {
     try {
       console.log('Fetching most popular doctors...');
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}/doctors/most-popular?limit=${limit}`, {
         method: 'GET',
         headers,
@@ -217,7 +217,7 @@ const doctorService = {
   async searchDoctors(searchQuery: string): Promise<Doctor[]> {
     try {
       console.log('Searching doctors...', { searchQuery });
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       const url = new URL(`${API_BASE_URL}/doctors/search`);
       url.searchParams.append('q', searchQuery);
       
@@ -247,7 +247,7 @@ const doctorService = {
   async getDoctorById(doctorId: string): Promise<Doctor> {
     try {
       console.log('Getting doctor by ID...', { doctorId });
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       
       const response = await fetch(`${API_BASE_URL}/doctors/${doctorId}`, {
         method: 'GET',
@@ -275,7 +275,7 @@ const doctorService = {
   async getDoctorWorkplaces(doctorId: string): Promise<any[]> {
     try {
       console.log('Getting doctor workplaces...', { doctorId });
-      const headers = await this.getAuthHeaders();
+      const headers = await doctorService.getAuthHeaders();
       
       const response = await fetch(`${API_BASE_URL}/doctors/${doctorId}/workplaces`, {
         method: 'GET',
@@ -293,6 +293,39 @@ const doctorService = {
       return data.data || data;
     } catch (error) {
       console.error('Error getting doctor workplaces:', error);
+      if (error instanceof TypeError && error.message === 'Network request failed') {
+        throw new Error('Cannot connect to server. Please check your internet connection and make sure the backend is running.');
+      }
+      throw error;
+    }
+  },
+
+  getAppointmentSlotsByWorkplace: async (doctorId: string, workplaceId: string, date?: string) => {
+    try {
+      const headers = await doctorService.getAuthHeaders();
+      console.log('Getting available slots for workplace:', workplaceId, 'date:', date);
+
+      let url = `${API_BASE_URL}/doctors/workplaces/${workplaceId}/available-slots`;
+      if (date) {
+        url += `?date=${encodeURIComponent(date)}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      console.log('Get available slots response status:', response.status);
+      const data = await response.json();
+      console.log('Get available slots response data:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to get available slots');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting available slots:', error);
       if (error instanceof TypeError && error.message === 'Network request failed') {
         throw new Error('Cannot connect to server. Please check your internet connection and make sure the backend is running.');
       }

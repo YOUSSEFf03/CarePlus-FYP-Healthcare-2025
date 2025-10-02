@@ -196,6 +196,7 @@ export default function SimpleAvailability({ workplaceId, editable }: SimpleAvai
         workplaceId
       });
       
+      // Step 1: Save to workplace (working_hours)
       const response = await axios.put(
         `${API_BASE}/doctors/workplaces/${workplaceId}`,
         {
@@ -210,9 +211,75 @@ export default function SimpleAvailability({ workplaceId, editable }: SimpleAvai
         }
       );
       
-      console.log('Save response:', response.data);
+      console.log('Workplace availability saved:', response.data);
       
-      setSuccess('Availability saved successfully!');
+      // Step 2: Create individual appointment slots
+      try {
+        // First, mark existing slots as unavailable
+        try {
+          await axios.put(
+            `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots/status`,
+            { is_available: false },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          console.log('Existing slots marked as unavailable');
+        } catch (err) {
+          console.log('No existing slots to mark as unavailable:', err);
+          // Continue anyway
+        }
+        
+        // Create new appointment slots for each day
+        for (const [dayKey, dayData] of Object.entries(availability)) {
+          if (dayData && dayData.slots && dayData.slots.length > 0) {
+            const dayMap: { [key in Weekday]: string } = {
+              'MON': 'Monday', 'TUE': 'Tuesday', 'WED': 'Wednesday', 'THU': 'Thursday',
+              'FRI': 'Friday', 'SAT': 'Saturday', 'SUN': 'Sunday'
+            };
+            const dayOfWeek = dayMap[dayKey as Weekday];
+            
+            // Create slots for this day
+            const slotsData = dayData.slots.map((timeSlot: string) => ({
+              start_time: timeSlot,
+              end_time: addMinutesToTime(timeSlot, dayData.slotMinutes),
+              slot_duration: dayData.slotMinutes,
+              day_of_week: dayOfWeek,
+              is_available: true
+            }));
+            
+            console.log(`Creating ${slotsData.length} slots for ${dayOfWeek}`);
+            
+            // Create slots in batches
+            for (const slotData of slotsData) {
+              try {
+                await axios.post(
+                  `${API_BASE}/doctors/workplaces/${workplaceId}/appointment-slots`,
+                  slotData,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+              } catch (slotErr) {
+                console.error(`Error creating slot ${slotData.start_time}:`, slotErr);
+                // Continue with other slots
+              }
+            }
+          }
+        }
+        
+        setSuccess('Availability and appointment slots saved successfully!');
+      } catch (slotError) {
+        console.error('Error creating appointment slots:', slotError);
+        setSuccess('Availability saved, but some appointment slots may not have been created.');
+      }
+      
       setTimeout(() => setSuccess(null), 3000);
       
     } catch (err: any) {

@@ -310,6 +310,217 @@ export class DoctorService {
     return filtered;
   }
 
+  async getDoctorsBySpecialization(specialization: string): Promise<any[]> {
+    console.log('DoctorService: Getting doctors by specialization:', specialization);
+    
+    try {
+      // First try exact match
+      let doctors = await this.doctorRepo.find({
+        where: {
+          specialization: specialization,
+          verification_status: VerificationStatus.APPROVED,
+          is_active: true
+        }
+      });
+
+    // If no exact match, try case-insensitive search
+    if (doctors.length === 0) {
+      console.log('DoctorService: No exact match found, trying case-insensitive search...');
+      doctors = await this.doctorRepo
+        .createQueryBuilder('doctor')
+        .where('LOWER(doctor.specialization) = LOWER(:specialization)', { specialization })
+        .andWhere('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+        .andWhere('doctor.is_active = :active', { active: true })
+        .getMany();
+    }
+
+    // If still no match, try partial match
+    if (doctors.length === 0) {
+      console.log('DoctorService: No case-insensitive match found, trying partial search...');
+      doctors = await this.doctorRepo
+        .createQueryBuilder('doctor')
+        .where('LOWER(doctor.specialization) LIKE LOWER(:specialization)', { specialization: `%${specialization}%` })
+        .andWhere('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+        .andWhere('doctor.is_active = :active', { active: true })
+        .getMany();
+    }
+
+    console.log('DoctorService: Found doctors for specialization:', doctors.length);
+    console.log('DoctorService: Raw doctors data:', JSON.stringify(doctors, null, 2));
+
+    // Debug: Let's see what specializations exist in the database
+    if (doctors.length === 0) {
+      console.log('DoctorService: No doctors found, checking what specializations exist...');
+      const allSpecializations = await this.doctorRepo
+        .createQueryBuilder('doctor')
+        .select('DISTINCT doctor.specialization', 'specialization')
+        .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+        .andWhere('doctor.is_active = :active', { active: true })
+        .getRawMany();
+      console.log('DoctorService: Available specializations:', allSpecializations);
+    }
+
+    // Fetch user info for each doctor
+    const doctorsWithUserInfo = await Promise.all(
+      doctors.map(async (doctor) => {
+        try {
+          const userInfo = await firstValueFrom(
+            this.authClient.send({ cmd: 'get_user_basic_info' }, { userId: doctor.userId })
+          );
+          return {
+            ...doctor,
+            user: userInfo
+          };
+        } catch (error) {
+          console.error('Error fetching user info for doctor:', doctor.id, error);
+          return {
+            ...doctor,
+            user: null
+          };
+        }
+      })
+    );
+
+    return doctorsWithUserInfo;
+    } catch (error) {
+      console.error('DoctorService: Error in getDoctorsBySpecialization:', error);
+      return [];
+    }
+  }
+
+  async getAllSpecializations(): Promise<any[]> {
+    console.log('DoctorService: Getting all specializations for debugging');
+    
+    const specializations = await this.doctorRepo
+      .createQueryBuilder('doctor')
+      .select('DISTINCT doctor.specialization', 'specialization')
+      .addSelect('COUNT(doctor.id)', 'count')
+      .where('doctor.verification_status = :status', { status: VerificationStatus.APPROVED })
+      .andWhere('doctor.is_active = :active', { active: true })
+      .groupBy('doctor.specialization')
+      .getRawMany();
+
+    console.log('DoctorService: Found specializations:', specializations);
+    return specializations;
+  }
+
+  async getAvailableSlots(workplaceId: string, date?: string): Promise<Record<string, any[]>> {
+    console.log('DoctorService: Getting available slots for workplace:', workplaceId, 'date:', date);
+    
+    try {
+      // Get the workplace
+      const workplace = await this.workplaceRepo.findOne({
+        where: { id: workplaceId, is_active: true },
+        relations: ['doctor']
+      });
+
+      if (!workplace) {
+        console.log('DoctorService: Workplace not found:', workplaceId);
+        return {};
+      }
+
+      console.log('DoctorService: Found workplace:', workplace.workplace_name);
+
+      // If no date provided, get slots for the next 7 days
+      let targetDate = date ? new Date(date) : new Date();
+      if (!date) {
+        targetDate.setDate(targetDate.getDate() + 1); // Start from tomorrow
+      }
+
+      // First try to get slots from appointment_slots table
+      const whereCondition: any = {
+        workplace_id: workplaceId,
+        is_available: true
+      };
+
+      // If date is provided, filter by day of week
+      if (date) {
+        const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
+        whereCondition.day_of_week = dayOfWeek;
+      }
+
+      const appointmentSlots = await this.appointmentSlotRepo.find({
+        where: whereCondition,
+        order: {
+          day_of_week: 'ASC',
+          start_time: 'ASC'
+        }
+      });
+
+      console.log('DoctorService: Found appointment slots:', appointmentSlots.length);
+
+      let availableSlots: Record<string, any[]> = {};
+
+      if (appointmentSlots.length > 0) {
+        // Use appointment_slots data
+        appointmentSlots.forEach(slot => {
+          const dayOfWeek = slot.day_of_week;
+          if (!availableSlots[dayOfWeek]) {
+            availableSlots[dayOfWeek] = [];
+          }
+          
+          availableSlots[dayOfWeek].push({
+            id: slot.id,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            day_of_week: slot.day_of_week,
+            is_available: slot.is_available,
+            slot_duration: this.calculateSlotDuration(slot.start_time, slot.end_time),
+            workplace_id: slot.workplace_id,
+            doctor_id: slot.doctor_id
+          });
+        });
+      } else {
+        // Fallback to working_hours data
+        console.log('DoctorService: No appointment slots found, using working_hours fallback');
+        if (workplace.working_hours) {
+          Object.keys(workplace.working_hours).forEach(dayKey => {
+            const dayData = workplace.working_hours[dayKey];
+            if (dayData && dayData.slots && Array.isArray(dayData.slots)) {
+              const dayName = this.getFullDayName(dayKey);
+              availableSlots[dayName] = dayData.slots.map((time: string, index: number) => ({
+                id: `${workplaceId}-${dayKey}-${index}`,
+                start_time: time,
+                end_time: this.getEndTime(time, dayData.slotMinutes || 30),
+                day_of_week: dayName,
+                is_available: true,
+                slot_duration: dayData.slotMinutes || 30,
+                workplace_id: workplaceId,
+                doctor_id: workplace.doctorId
+              }));
+            }
+          });
+        }
+      }
+
+      console.log('DoctorService: Grouped available slots by day:', availableSlots);
+      return availableSlots;
+    } catch (error) {
+      console.error('DoctorService: Error getting available slots:', error);
+      return {};
+    }
+  }
+
+  private getFullDayName(dayKey: string): string {
+    const dayMap: Record<string, string> = {
+      'MON': 'Monday',
+      'TUE': 'Tuesday', 
+      'WED': 'Wednesday',
+      'THU': 'Thursday',
+      'FRI': 'Friday',
+      'SAT': 'Saturday',
+      'SUN': 'Sunday'
+    };
+    return dayMap[dayKey] || dayKey;
+  }
+
+  private getEndTime(startTime: string, durationMinutes: number): string {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60);
+    const endMinutes = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+  }
 
   async getDoctorWorkplacesById(doctorId: string): Promise<any[]> {
     console.log('getDoctorWorkplacesById called with doctorId:', doctorId);

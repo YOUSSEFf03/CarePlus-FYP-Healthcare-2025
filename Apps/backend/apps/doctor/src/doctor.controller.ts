@@ -61,6 +61,21 @@ export class DoctorController {
     return this.doctorService.searchDoctors(data.searchQuery);
   }
 
+  @MessagePattern({ cmd: 'get_doctors_by_specialization' })
+  async getDoctorsBySpecialization(@Payload() data: { specialization: string }) {
+    return this.doctorService.getDoctorsBySpecialization(data.specialization);
+  }
+
+  @MessagePattern({ cmd: 'get_all_specializations' })
+  async getAllSpecializations() {
+    return this.doctorService.getAllSpecializations();
+  }
+
+  @MessagePattern({ cmd: 'get_available_slots' })
+  async getAvailableSlots(@Payload() data: { workplaceId: string; date?: string }) {
+    return this.doctorService.getAvailableSlots(data.workplaceId, data.date);
+  }
+
   @MessagePattern({ cmd: 'get_doctor_workplaces_by_id' })
   async getDoctorWorkplacesById(@Payload() data: { doctorId: string }) {
     return this.doctorService.getDoctorWorkplacesById(data.doctorId);
