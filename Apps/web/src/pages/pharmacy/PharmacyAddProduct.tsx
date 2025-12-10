@@ -1,9 +1,10 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import "../../styles/doctorAppointments.css"; // keeps the panel + controls visual language
 import "../../styles/addProduct.css";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
+import pharmacyApiService, { Category } from "../../services/pharmacyApiService";
 
 type ImageFile = { file: File; url: string };
 
@@ -54,6 +55,22 @@ const units = ["unit", "box", "bottle", "strip", "pack"] as const;
 export default function PharmacyAddProduct() {
     const navigate = useNavigate();
     const [form, setForm] = useState<ProductDraft>(EMPTY);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [, setError] = useState<string | null>(null);
+
+    // Load categories on component mount
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const categoriesData = await pharmacyApiService.getCategories();
+                setCategories(categoriesData);
+            } catch (err) {
+                console.error('Error loading categories:', err);
+                setError('Failed to load categories');
+            }
+        };
+        loadCategories();
+    }, []);
     const [images, setImages] = useState<ImageFile[]>([]);
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,19 +122,78 @@ export default function PharmacyAddProduct() {
             alert("Category is required.");
             return;
         }
+		// auth check
+		const token = localStorage.getItem('token');
+		if (!token) {
+			alert('You must be logged in to add a product.');
+			return;
+		}
         setSaving(true);
+        setError(null);
 
-        // Build FormData if you plan to upload images
-        const fd = new FormData();
-        fd.append("payload", JSON.stringify(form));
-        images.forEach((img, i) => fd.append("images", img.file, `image_${i}.jpg`));
+        try {
+			// Resolve category: prefer existing match; else fallback to first existing; else try to create 'Uncategorized'
+			const desiredCategoryName = form.category.trim();
+			let categoryId = categories.find(c => c.category_name.toLowerCase() === desiredCategoryName.toLowerCase())?.category_id;
+			if (!categoryId) {
+				if (categories.length > 0) {
+					categoryId = categories[0].category_id;
+				} else {
+					try {
+						const createdCategory = await pharmacyApiService.createCategory({ category_name: 'Uncategorized' });
+						categoryId = createdCategory.category_id;
+						setCategories(prev => [...prev, createdCategory]);
+					} catch (e) {
+						const msg = e instanceof Error ? e.message : 'Failed to create category';
+						alert(`No categories exist. ${msg}. Please log in or create a category first.`);
+						return;
+					}
+				}
+			}
 
-        // TODO: call your API here
-        await new Promise((r) => setTimeout(r, 800));
+			// Create the item
+			const itemData = {
+				name: form.name,
+				description: form.description,
+				category_id: categoryId!,
+				manufacturer: form.brand || 'Unknown',
+			};
 
-        setSaving(false);
-        alert("Product created (mock). Plug in your API call in onSave().");
-        // navigate("/pharmacy/inventory") if you want
+            const createdItem = await pharmacyApiService.createItem(itemData);
+
+			// Add initial stock if specified (non-fatal on failure)
+			if (form.stock && form.stock > 0) {
+				const defaultBranchId = Number(
+					localStorage.getItem('pharmacy_branch_id') ||
+					(process.env.REACT_APP_DEFAULT_BRANCH_ID as any) ||
+					1
+				);
+				const stockData = {
+					pharmacy_branch_id: defaultBranchId, // Configurable default branch
+					item_id: createdItem.item_id,
+					quantity: Number(form.stock),
+					initial_price: Number(form.cost) || 0,
+					sold_price: Number(form.price) || 0,
+				};
+				try {
+					await pharmacyApiService.addStock(stockData);
+				} catch (e) {
+					const msg = e instanceof Error ? e.message : 'Failed to add stock';
+					console.error('Add stock failed:', e);
+					alert(`Item created, but stock could not be added: ${msg}. You can set a branch via localStorage key "pharmacy_branch_id" or env REACT_APP_DEFAULT_BRANCH_ID.`);
+				}
+			}
+
+			console.log("Product saved successfully:", createdItem);
+			alert("Product created successfully!");
+            navigate("/pharmacy/inventory");
+        } catch (err) {
+            console.error("Save failed:", err);
+            setError(err instanceof Error ? err.message : 'Failed to save product');
+            alert("Failed to save product: " + (err instanceof Error ? err.message : 'Unknown error'));
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -172,12 +248,16 @@ export default function PharmacyAddProduct() {
                                         onChange={(e) => update("category", e.target.value)}
                                         placeholder="e.g., Antibiotics"
                                         list="category-suggestions"
+                                        required
                                     />
                                     <datalist id="category-suggestions">
                                         <option>Antibiotics</option>
                                         <option>Analgesics</option>
                                         <option>Antihistamines</option>
                                         <option>Vitamins</option>
+                                        {categories.map(category => (
+                                            <option key={category.category_id} value={category.category_name} />
+                                        ))}
                                     </datalist>
                                 </div>
                                 <div className="field">

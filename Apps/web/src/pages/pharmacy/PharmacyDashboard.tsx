@@ -90,13 +90,16 @@ export default function PharmacyDashboard() {
 
     // Convert recent activity to display format
     const formatRecentActivity = (activity: RecentActivity[]) => {
+        if (!activity || !Array.isArray(activity)) {
+            return [];
+        }
         return activity.map(item => ({
-            id: item.id,
-            customer: `Patient ${item.patient_id}`,
+            id: item.id || 'N/A',
+            customer: `Patient ${item.patient_id || 'N/A'}`,
             type: item.delivery_method === 'delivery' ? 'Delivery' : 'Pickup',
             total: item.total ? formatCurrency(item.total) : 'N/A',
-            status: item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('_', ' '),
-            time: formatTimeAgo(item.date)
+            status: item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1).replace('_', ' ') : 'Unknown',
+            time: item.date ? formatTimeAgo(item.date) : 'N/A'
         }));
     };
 
@@ -104,31 +107,31 @@ export default function PharmacyDashboard() {
     const statsArray = dashboardStats ? [
         {
             title: "Sales (Today)",
-            value: formatCurrency(dashboardStats.sales.today),
+            value: formatCurrency(dashboardStats.sales?.today || 0),
             icon: RevenueIcon,
-            change: dashboardStats.sales.change,
-            timeframe: dashboardStats.sales.timeframe,
+            change: dashboardStats.sales?.change || 0,
+            timeframe: dashboardStats.sales?.timeframe || '7d',
         },
         {
             title: "Orders (Today)",
-            value: dashboardStats.orders.today,
+            value: dashboardStats.orders?.today || 0,
             icon: PrescriptionIcon,
-            change: dashboardStats.orders.change,
-            timeframe: dashboardStats.orders.timeframe,
+            change: dashboardStats.orders?.change || 0,
+            timeframe: dashboardStats.orders?.timeframe || '7d',
         },
         {
             title: "Prescription Queue",
-            value: dashboardStats.prescriptionQueue.current,
+            value: dashboardStats.prescriptionQueue?.current || 0,
             icon: BuildingOffice,
-            change: dashboardStats.prescriptionQueue.change,
-            timeframe: dashboardStats.prescriptionQueue.timeframe,
+            change: dashboardStats.prescriptionQueue?.change || 0,
+            timeframe: dashboardStats.prescriptionQueue?.timeframe || '7d',
         },
         {
             title: "Low‑Stock SKUs",
-            value: dashboardStats.lowStockSKUs.current,
+            value: dashboardStats.lowStockSKUs?.current || 0,
             icon: BuildingOffice,
-            change: dashboardStats.lowStockSKUs.change,
-            timeframe: dashboardStats.lowStockSKUs.timeframe,
+            change: dashboardStats.lowStockSKUs?.change || 0,
+            timeframe: dashboardStats.lowStockSKUs?.timeframe || '7d',
         },
     ] : [];
 
@@ -232,12 +235,12 @@ export default function PharmacyDashboard() {
                             <span>Units Sold</span>
                             <span>Revenue</span>
                         </div>
-                        {topProducts.length > 0 ? (
+                        {topProducts && topProducts.length > 0 ? (
                             topProducts.map((product) => (
                                 <div className="ph-row" key={product.product_id}>
                                     <span>{product.name}</span>
                                     <span>{product.units_sold}</span>
-                                    <span>{formatCurrency(product.revenue)}</span>
+                                    <span>{formatCurrency(product.revenue || 0)}</span>
                                 </div>
                             ))
                         ) : (
@@ -274,7 +277,7 @@ export default function PharmacyDashboard() {
                             <span>When</span>
                         </div>
 
-                        {recentActivity.length > 0 ? (
+                        {recentActivity && recentActivity.length > 0 ? (
                             formatRecentActivity(recentActivity).map((activity) => (
                                 <div className="ph-row" key={activity.id}>
                                     <span className="mono">{activity.id}</span>

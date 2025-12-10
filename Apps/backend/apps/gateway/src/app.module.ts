@@ -196,6 +196,18 @@ export class AppModule implements NestModule {
       // Pharmacy routes that need protection
       { path: 'pharmacy/orders', method: RequestMethod.GET },
       { path: 'pharmacy/orders', method: RequestMethod.POST },
+      { path: 'pharmacy/items', method: RequestMethod.POST },
+      { path: 'pharmacy/categories', method: RequestMethod.POST },
+      { path: 'pharmacy/categories/:categoryId', method: RequestMethod.PUT },
+      {
+        path: 'pharmacy/categories/:categoryId/delete',
+        method: RequestMethod.PUT,
+      },
+      // Pharmacy stock routes that need protection
+      { path: 'pharmacy/stock', method: RequestMethod.POST },
+      { path: 'pharmacy/stock/:stockId', method: RequestMethod.PUT },
+      { path: 'pharmacy/stock/branch/:branchId', method: RequestMethod.GET },
+      { path: 'pharmacy/stock', method: RequestMethod.GET },
       { path: 'pharmacy/profile', method: RequestMethod.GET },
       { path: 'pharmacy/profile', method: RequestMethod.PUT },
       { path: 'pharmacy/dashboard/stats', method: RequestMethod.GET },

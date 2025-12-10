@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../../styles/pharmacyReservations.css";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import { ReactComponent as ExportIcon } from "../../assets/svgs/Export.svg";
 import { ReactComponent as RefreshIcon } from "../../assets/svgs/ArrowClockwise.svg";
+import pharmacyApiService, { Reservation as ApiReservation } from "../../services/pharmacyApiService";
 
-type ReservationStatus = "Waiting" | "Confirmed" | "Ready" | "Collected" | "Cancelled";
+type ReservationStatus = "reserved" | "confirmed" | "ready" | "collected" | "cancelled";
 
 type Reservation = {
     id: string;
@@ -16,27 +17,57 @@ type Reservation = {
     pickupAt: string; // ISO or friendly
     status: ReservationStatus;
     note?: string;
+    reservation_id: number;
 };
 
-const MOCK: Reservation[] = [
-    { id: "RSV-1012", customer: "Mona S.", phone: "0102 123 4567", item: "Paracetamol 500mg", qty: 2, pickupAt: "2025-08-30 14:30", status: "Waiting" },
-    { id: "RSV-1011", customer: "Hassan A.", phone: "0101 882 3322", item: "Amoxicillin 250mg", qty: 1, pickupAt: "2025-08-29 18:00", status: "Confirmed" },
-    { id: "RSV-1010", customer: "Lina R.", phone: "0100 444 1122", item: "Vitamin C 1000mg", qty: 3, pickupAt: "2025-08-29 16:00", status: "Ready" },
-    { id: "RSV-1009", customer: "Samir K.", phone: "0109 663 2200", item: "Cetirizine 10mg", qty: 1, pickupAt: "2025-08-28 11:15", status: "Collected" },
-    { id: "RSV-1008", customer: "Nada E.", phone: "0106 332 4490", item: "Ibuprofen 400mg", qty: 2, pickupAt: "2025-08-27 10:00", status: "Cancelled" },
-];
-
-const TABS: ReservationStatus[] | ["All"] = ["All", "Waiting", "Confirmed", "Ready", "Collected", "Cancelled"] as any;
+const TABS: ReservationStatus[] | ["All"] = ["All", "reserved", "confirmed", "ready", "collected", "cancelled"] as any;
 
 export default function PharmacyReservations() {
     const [active, setActive] = useState<(typeof TABS)[number]>("All");
     const [query, setQuery] = useState("");
     const [from, setFrom] = useState<string>("");
     const [to, setTo] = useState<string>("");
+    const [reservations, setReservations] = useState<Reservation[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load reservations data
+    useEffect(() => {
+        const loadReservations = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const reservationsData = await pharmacyApiService.getReservations();
+                
+                // Transform API reservations to display format
+                const displayReservations: Reservation[] = reservationsData.data.map(reservation => ({
+                    id: `RSV-${reservation.reservation_id}`,
+                    customer: `Patient ${reservation.patient_id}`, // In real app, get from user service
+                    phone: "N/A", // Not available in current API
+                    item: reservation.medicine?.item?.name || 'Unknown Medicine',
+                    qty: reservation.quantity_reserved,
+                    pickupAt: reservation.pickup_deadline || reservation.reserved_date,
+                    status: reservation.status as ReservationStatus,
+                    note: reservation.notes,
+                    reservation_id: reservation.reservation_id,
+                }));
+                
+                setReservations(displayReservations);
+            } catch (err) {
+                console.error('Error loading reservations:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load reservations');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadReservations();
+    }, []);
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
-        return MOCK.filter(r => {
+        return reservations.filter(r => {
             const matchesTab = active === "All" ? true : r.status === active;
             const matchesSearch =
                 !q ||
@@ -49,7 +80,70 @@ export default function PharmacyReservations() {
             const before = to ? time <= new Date(to).getTime() : true;
             return matchesTab && matchesSearch && after && before;
         });
-    }, [active, query, from, to]);
+    }, [reservations, active, query, from, to]);
+
+    // Handle reservation status update
+    const handleStatusUpdate = async (reservationId: number, newStatus: string) => {
+        try {
+            if (newStatus === 'cancelled') {
+                await pharmacyApiService.cancelReservation(reservationId);
+            }
+            // Reload reservations
+            const reservationsData = await pharmacyApiService.getReservations();
+            const displayReservations: Reservation[] = reservationsData.data.map(reservation => ({
+                id: `RSV-${reservation.reservation_id}`,
+                customer: `Patient ${reservation.patient_id}`,
+                phone: "N/A",
+                item: reservation.medicine?.item?.name || 'Unknown Medicine',
+                qty: reservation.quantity_reserved,
+                pickupAt: reservation.pickup_deadline || reservation.reserved_date,
+                status: reservation.status as ReservationStatus,
+                note: reservation.notes,
+                reservation_id: reservation.reservation_id,
+            }));
+            setReservations(displayReservations);
+        } catch (err) {
+            console.error('Error updating reservation status:', err);
+            alert('Failed to update reservation status');
+        }
+    };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="reservations">
+                <div className="reservations__header">
+                    <CustomText variant="text-heading-H2">Reservations</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading reservations...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="reservations">
+                <div className="reservations__header">
+                    <CustomText variant="text-heading-H2">Reservations</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column' }}>
+                    <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+                        <CustomText variant="text-body-lg-r">
+                            Error: {error}
+                        </CustomText>
+                    </div>
+                    <Button 
+                        text="Retry" 
+                        onClick={() => window.location.reload()} 
+                        variant="primary"
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="reservations">
@@ -141,9 +235,30 @@ export default function PharmacyReservations() {
                                 <span>{new Date(r.pickupAt).toLocaleString()}</span>
                                 <span className={`status status--${r.status.toLowerCase()}`}>{r.status}</span>
                                 <div className="actions">
-                                    {r.status === "Waiting" && <Button variant="ghost" text="Confirm" className="btn-mini" />}
-                                    {r.status === "Confirmed" && <Button variant="ghost" text="Mark Ready" className="btn-mini" />}
-                                    {r.status === "Ready" && <Button variant="ghost" text="Collected" className="btn-mini" />}
+                                    {r.status === "reserved" && (
+                                        <Button 
+                                            variant="ghost" 
+                                            text="Confirm" 
+                                            className="btn-mini" 
+                                            onClick={() => handleStatusUpdate(r.reservation_id, "confirmed")}
+                                        />
+                                    )}
+                                    {r.status === "confirmed" && (
+                                        <Button 
+                                            variant="ghost" 
+                                            text="Mark Ready" 
+                                            className="btn-mini" 
+                                            onClick={() => handleStatusUpdate(r.reservation_id, "ready")}
+                                        />
+                                    )}
+                                    {r.status === "ready" && (
+                                        <Button 
+                                            variant="ghost" 
+                                            text="Collected" 
+                                            className="btn-mini" 
+                                            onClick={() => handleStatusUpdate(r.reservation_id, "collected")}
+                                        />
+                                    )}
                                     <Button variant="ghost" text="Details" className="btn-mini" />
                                 </div>
                             </div>

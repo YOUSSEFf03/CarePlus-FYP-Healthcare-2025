@@ -5,8 +5,9 @@ import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import RxPdfPreview from "../../components/Prescription/RxPdfPreview";
 import "../../styles/pharmacyPrescriptions.css";
+import pharmacyApiService, { Prescription } from "../../services/pharmacyApiService";
 
-type RxStatus = "Pending" | "Verified" | "Fulfilled" | "Rejected";
+type RxStatus = "pending" | "verified" | "fulfilled" | "rejected";
 type Template = "doctor" | "pharmacy" | "patient";
 
 type PrescriptionRow = {
@@ -17,51 +18,60 @@ type PrescriptionRow = {
     status: RxStatus;
     template: Template; // which branding color to use for the PDF
     items: Array<{ name: string; dosage: string; qty: number; notes?: string }>;
+    prescription_id: number;
 };
-
-const MOCK_PRESCRIPTIONS: PrescriptionRow[] = [
-    {
-        id: "RX-2025-00421",
-        patient: "Lina R.",
-        doctor: "Dr. Omar Aziz",
-        date: "2025-08-28",
-        status: "Pending",
-        template: "pharmacy",
-        items: [
-            { name: "Amoxicillin 500mg", dosage: "1 cap x 3/day", qty: 21, notes: "After meals" },
-            { name: "Paracetamol 500mg", dosage: "1 tab x 3/day", qty: 15 },
-        ],
-    },
-    {
-        id: "RX-2025-00420",
-        patient: "Samir K.",
-        doctor: "Dr. Sara Maher",
-        date: "2025-08-27",
-        status: "Verified",
-        template: "pharmacy",
-        items: [{ name: "Vitamin D3 1000 IU", dosage: "1 tab / day", qty: 30 }],
-    },
-    {
-        id: "RX-2025-00419",
-        patient: "Dana B.",
-        doctor: "Dr. Omar Aziz",
-        date: "2025-08-27",
-        status: "Fulfilled",
-        template: "pharmacy",
-        items: [{ name: "Loratadine 10mg", dosage: "1 tab / day", qty: 10 }],
-    },
-];
 
 export default function PharmacyPrescriptions() {
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | RxStatus>("all");
     const [activeRx, setActiveRx] = useState<PrescriptionRow | null>(null);
     const [viewerTemplate, setViewerTemplate] = useState<Template>("pharmacy");
+    const [prescriptions, setPrescriptions] = useState<PrescriptionRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load prescriptions data
+    useEffect(() => {
+        const loadPrescriptions = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const prescriptionsData = await pharmacyApiService.getPrescriptions();
+                
+                // Transform API prescriptions to display format
+                const displayPrescriptions: PrescriptionRow[] = prescriptionsData.data.map(prescription => ({
+                    id: `RX-${prescription.prescription_id}`,
+                    patient: prescription.patient?.name || `Patient ${prescription.patient_id}`,
+                    doctor: prescription.doctor?.name || `Doctor ${prescription.doctor_id}`,
+                    date: new Date(prescription.date_issued).toLocaleDateString(),
+                    status: prescription.status as RxStatus,
+                    template: "pharmacy" as Template,
+                    items: prescription.medicines.map(med => ({
+                        name: med.medicine?.item?.name || 'Unknown Medicine',
+                        dosage: med.dosage,
+                        qty: med.quantity,
+                        notes: med.notes,
+                    })),
+                    prescription_id: prescription.prescription_id,
+                }));
+                
+                setPrescriptions(displayPrescriptions);
+            } catch (err) {
+                console.error('Error loading prescriptions:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load prescriptions');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadPrescriptions();
+    }, []);
 
     const filtered = useMemo(() => {
         const base = statusFilter === "all"
-            ? MOCK_PRESCRIPTIONS
-            : MOCK_PRESCRIPTIONS.filter(p => p.status === statusFilter);
+            ? prescriptions
+            : prescriptions.filter(p => p.status === statusFilter);
 
         if (!query.trim()) return base;
 
@@ -71,7 +81,7 @@ export default function PharmacyPrescriptions() {
             p.patient.toLowerCase().includes(q) ||
             p.doctor.toLowerCase().includes(q)
         );
-    }, [query, statusFilter]);
+    }, [prescriptions, query, statusFilter]);
 
     useEffect(() => {
         if (activeRx) {
@@ -81,6 +91,43 @@ export default function PharmacyPrescriptions() {
         }
         return () => document.body.classList.remove("no-scroll");
     }, [activeRx]);
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Prescriptions</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading prescriptions...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Prescriptions</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column' }}>
+                    <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+                        <CustomText variant="text-body-lg-r">
+                            Error: {error}
+                        </CustomText>
+                    </div>
+                    <Button 
+                        text="Retry" 
+                        onClick={() => window.location.reload()} 
+                        variant="primary"
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="overview">
@@ -130,13 +177,13 @@ export default function PharmacyPrescriptions() {
                         </div>
 
                         <div className="segmented">
-                            {(["all", "Pending", "Verified", "Fulfilled", "Rejected"] as const).map(s => (
+                            {(["all", "pending", "verified", "fulfilled", "rejected"] as const).map(s => (
                                 <button
                                     key={s}
                                     className={`segmented-btn ${statusFilter === s ? "is-active" : ""}`}
                                     onClick={() => setStatusFilter(s as any)}
                                 >
-                                    {s}
+                                    {s.charAt(0).toUpperCase() + s.slice(1)}
                                 </button>
                             ))}
                         </div>

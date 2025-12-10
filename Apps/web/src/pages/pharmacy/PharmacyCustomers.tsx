@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import "../../styles/doctorAppointments.css";
 import "../../styles/pharmacyCustomers.css";
 import { ReactComponent as ExportIcon } from "../../assets/svgs/Export.svg";
+import pharmacyApiService, { Order } from "../../services/pharmacyApiService";
 
 type CustomerTag = "New" | "Returning" | "VIP";
 type Channel = "Walk-in" | "Delivery" | "Pickup";
@@ -19,6 +20,7 @@ type CustomerRow = {
     tag: CustomerTag;
     preferredChannel: Channel;
     address?: string;
+    patient_id: number;
 };
 
 const MOCK_CUSTOMERS: CustomerRow[] = [
@@ -33,6 +35,7 @@ const MOCK_CUSTOMERS: CustomerRow[] = [
         tag: "Returning",
         preferredChannel: "Delivery",
         address: "12 Nile Ave, Cairo",
+        patient_id: 10293,
     },
     {
         id: "CUST-10294",
@@ -45,6 +48,7 @@ const MOCK_CUSTOMERS: CustomerRow[] = [
         tag: "New",
         preferredChannel: "Pickup",
         address: "45 Garden City, Cairo",
+        patient_id: 10294,
     },
     {
         id: "CUST-10110",
@@ -57,6 +61,7 @@ const MOCK_CUSTOMERS: CustomerRow[] = [
         tag: "VIP",
         preferredChannel: "Delivery",
         address: "El Zamalek, Cairo",
+        patient_id: 10110,
     },
 ];
 
@@ -69,9 +74,80 @@ export default function PharmacyCustomers() {
     const [sortBy, setSortBy] = useState<SortKey>("lastOrderAt");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
     const [selected, setSelected] = useState<CustomerRow | null>(null);
+    const [customers, setCustomers] = useState<CustomerRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load customers data from orders
+    useEffect(() => {
+        const loadCustomers = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                const ordersData = await pharmacyApiService.getOrders();
+                
+                // Group orders by patient to create customer records
+                const customerMap = new Map<number, CustomerRow>();
+                
+                ordersData.data.forEach(order => {
+                    const patientId = order.patient_id;
+                    if (!customerMap.has(patientId)) {
+                        customerMap.set(patientId, {
+                            id: `CUST-${patientId}`,
+                            name: `Patient ${patientId}`, // In real app, get from user service
+                            phone: undefined,
+                            email: undefined,
+                            lastOrderAt: order.order_date,
+                            lifetimeSpend: 0,
+                            ordersCount: 0,
+                            tag: "New" as CustomerTag,
+                            preferredChannel: "Pickup" as Channel,
+                            address: undefined,
+                            patient_id: patientId,
+                        });
+                    }
+                    
+                    const customer = customerMap.get(patientId)!;
+                    customer.lifetimeSpend += order.total_amount;
+                    customer.ordersCount += 1;
+                    
+                    // Update last order date if this is more recent
+                    if (new Date(order.order_date) > new Date(customer.lastOrderAt || '')) {
+                        customer.lastOrderAt = order.order_date;
+                    }
+                    
+                    // Determine preferred channel
+                    if (order.deliveries && order.deliveries.length > 0) {
+                        customer.preferredChannel = "Delivery";
+                    } else {
+                        customer.preferredChannel = "Pickup";
+                    }
+                    
+                    // Determine tag based on order count
+                    if (customer.ordersCount >= 10) {
+                        customer.tag = "VIP";
+                    } else if (customer.ordersCount >= 3) {
+                        customer.tag = "Returning";
+                    } else {
+                        customer.tag = "New";
+                    }
+                });
+                
+                setCustomers(Array.from(customerMap.values()));
+            } catch (err) {
+                console.error('Error loading customers:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load customers');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadCustomers();
+    }, []);
 
     const filtered = useMemo(() => {
-        let rows = [...MOCK_CUSTOMERS];
+        let rows = [...customers];
 
         // text search
         if (query.trim()) {
@@ -117,6 +193,43 @@ export default function PharmacyCustomers() {
             setSortDir("desc");
         }
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Customers</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading customers...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="overview">
+                <div className="overview__header">
+                    <CustomText variant="text-heading-H2">Customers</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column' }}>
+                    <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+                        <CustomText variant="text-body-lg-r">
+                            Error: {error}
+                        </CustomText>
+                    </div>
+                    <Button 
+                        text="Retry" 
+                        onClick={() => window.location.reload()} 
+                        variant="primary"
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="overview">

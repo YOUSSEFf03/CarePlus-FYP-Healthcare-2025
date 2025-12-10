@@ -58,7 +58,12 @@ class PharmacyDashboardService {
       const response = await axios.get(`${API_BASE}/pharmacy/dashboard/stats`, {
         headers: this.getAuthHeaders(),
       });
-      return response.data.data;
+      return response.data.data || {
+        sales: { today: 0, change: 0, timeframe: '7d' },
+        orders: { today: 0, change: 0, timeframe: '7d' },
+        prescriptionQueue: { current: 0, change: 0, timeframe: '7d' },
+        lowStockSKUs: { current: 0, change: 0, timeframe: '7d' }
+      };
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
       throw new Error('Failed to fetch dashboard stats');
@@ -71,7 +76,7 @@ class PharmacyDashboardService {
         headers: this.getAuthHeaders(),
         params: { limit },
       });
-      return response.data.data;
+      return response.data.data || [];
     } catch (error) {
       console.error('Error fetching top-selling products:', error);
       throw new Error('Failed to fetch top-selling products');
@@ -84,7 +89,7 @@ class PharmacyDashboardService {
         headers: this.getAuthHeaders(),
         params: { limit },
       });
-      return response.data.data;
+      return response.data.data || [];
     } catch (error) {
       console.error('Error fetching recent activity:', error);
       throw new Error('Failed to fetch recent activity');

@@ -48,6 +48,12 @@ export class PharmacyController {
     return await this.pharmacyService.getPrescriptions(patientId, dto);
   }
 
+  // Get all prescriptions (for pharmacy management)
+  @MessagePattern({ cmd: 'get_prescriptions' })
+  async getAllPrescriptions(@Payload() data: GetPrescriptionsDto) {
+    return await this.pharmacyService.getAllPrescriptions(data);
+  }
+
   // Get non-prescription products
   @MessagePattern({ cmd: 'get_non_prescription_products' })
   async getNonPrescriptionProducts(@Payload() data: { page?: number; limit?: number }) {
@@ -120,8 +126,14 @@ export class PharmacyController {
   // Cancel reservation
   @MessagePattern({ cmd: 'cancel_reservation' })
   async cancelReservation(@Payload() data: { reservationId: number; patientId: number }) {
-    // This would be implemented in the service
-    return { message: 'Cancel reservation not implemented yet' };
+    const { reservationId, patientId } = data;
+    return await this.pharmacyService.cancelReservation(reservationId, patientId);
+  }
+
+  // Get all reservations (for pharmacy management)
+  @MessagePattern({ cmd: 'get_reservations' })
+  async getAllReservations(@Payload() data: { status?: string; page?: number; limit?: number }) {
+    return await this.pharmacyService.getAllReservations(data);
   }
 
   // ==================== PHARMACY PROFILE APIs ====================

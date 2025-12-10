@@ -154,32 +154,32 @@ export class PharmacyController {
     );
   }
 
-  @Get('prescriptions')
-  async getPrescriptions(
-    @Req() req: AuthenticatedRequest,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('sortBy') sortBy?: 'date_issued',
-    @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
-  ) {
-    if (!req.user) {
-      throw new HttpException(
-        {
-          success: false,
-          status: 401,
-          message: 'Authentication required',
-          error: 'Unauthorized',
-        },
-        401,
-      );
-    }
+  // @Get('prescriptions')
+  // async getPrescriptions(
+  //   @Req() req: AuthenticatedRequest,
+  //   @Query('page') page?: number,
+  //   @Query('limit') limit?: number,
+  //   @Query('sortBy') sortBy?: 'date_issued',
+  //   @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
+  // ) {
+  //   if (!req.user) {
+  //     throw new HttpException(
+  //       {
+  //         success: false,
+  //         status: 401,
+  //         message: 'Authentication required',
+  //         error: 'Unauthorized',
+  //       },
+  //       401,
+  //     );
+  //   }
 
-    return this.handleRequest(
-      { cmd: 'get_patient_prescriptions' },
-      { patientId: req.user.id, page, limit, sortBy, sortOrder },
-      'Failed to get prescriptions',
-    );
-  }
+  //   return this.handleRequest(
+  //     { cmd: 'get_patient_prescriptions' },
+  //     { patientId: req.user.id, page, limit, sortBy, sortOrder },
+  //     'Failed to get prescriptions',
+  //   );
+  // }
 
   @Post('search/prescription')
   async searchByPrescription(
@@ -296,6 +296,35 @@ export class PharmacyController {
       { cmd: 'get_patient_orders' },
       { patientId: req.user.id, status, page, limit },
       'Failed to get orders',
+    );
+  }
+
+  // Get all orders for pharmacy management
+  @Get('orders')
+  async getOrders(
+    @Req() req: AuthenticatedRequest,
+    @Query('status') status?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    // For pharmacy management, we need to get all orders for the pharmacy
+    // This would need to be implemented in the pharmacy service
+    return this.handleRequest(
+      { cmd: 'get_pharmacy_orders' },
+      { pharmacyId: req.user.id, status, page, limit },
+      'Failed to get pharmacy orders',
     );
   }
 
@@ -770,6 +799,33 @@ export class PharmacyController {
     );
   }
 
+  // Get all stock for pharmacy (default branch)
+  @Get('stock')
+  async getStock(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    // For now, use branch ID 1 as default - in real app, get from user context
+    return this.handleRequest(
+      { cmd: 'get_stock_by_branch' },
+      { branchId: 1, page, limit },
+      'Failed to get stock',
+    );
+  }
+
   // ==================== CATEGORY MANAGEMENT ROUTES ====================
 
   @Post('categories')
@@ -842,6 +898,63 @@ export class PharmacyController {
       { cmd: 'delete_category' },
       { categoryId: parseInt(categoryId) },
       'Failed to delete category',
+    );
+  }
+
+  // ==================== PRESCRIPTION MANAGEMENT ROUTES ====================
+
+  @Get('prescriptions')
+  async getPrescriptions(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_prescriptions' },
+      { page, limit, sortBy, sortOrder },
+      'Failed to get prescriptions',
+    );
+  }
+
+  // ==================== RESERVATION MANAGEMENT ROUTES ====================
+
+  @Get('reservations')
+  async getReservations(
+    @Req() req: AuthenticatedRequest,
+    @Query('status') status?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    if (!req.user) {
+      throw new HttpException(
+        {
+          success: false,
+          status: 401,
+          message: 'Authentication required',
+          error: 'Unauthorized',
+        },
+        401,
+      );
+    }
+
+    return this.handleRequest(
+      { cmd: 'get_reservations' },
+      { status, page, limit },
+      'Failed to get reservations',
     );
   }
 }

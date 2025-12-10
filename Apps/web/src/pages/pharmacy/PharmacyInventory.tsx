@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../../styles/pharmacyInventory.css";
 import CustomText from "../../components/Text/CustomText";
 import Button from "../../components/Button/Button";
 import { ReactComponent as PlusIcon } from "../../assets/svgs/Plus.svg";
 import { ReactComponent as ExportIcon } from "../../assets/svgs/Export.svg";
 import { ReactComponent as UploadIcon } from "../../assets/svgs/UploadSimple.svg";
+import pharmacyApiService, { PharmacyBranchStock, Category } from "../../services/pharmacyApiService";
 
 type InventoryItem = {
     id: string;
@@ -15,31 +16,69 @@ type InventoryItem = {
     price: number;           // unit price
     stock: number;           // current on-hand qty
     reorderPoint: number;    // alert threshold
-    category: "OTC" | "Rx" | "Supplement" | "Device";
+    category: string;
     updated: string;         // human friendly time e.g., '2h ago'
     status?: "Active" | "Hidden" | "Discontinued";
+    item_id?: number;
+    stock_id?: number;
 };
-
-const MOCK_INVENTORY: InventoryItem[] = [
-    { id: "1", name: "Paracetamol", strength: "500mg", form: "Tablets", sku: "PAR-500-TAB", price: 4.00, stock: 86, reorderPoint: 30, category: "OTC", updated: "2h ago", status: "Active" },
-    { id: "2", name: "Amoxicillin", strength: "500mg", form: "Capsules", sku: "AMX-500-CAP", price: 12.90, stock: 18, reorderPoint: 25, category: "Rx", updated: "5h ago", status: "Active" },
-    { id: "3", name: "Cetirizine", strength: "10mg", form: "Tablets", sku: "CTZ-010-TAB", price: 5.50, stock: 0, reorderPoint: 20, category: "OTC", updated: "1d ago", status: "Active" },
-    { id: "4", name: "Vitamin C", strength: "1000mg", form: "Tablets", sku: "VTC-1000-TAB", price: 8.20, stock: 142, reorderPoint: 40, category: "Supplement", updated: "3d ago", status: "Active" },
-    { id: "5", name: "Blood Pressure Monitor", form: "Device", sku: "BPM-STD-01", price: 49.00, stock: 9, reorderPoint: 10, category: "Device", updated: "4h ago", status: "Active" },
-    { id: "6", name: "Ibuprofen", strength: "400mg", form: "Tablets", sku: "IBU-400-TAB", price: 6.80, stock: 28, reorderPoint: 30, category: "OTC", updated: "40m ago", status: "Active" },
-    { id: "7", name: "Metformin", strength: "500mg", form: "Tablets", sku: "MTF-500-TAB", price: 7.25, stock: 63, reorderPoint: 25, category: "Rx", updated: "2d ago", status: "Active" },
-    { id: "8", name: "Zinc", strength: "50mg", form: "Tablets", sku: "ZNC-050-TAB", price: 3.90, stock: 11, reorderPoint: 20, category: "Supplement", updated: "6h ago", status: "Hidden" },
-];
 
 export default function PharmacyInventory() {
     const [q, setQ] = useState("");
     const [category, setCategory] = useState<"" | InventoryItem["category"]>("");
     const [lowOnly, setLowOnly] = useState(false);
     const [page, setPage] = useState(1);
+    const [inventory, setInventory] = useState<InventoryItem[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const pageSize = 6;
 
+    // Load inventory data
+    useEffect(() => {
+        const loadInventory = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                // Load categories first
+                const categoriesData = await pharmacyApiService.getCategories();
+                setCategories(categoriesData);
+                
+                // Load stock data
+                const stockData = await pharmacyApiService.getStock(1, 100);
+                
+                // Transform stock data to inventory items
+                const inventoryItems: InventoryItem[] = stockData.data.map(stock => ({
+                    id: stock.item?.item_id?.toString() || stock.pharmacy_branch_stock_id.toString(),
+                    name: stock.item?.name || 'Unknown Item',
+                    sku: `SKU-${stock.item?.item_id || stock.pharmacy_branch_stock_id}`,
+                    strength: stock.item?.medicines?.[0]?.dosage || undefined,
+                    form: stock.item?.medicines?.[0]?.type || undefined,
+                    price: stock.sold_price,
+                    stock: stock.quantity,
+                    reorderPoint: 10, // Default reorder point
+                    category: stock.item?.category?.category_name || 'Unknown',
+                    updated: new Date(stock.last_updated).toLocaleDateString(),
+                    status: stock.quantity > 0 ? "Active" : "Hidden",
+                    item_id: stock.item?.item_id,
+                    stock_id: stock.pharmacy_branch_stock_id,
+                }));
+                
+                setInventory(inventoryItems);
+            } catch (err) {
+                console.error('Error loading inventory:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load inventory');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadInventory();
+    }, []);
+
     const filtered = useMemo(() => {
-        return MOCK_INVENTORY.filter(item => {
+        return inventory.filter(item => {
             const matchesQuery =
                 `${item.name} ${item.sku} ${item.form ?? ""} ${item.strength ?? ""}`
                     .toLowerCase()
@@ -51,12 +90,77 @@ export default function PharmacyInventory() {
 
             return matchesQuery && matchesCat && matchesLow;
         });
-    }, [q, category, lowOnly]);
+    }, [inventory, q, category, lowOnly]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
     const resetPage = () => setPage(1);
+
+    // Handle stock adjustment
+    const handleStockAdjustment = async (stockId: number, newQuantity: number) => {
+        try {
+            await pharmacyApiService.updateStock(stockId, { quantity: newQuantity });
+            // Reload inventory
+            const stockData = await pharmacyApiService.getStock(1, 100);
+            const inventoryItems: InventoryItem[] = stockData.data.map(stock => ({
+                id: stock.item?.item_id?.toString() || stock.pharmacy_branch_stock_id.toString(),
+                name: stock.item?.name || 'Unknown Item',
+                sku: `SKU-${stock.item?.item_id || stock.pharmacy_branch_stock_id}`,
+                strength: stock.item?.medicines?.[0]?.dosage || undefined,
+                form: stock.item?.medicines?.[0]?.type || undefined,
+                price: stock.sold_price,
+                stock: stock.quantity,
+                reorderPoint: 10,
+                category: stock.item?.category?.category_name || 'Unknown',
+                updated: new Date(stock.last_updated).toLocaleDateString(),
+                status: stock.quantity > 0 ? "Active" : "Hidden",
+                item_id: stock.item?.item_id,
+                stock_id: stock.pharmacy_branch_stock_id,
+            }));
+            setInventory(inventoryItems);
+        } catch (err) {
+            console.error('Error adjusting stock:', err);
+            alert('Failed to adjust stock');
+        }
+    };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="inventory">
+                <div className="inventory__header">
+                    <CustomText variant="text-heading-H2">Inventory</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                    <CustomText variant="text-body-lg-r">Loading inventory...</CustomText>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="inventory">
+                <div className="inventory__header">
+                    <CustomText variant="text-heading-H2">Inventory</CustomText>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', flexDirection: 'column' }}>
+                    <div style={{ color: '#ef4444', marginBottom: '16px' }}>
+                        <CustomText variant="text-body-lg-r">
+                            Error: {error}
+                        </CustomText>
+                    </div>
+                    <Button 
+                        text="Retry" 
+                        onClick={() => window.location.reload()} 
+                        variant="primary"
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="inventory">
@@ -110,10 +214,11 @@ export default function PharmacyInventory() {
                         onChange={(e) => { setCategory(e.target.value as any); resetPage(); }}
                     >
                         <option value="">All</option>
-                        <option value="OTC">OTC</option>
-                        <option value="Rx">Rx</option>
-                        <option value="Supplement">Supplement</option>
-                        <option value="Device">Device</option>
+                        {categories.map(cat => (
+                            <option key={cat.category_id} value={cat.category_name}>
+                                {cat.category_name}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
@@ -161,7 +266,17 @@ export default function PharmacyInventory() {
                                     <span>${item.price.toFixed(2)}</span>
                                     <span className="muted">{item.updated}</span>
                                     <div className="row-actions">
-                                        <Button variant="ghost" className="btn-xs" text="Adjust" />
+                                        <Button 
+                                            variant="ghost" 
+                                            className="btn-xs" 
+                                            text="Adjust" 
+                                            onClick={() => {
+                                                const newQty = prompt(`Adjust stock for ${item.name}:`, item.stock.toString());
+                                                if (newQty && !isNaN(Number(newQty)) && item.stock_id) {
+                                                    handleStockAdjustment(item.stock_id, Number(newQty));
+                                                }
+                                            }}
+                                        />
                                         <Button variant="secondary" className="btn-xs" text="Edit" />
                                     </div>
                                 </div>

@@ -19,6 +19,7 @@ import { DoctorWorkplace } from './doctor-workplace.entity';
 import { DoctorWorkplaceAssistant } from './doctor-workplace-assistant.entity';
 import { Address } from './address.entity';
 import { AppointmentSlot } from './appointment-slot.entity';
+import { DoctorAnalytics } from './doctor-analytics.entity';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AppointmentSlot } from './appointment-slot.entity';
         Address,
         AppointmentSlot,
         AssistantInvite,
+        DoctorAnalytics,
       ],
       synchronize: true, // Set to false in production
       logging: process.env.NODE_ENV === 'development',
@@ -55,6 +57,7 @@ import { AppointmentSlot } from './appointment-slot.entity';
       Address,
       AppointmentSlot,
       AssistantInvite,
+      DoctorAnalytics,
     ]),
 
     // RabbitMQ clients

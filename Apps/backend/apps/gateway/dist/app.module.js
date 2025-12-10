@@ -119,7 +119,10 @@ let AppModule = class AppModule {
         }, {
             path: 'assistants/doctor/remove-assistant',
             method: common_2.RequestMethod.DELETE,
-        }, { path: 'pharmacy/orders', method: common_2.RequestMethod.GET }, { path: 'pharmacy/orders', method: common_2.RequestMethod.POST }, { path: 'pharmacy/profile', method: common_2.RequestMethod.GET }, { path: 'pharmacy/profile', method: common_2.RequestMethod.PUT }, { path: 'pharmacy/dashboard/stats', method: common_2.RequestMethod.GET }, { path: 'pharmacy/dashboard/top-products', method: common_2.RequestMethod.GET }, { path: 'pharmacy/dashboard/recent-activity', method: common_2.RequestMethod.GET });
+        }, { path: 'pharmacy/orders', method: common_2.RequestMethod.GET }, { path: 'pharmacy/orders', method: common_2.RequestMethod.POST }, { path: 'pharmacy/items', method: common_2.RequestMethod.POST }, { path: 'pharmacy/categories', method: common_2.RequestMethod.POST }, { path: 'pharmacy/categories/:categoryId', method: common_2.RequestMethod.PUT }, {
+            path: 'pharmacy/categories/:categoryId/delete',
+            method: common_2.RequestMethod.PUT,
+        }, { path: 'pharmacy/stock', method: common_2.RequestMethod.POST }, { path: 'pharmacy/stock/:stockId', method: common_2.RequestMethod.PUT }, { path: 'pharmacy/stock/branch/:branchId', method: common_2.RequestMethod.GET }, { path: 'pharmacy/stock', method: common_2.RequestMethod.GET }, { path: 'pharmacy/profile', method: common_2.RequestMethod.GET }, { path: 'pharmacy/profile', method: common_2.RequestMethod.PUT }, { path: 'pharmacy/dashboard/stats', method: common_2.RequestMethod.GET }, { path: 'pharmacy/dashboard/top-products', method: common_2.RequestMethod.GET }, { path: 'pharmacy/dashboard/recent-activity', method: common_2.RequestMethod.GET });
     }
 };
 exports.AppModule = AppModule;
